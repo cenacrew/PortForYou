@@ -1,0 +1,39 @@
+# Dependencies
+node_modules/
+
+# Builds
+dist/
+.next/
+out/
+*.tsbuildinfo
+
+# Env & secrets
+.env
+.env.*
+!.env.example
+!.env.development
+!.env.production
+*-adminsdk*.json
+service-account*.json
+
+# Firebase
+.firebase/
+firebase-debug.log
+firestore-debug.log
+ui-debug.log
+emulator-data/
+
+# Test & coverage
+coverage/
+playwright-report/
+test-results/
+
+# IDE / OS
+.DS_Store
+Thumbs.db
+.idea/
+
+# Logs
+*.log
+npm-debug.log*
+pnpm-debug.log*

@@ -1,0 +1,10 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Auth maison : le navigateur ne parle jamais à Firestore.
+    // Tous les accès passent par l'API (Admin SDK, qui ignore ces règles).
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
