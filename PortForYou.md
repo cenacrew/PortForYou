@@ -1,6 +1,6 @@
-# Port'ForYou — Cahier des charges & instructions de réalisation
+# Port'ForYou — Cahier des charges & spécification de réalisation
 
-> **Ce document est un fichier d'instructions destiné à un agent IA (Claude Fable/Opus/Sonnet) chargé de construire la plateforme Port'ForYou de bout en bout.** Il est exhaustif et prescriptif : suivre les décisions actées telles quelles, ne pas les re-négocier.
+> **Ce document est le cahier des charges de la plateforme Port'ForYou.** Il est exhaustif et prescriptif : les décisions d'architecture qui y sont actées font foi et ne sont pas à re-négocier en cours de réalisation.
 
 ---
 
