@@ -1,0 +1,59 @@
+# Dev local conteneurisé (alternative à `pnpm dev` qui reste la voie recommandée
+# sous Windows). Tout tourne sans compte GCP/Stripe : émulateurs + drivers fake.
+#
+#   docker compose up
+#
+# Vitrine : http://localhost:3000 — API : http://localhost:8081 — UI émulateurs : http://localhost:4000
+services:
+  emulators:
+    build:
+      context: infra/docker
+      dockerfile: emulators.Dockerfile
+    volumes:
+      # Seule la config est montée : les binaires vivent dans l'image.
+      - ./firebase.json:/config/firebase.json:ro
+      - ./firestore.rules:/config/firestore.rules:ro
+      - ./firestore.indexes.json:/config/firestore.indexes.json:ro
+      - ./storage.rules:/config/storage.rules:ro
+    ports:
+      - '8090:8090' # Firestore
+      - '9199:9199' # Storage
+      - '4000:4000' # UI
+
+  api:
+    image: node:22-slim
+    working_dir: /repo
+    volumes:
+      - .:/repo
+      - pnpm-store:/root/.local/share/pnpm/store
+    ports:
+      - '8081:8081'
+    environment:
+      FIRESTORE_EMULATOR_HOST: emulators:8090
+      WEB_ORIGIN: http://localhost:3000
+    depends_on:
+      emulators:
+        condition: service_healthy
+    command: >
+      bash -c "corepack enable && pnpm install --frozen-lockfile &&
+      pnpm --filter @portforyou/shared build && pnpm --filter @portforyou/api dev"
+
+  web:
+    image: node:22-slim
+    working_dir: /repo
+    volumes:
+      - .:/repo
+      - pnpm-store:/root/.local/share/pnpm/store
+    ports:
+      - '3000:3000'
+    environment:
+      NEXT_PUBLIC_API_URL: http://localhost:8081
+    depends_on:
+      emulators:
+        condition: service_healthy
+    command: >
+      bash -c "corepack enable && pnpm install --frozen-lockfile &&
+      pnpm --filter @portforyou/shared build && pnpm --filter @portforyou/web dev"
+
+volumes:
+  pnpm-store:
