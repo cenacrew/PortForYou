@@ -1,0 +1,197 @@
+/* Port'ForYou — système de design
+   Duo ivoire/encre, accent bleu Klein (IKB), cartels de musée en mono. */
+:root {
+  --paper: #f6f3ec;
+  --ink: #101012;
+  --klein: #2430e8;
+  --klein-deep: #002fa7;
+  --stone: #8b877e;
+  --line: rgba(16, 16, 18, 0.14);
+  --font-display: var(--font-fraunces), 'Georgia', serif;
+  --font-body: var(--font-instrument), system-ui, sans-serif;
+  --font-cartel: var(--font-plex-mono), monospace;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 1.0625rem;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection {
+  background: var(--klein);
+  color: var(--paper);
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+img {
+  max-width: 100%;
+  display: block;
+}
+
+button {
+  font: inherit;
+  cursor: pointer;
+}
+
+:focus-visible {
+  outline: 2px solid var(--klein);
+  outline-offset: 3px;
+}
+
+/* ---- Typographie ---- */
+.display {
+  font-family: var(--font-display);
+  font-weight: 560;
+  letter-spacing: -0.03em;
+  line-height: 1.02;
+}
+
+.cartel {
+  font-family: var(--font-cartel);
+  font-size: 0.78rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--stone);
+}
+
+.cartel strong {
+  color: var(--ink);
+  font-weight: 500;
+}
+
+/* ---- Structure ---- */
+.container {
+  width: min(1200px, 100% - 3rem);
+  margin-inline: auto;
+}
+
+.section {
+  padding-block: clamp(5rem, 12vh, 9rem);
+}
+
+.section-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 2rem;
+  border-top: 1px solid var(--ink);
+  padding-top: 1rem;
+  margin-bottom: clamp(2.5rem, 6vh, 4.5rem);
+}
+
+.section-head h2 {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: clamp(1.8rem, 4vw, 3rem);
+  letter-spacing: -0.02em;
+}
+
+/* ---- Boutons ---- */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.85rem 1.7rem;
+  border-radius: 999px;
+  border: 1px solid var(--ink);
+  background: transparent;
+  color: var(--ink);
+  font-size: 0.95rem;
+  transition:
+    background 0.25s ease,
+    color 0.25s ease,
+    border-color 0.25s ease;
+}
+
+.btn:hover {
+  background: var(--ink);
+  color: var(--paper);
+}
+
+.btn-primary {
+  background: var(--klein);
+  border-color: var(--klein);
+  color: #fff;
+}
+
+.btn-primary:hover {
+  background: var(--klein-deep);
+  border-color: var(--klein-deep);
+  color: #fff;
+}
+
+.btn[disabled] {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+/* ---- Formulaires ---- */
+.field {
+  display: grid;
+  gap: 0.4rem;
+  margin-bottom: 1.2rem;
+}
+
+.field label {
+  font-size: 0.85rem;
+  letter-spacing: 0.04em;
+  color: var(--stone);
+}
+
+.field input,
+.field textarea,
+.field select {
+  font: inherit;
+  padding: 0.75rem 0.9rem;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fff;
+  color: var(--ink);
+}
+
+.field input:focus,
+.field textarea:focus {
+  border-color: var(--klein);
+  outline: none;
+}
+
+.error-text {
+  color: #b3261e;
+  font-size: 0.9rem;
+}
+
+.ok-text {
+  color: #1a7a3c;
+  font-size: 0.9rem;
+}
+
+/* ---- Reveal au scroll (piloté par GSAP ; état initial sans JS = visible) ---- */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}

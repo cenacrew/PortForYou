@@ -1,0 +1,47 @@
+.grid {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr;
+  gap: 3.5rem;
+  align-items: start;
+}
+
+@media (max-width: 900px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.image {
+  width: 100%;
+  height: auto;
+  border: 1px solid var(--line);
+}
+
+.cartel {
+  display: grid;
+  gap: 1.1rem;
+}
+
+.description {
+  max-width: 48ch;
+}
+
+.features {
+  list-style: none;
+  display: grid;
+  gap: 0.45rem;
+  border-top: 1px solid var(--line);
+  padding-top: 1.1rem;
+}
+
+.features li::before {
+  content: '— ';
+  color: var(--klein);
+}
+
+.ctas {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-top: 0.5rem;
+}

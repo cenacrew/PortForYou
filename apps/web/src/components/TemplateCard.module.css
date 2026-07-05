@@ -1,0 +1,49 @@
+.card {
+  display: block;
+}
+
+.imageWrap {
+  position: relative;
+  border: 1px solid var(--line);
+  overflow: hidden;
+  transition: transform 0.35s ease;
+}
+
+.card:hover .imageWrap {
+  transform: translateY(-4px);
+}
+
+.imageWrap img {
+  width: 100%;
+  height: auto;
+}
+
+.soon {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background: var(--ink);
+  color: var(--paper);
+  font-family: var(--font-cartel);
+  font-size: 0.7rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 0.35rem 0.7rem;
+  border-radius: 999px;
+}
+
+.cartel {
+  padding: 1rem 0.2rem 0;
+  display: grid;
+  gap: 0.15rem;
+}
+
+.title {
+  font-size: 1.05rem;
+}
+
+.title em {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 1.25rem;
+}

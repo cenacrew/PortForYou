@@ -1,0 +1,52 @@
+.timeline {
+  list-style: none;
+  display: grid;
+  gap: 0;
+}
+
+.step {
+  display: flex;
+  gap: 1rem;
+  align-items: flex-start;
+  padding-block: 0.85rem;
+  border-left: 2px solid var(--line);
+  padding-left: 1.2rem;
+  margin-left: 0.5rem;
+  position: relative;
+  color: var(--stone);
+}
+
+.step[data-status='done'] {
+  color: var(--ink);
+}
+
+.step[data-status='running'] {
+  color: var(--klein);
+}
+
+.step[data-status='failed'] {
+  color: #b3261e;
+}
+
+.icon {
+  position: absolute;
+  left: -0.62rem;
+  background: var(--paper);
+  line-height: 1.6;
+}
+
+.step[data-status='running'] .icon {
+  animation: pulse 1.2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  50% {
+    opacity: 0.35;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .step[data-status='running'] .icon {
+    animation: none;
+  }
+}
