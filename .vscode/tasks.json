@@ -1,0 +1,43 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Dev",
+      "dependsOn": ["Émulateurs (Docker)", "API", "Vitrine"],
+      "dependsOrder": "parallel",
+      "group": { "kind": "build", "isDefault": true },
+      "problemMatcher": []
+    },
+    {
+      "label": "Émulateurs (Docker)",
+      "type": "shell",
+      "command": "pnpm emulators:docker",
+      "isBackground": true,
+      "presentation": { "panel": "dedicated", "group": "dev" },
+      "problemMatcher": []
+    },
+    {
+      "label": "API",
+      "type": "shell",
+      "command": "pnpm --filter @portforyou/shared build && pnpm --filter @portforyou/api dev",
+      "isBackground": true,
+      "presentation": { "panel": "dedicated", "group": "dev" },
+      "problemMatcher": []
+    },
+    {
+      "label": "Vitrine",
+      "type": "shell",
+      "command": "pnpm --filter @portforyou/web dev",
+      "isBackground": true,
+      "presentation": { "panel": "dedicated", "group": "dev" },
+      "problemMatcher": []
+    },
+    {
+      "label": "Tests E2E (Playwright)",
+      "type": "shell",
+      "command": "pnpm --filter @portforyou/web test:e2e",
+      "presentation": { "panel": "dedicated" },
+      "problemMatcher": []
+    }
+  ]
+}
