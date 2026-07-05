@@ -25,10 +25,26 @@ export default {
     ],
     // Scopes conseillés (non bloquant) : api, web, atelier, monolith, papier,
     // shared, infra, auth, billing, provisioning, deps
-    'scope-enum': [1, 'always', [
-      'api', 'web', 'atelier', 'monolith', 'papier', 'shared', 'infra',
-      'auth', 'billing', 'provisioning', 'templates', 'deps', 'ci', 'release',
-    ]],
+    'scope-enum': [
+      1,
+      'always',
+      [
+        'api',
+        'web',
+        'atelier',
+        'monolith',
+        'papier',
+        'shared',
+        'infra',
+        'auth',
+        'billing',
+        'provisioning',
+        'templates',
+        'deps',
+        'ci',
+        'release',
+      ],
+    ],
     'subject-case': [0], // français : on n'impose pas la casse
     'header-max-length': [2, 'always', 100],
   },

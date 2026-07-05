@@ -5,3 +5,5 @@ coverage
 pnpm-lock.yaml
 emulator-data
 *.svg
+
+apps/web/next-env.d.ts
