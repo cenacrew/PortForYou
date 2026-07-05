@@ -1,0 +1,79 @@
+name: Release Templates
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'templates/**'
+      - '.github/workflows/release-templates.yml'
+  workflow_dispatch:
+    inputs:
+      template:
+        description: 'Template à publier (atelier, monolith, papier ou all)'
+        default: 'all'
+
+env:
+  PROJECT_ID: portforyou-vsp
+  REGION: europe-west1
+  REGISTRY: europe-west1-docker.pkg.dev
+  BUILDS_BUCKET: portforyou-template-builds
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    environment: production
+    strategy:
+      matrix:
+        template: [atelier, monolith, papier]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - id: auth
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ vars.GCP_WIF_PROVIDER }}
+          service_account: ${{ vars.GCP_CI_SERVICE_ACCOUNT }}
+      - uses: google-github-actions/setup-gcloud@v2
+
+      - name: Version
+        id: version
+        run: echo "v=v${{ github.run_number }}" >> "$GITHUB_OUTPUT"
+
+      - name: Build & push back image
+        run: |
+          gcloud auth configure-docker $REGISTRY --quiet
+          IMAGE_BASE=$REGISTRY/$PROJECT_ID/pfy/${{ matrix.template }}-back
+          docker build -t "$IMAGE_BASE:${{ steps.version.outputs.v }}" -t "$IMAGE_BASE:latest" \
+            templates/${{ matrix.template }}/back
+          docker push "$IMAGE_BASE" --all-tags
+
+      - name: Build front statique
+        run: |
+          pnpm install --frozen-lockfile
+          pnpm --filter @portforyou/${{ matrix.template }}-front build
+
+      - name: Upload front vers GCS
+        run: |
+          gcloud storage rsync --recursive --delete-unmatched-destination-objects \
+            templates/${{ matrix.template }}/front/dist \
+            gs://$BUILDS_BUCKET/${{ matrix.template }}/${{ steps.version.outputs.v }}
+
+      - name: Mettre à jour la version courante (Firestore)
+        run: |
+          TOKEN=$(gcloud auth print-access-token)
+          curl -sf -X PATCH \
+            "https://firestore.googleapis.com/v1/projects/$PROJECT_ID/databases/(default)/documents/templates/${{ matrix.template }}?updateMask.fieldPaths=currentVersion" \
+            -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
+            -d '{"fields":{"currentVersion":{"stringValue":"${{ steps.version.outputs.v }}"}}}'
