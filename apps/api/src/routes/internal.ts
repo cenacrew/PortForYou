@@ -1,0 +1,139 @@
+import { Router, json, type Request, type Response, type NextFunction } from 'express';
+import { OAuth2Client } from 'google-auth-library';
+import { z } from 'zod';
+import { validateBody } from '../middleware/validate.js';
+import { runProvisioning } from '../provisioning/pipeline.js';
+import { getProvisionerDriver } from '../provisioning/index.js';
+import { config } from '../config.js';
+
+const router: Router = Router();
+const oidcClient = new OAuth2Client();
+
+/**
+ * Réservé à Cloud Tasks : vérifie le token OIDC (audience = URL publique de
+ * l'API, émetteur Google, service account attendu).
+ */
+async function requireCloudTasksOidc(req: Request, res: Response, next: NextFunction) {
+  try {
+    const token = (req.headers.authorization || '').replace('Bearer ', '');
+    const ticket = await oidcClient.verifyIdToken({
+      idToken: token,
+      audience: config.API_PUBLIC_URL,
+    });
+    const email = ticket.getPayload()?.email;
+    if (!email || email !== config.TASKS_SERVICE_ACCOUNT) {
+      return res.status(403).json({ error: 'Service account non autorisé' });
+    }
+    next();
+  } catch {
+    return res.status(401).json({ error: 'Token OIDC invalide' });
+  }
+}
+
+router.post(
+  '/internal/provision',
+  json(),
+  requireCloudTasksOidc,
+  validateBody(z.object({ siteId: z.string().min(1), deployId: z.string().min(1) })),
+  async (req, res) => {
+    const driver = await getProvisionerDriver();
+    // Exécution synchrone : Cloud Tasks attend la fin (deadline 15 min) et
+    // rejoue en cas d'échec HTTP.
+    await runProvisioning(driver, req.body.siteId, req.body.deployId);
+    res.json({ ok: true });
+  },
+);
+
+/**
+ * Health checks des sites live — appelé par Cloud Scheduler (OIDC) toutes
+ * les 10 minutes. Met à jour sites/{id}.health pour le dashboard admin.
+ */
+router.post('/internal/health-checks', requireCloudTasksOidc, async (_req, res) => {
+  const { sitesCol } = await import('../lib/firebase.js');
+  const sites = await sitesCol().where('status', '==', 'live').get();
+
+  const results = await Promise.all(
+    sites.docs.map(async (doc) => {
+      const front = doc.data().urls?.front as string | undefined;
+      if (!front) return null;
+      const started = Date.now();
+      let status = 'down';
+      try {
+        const ping = await fetch(`${front}/api/v1/health`, {
+          signal: AbortSignal.timeout(10000),
+        });
+        if (ping.ok) status = 'up';
+      } catch {
+        /* down */
+      }
+      const latencyMs = Date.now() - started;
+      await doc.ref.update({
+        health: { status, latencyMs, checkedAt: new Date().toISOString() },
+      });
+      return { slug: doc.data().slug, status, latencyMs };
+    }),
+  );
+  res.json({ checked: results.filter(Boolean) });
+});
+
+/** Purge des réservations de slugs expirées — Cloud Scheduler (1 h). */
+router.post('/internal/cleanup-slugs', requireCloudTasksOidc, async (_req, res) => {
+  const { slugsCol } = await import('../lib/firebase.js');
+  const cutoff = new Date(Date.now() - 30 * 60 * 1000);
+  const stale = await slugsCol()
+    .where('status', '==', 'reserved')
+    .where('reservedAt', '<', cutoff)
+    .get();
+  await Promise.all(stale.docs.map((doc) => doc.ref.delete()));
+  res.json({ purged: stale.size });
+});
+
+/**
+ * Cycle de facturation — Cloud Scheduler, le 1er du mois : estime la
+ * consommation du mois écoulé de chaque site live, archive le détail et
+ * pousse l'usage sur le meter Stripe (1 unité = 1 centime d'infra).
+ */
+router.post('/internal/billing-cycle', requireCloudTasksOidc, async (_req, res) => {
+  const { sitesCol, usersCol } = await import('../lib/firebase.js');
+  const { estimateTenantCost } = await import('../billing/estimate.js');
+  const { config } = await import('../config.js');
+
+  const now = new Date();
+  const start = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - 1, 1));
+  const end = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1));
+  const monthKey = start.toISOString().slice(0, 7);
+
+  const sites = await sitesCol().where('status', '==', 'live').get();
+  const results: Array<Record<string, unknown>> = [];
+
+  for (const doc of sites.docs) {
+    const site = doc.data();
+    try {
+      const cost = await estimateTenantCost(site.slug, start, end);
+      await doc.ref.set({ billing: { [monthKey]: cost } }, { merge: true });
+
+      // Report d'usage Stripe (meter pfy_infra), si le vrai Stripe est branché.
+      if (config.PAYMENT_DRIVER === 'stripe') {
+        const user = await usersCol().doc(site.uid).get();
+        const customerId = user.data()?.stripeCustomerId as string | undefined;
+        if (customerId) {
+          const { getStripe } = await import('../payments/stripe.js');
+          await getStripe().billing.meterEvents.create({
+            event_name: 'pfy_infra',
+            payload: {
+              stripe_customer_id: customerId,
+              value: String(Math.round(cost.totalEur * 100)), // centimes d'infra
+            },
+          });
+        }
+      }
+      results.push({ slug: site.slug, month: monthKey, infraEur: cost.totalEur });
+    } catch (err) {
+      console.error(`billing-cycle ${site.slug}:`, err);
+      results.push({ slug: site.slug, error: String(err) });
+    }
+  }
+  res.json({ month: monthKey, sites: results });
+});
+
+export default router;
