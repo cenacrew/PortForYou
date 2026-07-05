@@ -1,0 +1,15 @@
+**/node_modules
+**/dist
+**/.next
+**/coverage
+**/.turbo
+**/emulator-data
+**/playwright-report
+**/test-results
+.git
+.github
+.husky
+*.log
+**/.env
+**/.env.*
+!**/.env.example

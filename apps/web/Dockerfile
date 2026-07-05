@@ -3,7 +3,7 @@
 FROM node:22-slim AS build
 RUN corepack enable
 WORKDIR /repo
-COPY pnpm-workspace.yaml package.json pnpm-lock.yaml ./
+COPY pnpm-workspace.yaml package.json pnpm-lock.yaml tsconfig.base.json ./
 COPY packages/shared/package.json packages/shared/
 COPY apps/web/package.json apps/web/
 RUN pnpm install --frozen-lockfile --filter @portforyou/web --filter @portforyou/shared
