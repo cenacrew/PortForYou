@@ -1,0 +1,20 @@
+{
+  "hosting": {
+    "site": "YOUR_HOSTING_SITE_ID",
+    "public": "front/dist",
+    "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
+    "rewrites": [
+      {
+        "source": "/api/**",
+        "run": {
+          "serviceId": "atelier-back",
+          "region": "europe-west1"
+        }
+      },
+      {
+        "source": "**",
+        "destination": "/index.html"
+      }
+    ]
+  }
+}

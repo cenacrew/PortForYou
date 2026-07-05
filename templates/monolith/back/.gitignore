@@ -1,0 +1,13 @@
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+
+# dependencies
+/node_modules
+
+# local env files (do not commit secrets)
+.env
+.env.dev
+env.yaml
+
+# Firebase service account (never commit private keys)
+*firebase-adminsdk*.json
+serviceAccount*.json
