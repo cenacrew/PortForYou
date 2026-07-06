@@ -98,6 +98,26 @@ router.post('/me/sites/:id/regenerate-password', async (req, res) => {
   return res.json({ ok: true, password });
 });
 
+/**
+ * Relance le déploiement d'un site en échec, sur le MÊME slug. Reprend le
+ * pipeline idempotent depuis le début (les étapes déjà réussies sont
+ * réutilisées/patchées, celle qui avait échoué est rejouée) et renvoie l'id
+ * du nouveau déploiement à suivre en temps réel.
+ */
+router.post('/me/sites/:id/retry', async (req, res) => {
+  const snap = await ownedSite(req, req.params.id);
+  if (!snap) return res.status(404).json({ error: 'Site introuvable' });
+  const site = snap.data()!;
+  if (site.status !== 'error') {
+    return res.status(409).json({ error: 'Seuls les sites en échec peuvent être relancés' });
+  }
+
+  const { dispatchProvisioning } = await import('../provisioning/pipeline.js');
+  await snap.ref.update({ status: 'provisioning' });
+  const deploymentId = await dispatchProvisioning(req.params.id, req.user!.uid, 'retry');
+  return res.json({ ok: true, deploymentId });
+});
+
 /** Agrégats analytics du tenant (lus depuis tenants/{slug}/analytics_daily). */
 router.get('/me/sites/:id/analytics', async (req, res) => {
   const snap = await ownedSite(req, req.params.id);

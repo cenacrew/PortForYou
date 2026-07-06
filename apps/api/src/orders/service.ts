@@ -1,10 +1,8 @@
 import { FieldValue } from 'firebase-admin/firestore';
 import { tenantFrontUrl } from '@portforyou/shared';
 import { db, ordersCol, sitesCol, slugsCol } from '../lib/firebase.js';
-import { createDeployment, runProvisioning } from '../provisioning/pipeline.js';
-import { getProvisionerDriver } from '../provisioning/index.js';
+import { dispatchProvisioning } from '../provisioning/pipeline.js';
 import { sendMail, orderConfirmationEmail } from '../emails/mailer.js';
-import { config } from '../config.js';
 
 /** Durée de validité d'une réservation de slug non payée. */
 const SLUG_RESERVATION_TTL_MS = 30 * 60 * 1000;
@@ -77,19 +75,10 @@ export async function confirmPaidOrder(orderId: string): Promise<{ siteId: strin
     .doc(order.siteSlug)
     .set({ status: 'confirmed', uid: order.uid, siteId: siteRef.id }, { merge: true });
 
-  const deployId = await createDeployment(siteRef.id, order.uid, 'order');
-
   const mail = orderConfirmationEmail(order.artistName, order.siteSlug);
   await sendMail({ to: order.clientEmail, type: 'order_confirmed', ...mail });
 
-  if (config.PROVISIONING_VIA_TASKS) {
-    // Prod : Cloud Tasks rappelle POST /internal/provision (retries, backoff).
-    const { enqueueProvisioning } = await import('../provisioning/tasks.js');
-    await enqueueProvisioning(siteRef.id, deployId);
-  } else {
-    // Dev local : le pipeline tourne en tâche de fond dans le process.
-    void getProvisionerDriver().then((driver) => runProvisioning(driver, siteRef.id, deployId));
-  }
+  await dispatchProvisioning(siteRef.id, order.uid, 'order');
 
   return { siteId: siteRef.id };
 }

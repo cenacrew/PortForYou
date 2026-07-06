@@ -28,6 +28,30 @@ function initialSteps() {
   }));
 }
 
+/**
+ * Crée un déploiement puis lance le provisioning : via Cloud Tasks en prod
+ * (retries/backoff) ou en tâche de fond en local. Utilisé par la commande
+ * initiale ET par le retry d'un site en échec (même slug, reprise du pipeline
+ * idempotent). Retourne l'id du déploiement à suivre en SSE.
+ */
+export async function dispatchProvisioning(
+  siteId: string,
+  uid: string,
+  trigger: string,
+): Promise<string> {
+  const deployId = await createDeployment(siteId, uid, trigger);
+  const { config } = await import('../config.js');
+  if (config.PROVISIONING_VIA_TASKS) {
+    const { enqueueProvisioning } = await import('./tasks.js');
+    await enqueueProvisioning(siteId, deployId);
+  } else {
+    const { getProvisionerDriver } = await import('./index.js');
+    const driver = await getProvisionerDriver();
+    void runProvisioning(driver, siteId, deployId);
+  }
+  return deployId;
+}
+
 /** Crée le document deployments/{id} et retourne son id. */
 export async function createDeployment(siteId: string, uid: string, trigger: string) {
   const ref = await deploymentsCol().add({
@@ -140,9 +164,16 @@ export async function runProvisioning(
     });
     await sendMail({ to: site.clientEmail, type: 'site_live', ...mail });
   } catch (err) {
-    const message = err instanceof Error ? err.message : String(err);
+    // Le détail (souvent une réponse d'API GCP) reste côté serveur : il ne doit
+    // jamais fuiter au client via le flux SSE. L'étape ne porte qu'un message
+    // générique et sûr.
     console.error(`Provisioning de ${site.slug} échoué à l'étape ${current}:`, err);
-    await setStep(deployId, current, 'failed', message);
+    await setStep(
+      deployId,
+      current,
+      'failed',
+      'Cette étape a échoué. Vous pouvez relancer le déploiement ; si le problème persiste, contactez le support.',
+    );
     await deploymentsCol().doc(deployId).update({ status: 'failed' });
     await siteRef.update({ status: 'error' });
     const mail = deploymentFailedEmail(site.artistName, site.slug);

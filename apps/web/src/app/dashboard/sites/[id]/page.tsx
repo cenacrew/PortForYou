@@ -51,6 +51,7 @@ function SiteDetailView() {
   const [billing, setBilling] = useState<Billing | null>(null);
   const [password, setPassword] = useState('');
   const [regenBusy, setRegenBusy] = useState(false);
+  const [retryBusy, setRetryBusy] = useState(false);
   const [error, setError] = useState('');
 
   const load = useCallback(() => {
@@ -75,6 +76,20 @@ function SiteDetailView() {
     const timer = setInterval(load, 4000);
     return () => clearInterval(timer);
   }, [data?.site.status, load]);
+
+  const retry = async () => {
+    setRetryBusy(true);
+    setError('');
+    try {
+      await api(`/me/sites/${id}/retry`, { method: 'POST', body: JSON.stringify({}) });
+      // Repasse en provisioning : le flux SSE suit le nouveau déploiement et le
+      // poll se réactive jusqu'à la mise en ligne.
+      setData((prev) => (prev ? { site: { ...prev.site, status: 'provisioning' } } : prev));
+    } catch (err) {
+      setError((err as Error).message);
+    }
+    setRetryBusy(false);
+  };
 
   const regenerate = async () => {
     setRegenBusy(true);
@@ -141,6 +156,18 @@ function SiteDetailView() {
               >
                 Visiter mon site →
               </a>
+            )}
+            {site.status === 'error' && (
+              <>
+                <p className={styles.meta}>
+                  Le déploiement s’est interrompu. Vous pouvez le relancer sur le même site — les
+                  étapes déjà réussies sont conservées, la reprise reprend là où ça a échoué.
+                </p>
+                <button className="btn btn-primary" onClick={retry} disabled={retryBusy}>
+                  {retryBusy ? 'Relance…' : 'Relancer le déploiement'}
+                </button>
+                {error && <p className="error-text">{error}</p>}
+              </>
             )}
           </div>
 
