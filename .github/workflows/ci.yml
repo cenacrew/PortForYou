@@ -176,8 +176,8 @@ jobs:
             --region "$REGION" \
             --allow-unauthenticated \
             --min-instances 0 --max-instances 3 \
-            --set-env-vars "NODE_ENV=production,PAYMENT_DRIVER=fake,PROVISIONER_DRIVER=gcp,PROVISIONING_VIA_TASKS=1,REQUIRE_VERIFIED_EMAIL=0,GCP_PROJECT_ID=$PROJECT_ID,STRIPE_PRICE_BASE=price_1TpnUJ3UvSqKvC9na5LO4KRc,STRIPE_PRICE_DOMAIN=price_1TpnUK3UvSqKvC9nohRxnASV,STRIPE_PRICE_INFRA=price_1TpnUK3UvSqKvC9nr3A3H1Sr,GOOGLE_OAUTH_CLIENT_ID=212335230613-2v8i6fp1g7evjmqbi2kd9p6a4pe5q9l9.apps.googleusercontent.com" \
-            --set-secrets "JWT_SECRET=pfy-jwt-secret:latest,STRIPE_SECRET_KEY=pfy-stripe-secret:latest,GOOGLE_OAUTH_CLIENT_SECRET=pfy-google-oauth-secret:latest" \
+            --set-env-vars "NODE_ENV=production,PAYMENT_DRIVER=stripe,PROVISIONER_DRIVER=gcp,PROVISIONING_VIA_TASKS=1,REQUIRE_VERIFIED_EMAIL=0,GCP_PROJECT_ID=$PROJECT_ID,STRIPE_PRICE_BASE=price_1TpnUJ3UvSqKvC9na5LO4KRc,STRIPE_PRICE_DOMAIN=price_1TpnUK3UvSqKvC9nohRxnASV,STRIPE_PRICE_INFRA=price_1TpnUK3UvSqKvC9nr3A3H1Sr,GOOGLE_OAUTH_CLIENT_ID=212335230613-2v8i6fp1g7evjmqbi2kd9p6a4pe5q9l9.apps.googleusercontent.com" \
+            --set-secrets "JWT_SECRET=pfy-jwt-secret:latest,STRIPE_SECRET_KEY=pfy-stripe-secret:latest,STRIPE_WEBHOOK_SECRET=pfy-stripe-webhook:latest,GOOGLE_OAUTH_CLIENT_SECRET=pfy-google-oauth-secret:latest" \
             --service-account "pfy-api@$PROJECT_ID.iam.gserviceaccount.com"
 
       - name: URL de l'API (pour l'inline build-time du front)

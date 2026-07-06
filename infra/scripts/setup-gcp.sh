@@ -132,6 +132,17 @@ fi
 gcloud secrets add-iam-policy-binding pfy-google-oauth-secret \
   --member="serviceAccount:$API_SA" --role="roles/secretmanager.secretAccessor" >/dev/null 2>&1 || true
 
+echo "▶ Secrets Stripe (placeholders — renseigner les vraies valeurs ensuite)…"
+# La cle secrete (sk_test/sk_live) et le secret du webhook (whsec_...) se
+# recuperent dans le dashboard Stripe. Pousser ensuite :
+#   printf '%s' 'sk_test_...'  | gcloud secrets versions add pfy-stripe-secret  --data-file=-
+#   printf '%s' 'whsec_...'    | gcloud secrets versions add pfy-stripe-webhook --data-file=-
+for S in pfy-stripe-secret pfy-stripe-webhook; do
+  gcloud secrets describe "$S" >/dev/null 2>&1 || printf '%s' 'PLACEHOLDER' | gcloud secrets create "$S" --data-file=-
+  gcloud secrets add-iam-policy-binding "$S" \
+    --member="serviceAccount:$API_SA" --role="roles/secretmanager.secretAccessor" >/dev/null 2>&1 || true
+done
+
 echo "▶ Cloud Scheduler (health checks + purge des slugs + cycle de facturation)…"
 API_URL=$(gcloud run services describe pfy-api --region "$REGION" --format='value(status.url)' 2>/dev/null || echo "")
 if [ -n "$API_URL" ]; then
