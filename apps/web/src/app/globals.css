@@ -176,6 +176,7 @@ button {
 .error-text {
   color: #b3261e;
   font-size: 0.9rem;
+  overflow-wrap: anywhere;
 }
 
 .ok-text {

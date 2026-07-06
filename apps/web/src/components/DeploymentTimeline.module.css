@@ -16,6 +16,18 @@
   color: var(--stone);
 }
 
+/* min-width:0 : autorise le contenu à rétrécir dans le flex et à passer à la
+   ligne au lieu de déborder (scroll horizontal). */
+.stepBody {
+  min-width: 0;
+}
+
+.stepError {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  white-space: normal;
+}
+
 .step[data-status='done'] {
   color: var(--ink);
 }

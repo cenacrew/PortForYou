@@ -53,9 +53,9 @@ export function DeploymentTimeline({ siteId }: { siteId: string }) {
           <span className={styles.icon} aria-hidden>
             {ICONS[step.status]}
           </span>
-          <div>
+          <div className={styles.stepBody}>
             <p>{step.label}</p>
-            {step.error && <p className="error-text">{step.error}</p>}
+            {step.error && <p className={`error-text ${styles.stepError}`}>{step.error}</p>}
           </div>
         </li>
       ))}
