@@ -21,7 +21,7 @@ services:
       - '4000:4000' # UI
 
   api:
-    image: node:22-slim
+    image: node:24-slim
     working_dir: /repo
     volumes:
       - .:/repo
@@ -39,7 +39,7 @@ services:
       pnpm --filter @portforyou/shared build && pnpm --filter @portforyou/api dev"
 
   web:
-    image: node:22-slim
+    image: node:24-slim
     working_dir: /repo
     volumes:
       - .:/repo

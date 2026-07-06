@@ -1,6 +1,6 @@
 # Construit depuis la RACINE du monorepo :
 #   docker build -f apps/api/Dockerfile -t pfy-api .
-FROM node:22-slim AS build
+FROM node:24-slim AS build
 RUN corepack enable
 WORKDIR /repo
 COPY pnpm-workspace.yaml package.json pnpm-lock.yaml tsconfig.base.json ./
@@ -12,7 +12,7 @@ COPY apps/api apps/api
 RUN pnpm --filter @portforyou/shared build && pnpm --filter @portforyou/api build
 RUN pnpm --filter @portforyou/api --prod --config.inject-workspace-packages=true deploy /out
 
-FROM node:22-slim
+FROM node:24-slim
 ENV NODE_ENV=production
 WORKDIR /app
 COPY --from=build /out/node_modules ./node_modules

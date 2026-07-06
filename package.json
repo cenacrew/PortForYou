@@ -4,7 +4,7 @@
   "private": true,
   "description": "Port'ForYou — plateforme SaaS de portfolios pour artistes visuels",
   "engines": {
-    "node": ">=22"
+    "node": ">=24"
   },
   "scripts": {
     "dev": "concurrently -n emu,shared,api,web -c yellow,gray,blue,magenta \"pnpm emulators:docker\" \"pnpm --filter @portforyou/shared dev\" \"pnpm --filter @portforyou/api dev\" \"pnpm --filter @portforyou/web dev\"",
