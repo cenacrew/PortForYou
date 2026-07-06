@@ -37,7 +37,9 @@ export default function TemplatesPage() {
           <p className="display" style={{ fontSize: '1.6rem' }}>
             Vous ne trouvez pas votre bonheur ?
           </p>
-          <p className="cartel">On conçoit votre site sur mesure — devis personnalisé, sans engagement.</p>
+          <p className="cartel">
+            On conçoit votre site sur mesure — devis personnalisé, sans engagement.
+          </p>
           <Link href="/contact" className="btn btn-primary">
             Demander un devis →
           </Link>

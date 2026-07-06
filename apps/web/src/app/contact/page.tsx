@@ -24,8 +24,10 @@ export default function ContactPage() {
   const [status, setStatus] = useState<'idle' | 'sending' | 'sent'>('idle');
   const [error, setError] = useState('');
 
-  const set = (k: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) =>
-    setForm({ ...form, [k]: e.target.value });
+  const set =
+    (k: keyof typeof form) =>
+    (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) =>
+      setForm({ ...form, [k]: e.target.value });
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -76,7 +78,13 @@ export default function ContactPage() {
               <div className={styles.row}>
                 <div className="field">
                   <label htmlFor="name">Votre nom</label>
-                  <input id="name" required maxLength={120} value={form.name} onChange={set('name')} />
+                  <input
+                    id="name"
+                    required
+                    maxLength={120}
+                    value={form.name}
+                    onChange={set('name')}
+                  />
                 </div>
                 <div className="field">
                   <label htmlFor="email">Email</label>
