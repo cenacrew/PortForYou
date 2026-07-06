@@ -33,6 +33,8 @@ const envSchema = z.object({
   API_PUBLIC_URL: z.string().default('http://localhost:8081'),
   /** Service account utilisé par Cloud Tasks pour appeler /internal/provision. */
   TASKS_SERVICE_ACCOUNT: z.string().default('pfy-api@portforyou-vsp.iam.gserviceaccount.com'),
+  /** SA d'exécution (moindre privilège) des services Cloud Run tenant. */
+  TENANT_RUNTIME_SA: z.string().default('pfy-tenant@portforyou-vsp.iam.gserviceaccount.com'),
   /** 1 = le provisioning passe par Cloud Tasks (prod) au lieu du process local. */
   PROVISIONING_VIA_TASKS: z.coerce.number().default(0),
   /** 1 = exiger un email vérifié avant de commander (prod). */

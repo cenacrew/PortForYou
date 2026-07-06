@@ -42,6 +42,15 @@ if (!getApps().length) {
         storageBucket: storageBucketNameInternal,
       });
       appInitialized = true;
+    } else if (projectId) {
+      // Prod GCP (Cloud Run) : ADC fourni par le SA d'exécution via le serveur
+      // de métadonnées — aucune clé ni GOOGLE_APPLICATION_CREDENTIALS requis.
+      initializeApp({
+        credential: applicationDefault(),
+        projectId,
+        storageBucket: storageBucketNameInternal,
+      });
+      appInitialized = true;
     } else {
       console.warn(
         '⚠️ Firebase credentials missing. Set FIREBASE_PROJECT_ID, FIREBASE_CLIENT_EMAIL, FIREBASE_PRIVATE_KEY or GOOGLE_APPLICATION_CREDENTIALS.',

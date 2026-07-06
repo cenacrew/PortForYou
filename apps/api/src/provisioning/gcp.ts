@@ -31,6 +31,22 @@ async function upsertSecret(name: string, value: string) {
     body: { payload: { data: Buffer.from(value).toString('base64') } },
   });
   assertOk(version, `Ajout de version au secret ${name}`);
+
+  // Le SA d'exécution du service tenant doit pouvoir lire ce secret au démarrage.
+  const policy = await gfetch(`${SM_API}/projects/${PROJECT}/secrets/${name}:setIamPolicy`, {
+    method: 'POST',
+    body: {
+      policy: {
+        bindings: [
+          {
+            role: 'roles/secretmanager.secretAccessor',
+            members: [`serviceAccount:${config.TENANT_RUNTIME_SA}`],
+          },
+        ],
+      },
+    },
+  });
+  assertOk(policy, `Autorisation du SA tenant sur le secret ${name}`);
 }
 
 /**
@@ -55,6 +71,20 @@ export const gcpProvisionerDriver: ProvisionerDriver = {
 
     const service = {
       template: {
+        annotations: {
+          // Valeur changeante : force une nouvelle révision à CHAQUE déploiement
+          // (même config), pour que la dernière version des secrets tenant
+          // (rotation du mot de passe, retry) soit bien rechargée.
+          'pfy-deployed-at': String(Date.now()),
+          // Facturation à la requête : CPU alloué uniquement pendant le
+          // traitement, pas pendant que l'instance est chaude au repos. Colle au
+          // modèle « le client paie sa consommation réelle » et minimise le coût
+          // d'un portfolio à faible trafic.
+          'run.googleapis.com/cpu-throttling': 'true',
+        },
+        // SA d'exécution dédié (moindre privilège) : accès aux seuls secrets du
+        // tenant, pas le SA Compute par défaut du projet.
+        serviceAccount: config.TENANT_RUNTIME_SA,
         maxInstanceRequestConcurrency: 80,
         scaling: { minInstanceCount: 0, maxInstanceCount: 2 },
         containers: [
@@ -66,6 +96,8 @@ export const gcpProvisionerDriver: ProvisionerDriver = {
               { name: 'TENANT_ID', value: spec.slug },
               { name: 'NODE_ENV', value: 'production' },
               { name: 'ADMIN_EMAIL', value: spec.adminEmail },
+              // Init Firebase Admin en prod via ADC du SA d'exécution.
+              { name: 'FIREBASE_PROJECT_ID', value: PROJECT },
               { name: 'CORS_ORIGIN', value: `https://${hostingSiteId(spec.slug)}.web.app` },
               { name: 'FIREBASE_STORAGE_BUCKET', value: config.UPLOADS_BUCKET },
               {
