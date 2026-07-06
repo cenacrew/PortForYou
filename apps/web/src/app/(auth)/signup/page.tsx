@@ -4,6 +4,7 @@ import { useState, Suspense } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuthActions } from '@/lib/auth';
+import { GoogleIcon } from '@/components/GoogleIcon';
 import styles from '../auth.module.css';
 
 function SignupForm() {
@@ -78,6 +79,7 @@ function SignupForm() {
         </form>
         <div className={styles.divider}>ou</div>
         <button type="button" onClick={loginWithGoogle} className={`btn ${styles.google}`}>
+          <GoogleIcon />
           Continuer avec Google
         </button>
         <p className={styles.switch}>

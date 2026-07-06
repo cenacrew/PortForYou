@@ -4,11 +4,14 @@ import { useState, Suspense } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuthActions } from '@/lib/auth';
+import { GoogleIcon } from '@/components/GoogleIcon';
 import styles from '../auth.module.css';
 
 const OAUTH_ERRORS: Record<string, string> = {
   google_failed: 'La connexion Google a échoué, réessayez.',
   google_disabled: 'La connexion Google n’est pas activée sur ce serveur.',
+  use_password:
+    'Cet email est déjà associé à un compte avec mot de passe. Connectez-vous avec vos identifiants ci-dessus.',
 };
 
 function LoginForm() {
@@ -75,6 +78,7 @@ function LoginForm() {
         </p>
         <div className={styles.divider}>ou</div>
         <button type="button" onClick={loginWithGoogle} className={`btn ${styles.google}`}>
+          <GoogleIcon />
           Continuer avec Google
         </button>
         <p className={styles.switch}>

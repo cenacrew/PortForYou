@@ -54,7 +54,13 @@ router.post(
       return res.status(201).json(await issueTokens(res, user));
     } catch (err) {
       if (err instanceof Error && err.message === 'EMAIL_TAKEN') {
-        return res.status(409).json({ error: 'Un compte existe déjà avec cet email' });
+        const existing = await findUserByEmail(req.body.email);
+        const viaGoogle = existing != null && !existing.data.passwordHash;
+        return res.status(409).json({
+          error: viaGoogle
+            ? 'Cet email est déjà associé à un compte Google. Connectez-vous avec Google.'
+            : 'Un compte existe déjà avec cet email',
+        });
       }
       throw err;
     }
@@ -63,6 +69,14 @@ router.post(
 
 router.post('/auth/login', validateBody(credentialsSchema), async (req, res) => {
   const found = await findUserByEmail(req.body.email);
+  // Compte créé via Google (aucun mot de passe) : message explicite plutôt que
+  // « mot de passe incorrect » trompeur. On oriente vers le bon moyen.
+  if (found && !found.data.passwordHash) {
+    return res.status(403).json({
+      error: 'Ce compte utilise la connexion Google. Cliquez sur « Continuer avec Google ».',
+      provider: 'google',
+    });
+  }
   // Réponse identique que l'email existe ou non (pas d'énumération).
   if (!found?.data.passwordHash) {
     return res.status(401).json({ error: 'Email ou mot de passe incorrect' });
@@ -158,6 +172,12 @@ router.get('/auth/google/callback', async (req, res) => {
 
     const profile = await exchangeCode(code);
     let found = await findUserByEmail(profile.email);
+    // Un compte email/mot de passe existe déjà pour cet email : on refuse le
+    // lien automatique et on renvoie vers la connexion classique (symétrique
+    // du refus côté login mot de passe).
+    if (found && found.data.passwordHash) {
+      return res.redirect(`${config.WEB_ORIGIN}/login?error=use_password`);
+    }
     if (!found) {
       const created = await createUser({
         email: profile.email,
