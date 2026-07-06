@@ -65,8 +65,8 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - name: Build du package partagé (importé par l'API)
         run: pnpm --filter @portforyou/shared build
-      - name: Tests unitaires
-        run: pnpm test
+      - name: Tests unitaires (plateforme)
+        run: pnpm --filter @portforyou/api --filter @portforyou/web test
       - name: Tests d'intégration API (émulateur Firestore)
         run: pnpm --filter @portforyou/api test:emu
 
@@ -101,6 +101,25 @@ jobs:
           name: playwright-report
           path: apps/web/playwright-report
           retention-days: 7
+
+  templates:
+    # Chaque back de template testé dans son propre job (résumé lisible et
+    # attribué, plutôt que N blocs Vitest empilés dans un seul job).
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        template: [atelier, monolith, papier]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Tests du template ${{ matrix.template }}
+        run: pnpm --filter @portforyou/${{ matrix.template }}-back test
 
   deploy:
     # Déploiement de la plateforme : seulement sur main, si lint + tests passent,
