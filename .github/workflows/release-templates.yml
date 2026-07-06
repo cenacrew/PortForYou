@@ -1,5 +1,7 @@
 name: Release Templates
 
+# Publie les images back + fronts statiques des templates et met à jour la
+# version courante dans Firestore. Déclenché par un changement dans templates/**.
 on:
   push:
     branches: [main]
@@ -22,14 +24,19 @@ permissions:
   contents: read
   id-token: write
 
+# Une release ne doit pas être interrompue en cours (push image + GCS + Firestore).
+concurrency:
+  group: release-templates-${{ github.ref }}
+  cancel-in-progress: false
+
 jobs:
   release:
     runs-on: ubuntu-latest
     environment: production
-    # Ajouter « [skip deploy] » au message de commit pour pousser sur main sans
-    # republier les templates (utile quand la publication a déjà été faite).
+    # Ajouter « [skip deploy] » au message de commit pour pousser sans republier.
     if: ${{ !contains(github.event.head_commit.message, '[skip deploy]') }}
     strategy:
+      fail-fast: false
       matrix:
         template: [atelier, monolith, papier]
     steps:
@@ -46,19 +53,30 @@ jobs:
         with:
           workload_identity_provider: ${{ vars.GCP_WIF_PROVIDER }}
           service_account: ${{ vars.GCP_CI_SERVICE_ACCOUNT }}
+          token_format: access_token
       - uses: google-github-actions/setup-gcloud@v2
+      - uses: docker/setup-buildx-action@v3
+      - name: Connexion à Artifact Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: oauth2accesstoken
+          password: ${{ steps.auth.outputs.access_token }}
 
       - name: Version
         id: version
         run: echo "v=v${{ github.run_number }}" >> "$GITHUB_OUTPUT"
 
-      - name: Build & push back image
-        run: |
-          gcloud auth configure-docker $REGISTRY --quiet
-          IMAGE_BASE=$REGISTRY/$PROJECT_ID/pfy/${{ matrix.template }}-back
-          docker build -t "$IMAGE_BASE:${{ steps.version.outputs.v }}" -t "$IMAGE_BASE:latest" \
-            templates/${{ matrix.template }}/back
-          docker push "$IMAGE_BASE" --all-tags
+      - name: Build & push image back (cache GHA)
+        uses: docker/build-push-action@v6
+        with:
+          context: templates/${{ matrix.template }}/back
+          push: true
+          tags: |
+            ${{ env.REGISTRY }}/${{ env.PROJECT_ID }}/pfy/${{ matrix.template }}-back:${{ steps.version.outputs.v }}
+            ${{ env.REGISTRY }}/${{ env.PROJECT_ID }}/pfy/${{ matrix.template }}-back:latest
+          cache-from: type=gha,scope=${{ matrix.template }}-back
+          cache-to: type=gha,mode=max,scope=${{ matrix.template }}-back
 
       - name: Build front statique
         run: |

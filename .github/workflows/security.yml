@@ -1,0 +1,25 @@
+name: Security
+
+# Audit des dépendances sorti du CI bloquant : un nouvel avis de sécurité ne doit
+# pas casser les PR au hasard. Tourne chaque lundi + à la demande.
+on:
+  schedule:
+    - cron: '0 6 * * 1' # lundi 06:00 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Audit des dépendances (high+)
+        run: pnpm audit --audit-level high
