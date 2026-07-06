@@ -73,6 +73,26 @@ export function siteLiveEmail(input: {
   };
 }
 
+export function quoteRequestEmail(input: {
+  name: string;
+  email: string;
+  projectType?: string;
+  budget?: string;
+  message: string;
+}) {
+  return {
+    subject: `Demande de devis — ${input.name}`,
+    text:
+      `Nouvelle demande de devis personnalisé via la vitrine Port'ForYou.\n\n` +
+      `Nom : ${input.name}\n` +
+      `Email : ${input.email}\n` +
+      (input.projectType ? `Type de projet : ${input.projectType}\n` : '') +
+      (input.budget ? `Budget indicatif : ${input.budget}\n` : '') +
+      `\nMessage :\n${input.message}\n\n` +
+      `— Répondez directement à ${input.email}`,
+  };
+}
+
 export function deploymentFailedEmail(artistName: string, siteSlug: string) {
   return {
     subject: 'Un souci lors du déploiement de votre portfolio',

@@ -11,6 +11,7 @@ export function Footer() {
         </div>
         <nav className={styles.links} aria-label="Pied de page">
           <Link href="/templates">Templates</Link>
+          <Link href="/contact">Devis sur mesure</Link>
           <Link href="/mentions-legales">Mentions légales</Link>
           <Link href="/cgv">CGV</Link>
           <Link href="/confidentialite">Confidentialité</Link>

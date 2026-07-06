@@ -9,6 +9,7 @@ const NAV = [
   { href: '/templates', label: 'Templates' },
   { href: '/#artistes', label: 'Artistes' },
   { href: '/#tarif', label: 'Tarif' },
+  { href: '/contact', label: 'Devis' },
 ];
 
 export function Header() {

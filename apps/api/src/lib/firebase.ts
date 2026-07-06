@@ -22,5 +22,6 @@ export const deploymentsCol = () => db.collection('deployments');
 export const slugsCol = () => db.collection('slugs');
 export const stripeEventsCol = () => db.collection('stripe_events');
 export const emailLogsCol = () => db.collection('email_logs');
+export const contactRequestsCol = () => db.collection('contact_requests');
 export const templatesCol = () => db.collection('templates');
 export const tenantDoc = (slug: string) => db.collection('tenants').doc(slug);

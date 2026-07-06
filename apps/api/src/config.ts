@@ -19,6 +19,8 @@ const envSchema = z.object({
   STRIPE_PRICE_INFRA: z.string().optional(),
   RESEND_API_KEY: z.string().optional(),
   MAIL_FROM: z.string().optional(),
+  /** Adresse qui reçoit les demandes de devis du formulaire de contact. */
+  CONTACT_INBOX: z.string().optional(),
   /** Nombre maximum de sites par compte (anti-abus). */
   MAX_SITES_PER_USER: z.coerce.number().default(3),
   /** Bucket GCS des builds statiques des fronts de templates. */

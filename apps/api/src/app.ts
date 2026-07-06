@@ -48,9 +48,17 @@ const slugCheckLimiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
 });
+const contactLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 5,
+  message: { error: 'Trop de demandes, réessayez dans quelques minutes.' },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
 
 app.use(globalLimiter);
 app.use('/api/v1/slugs/check', slugCheckLimiter);
+app.use('/api/v1/contact', contactLimiter);
 app.use('/api/v1/auth/register', authLimiter);
 app.use('/api/v1/auth/login', authLimiter);
 app.use('/api/v1/auth/forgot-password', authLimiter);

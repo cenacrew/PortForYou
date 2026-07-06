@@ -3,6 +3,9 @@ import { z } from 'zod';
 import { slugSchema, TECHNIQUE_LABELS } from '@portforyou/shared';
 import { isSlugAvailable } from '../orders/service.js';
 import { config } from '../config.js';
+import { contactRequestsCol } from '../lib/firebase.js';
+import { FieldValue } from 'firebase-admin/firestore';
+import { sendMail, quoteRequestEmail } from '../emails/mailer.js';
 
 const router: Router = Router();
 
@@ -68,6 +71,41 @@ router.get('/slugs/check', async (req, res) => {
     available,
     ...(available ? {} : { reason: 'Ce nom est déjà pris' }),
   });
+});
+
+/**
+ * POST /contact — demande de devis personnalisé (public, sans compte).
+ * Journalise la demande et notifie l'équipe par email (Resend).
+ */
+router.post('/contact', async (req, res) => {
+  const parsed = z
+    .object({
+      name: z.string().min(1).max(120),
+      email: z.string().email().max(200),
+      projectType: z.string().max(120).optional(),
+      budget: z.string().max(60).optional(),
+      message: z.string().min(10).max(5000),
+    })
+    .safeParse(req.body);
+  if (!parsed.success) {
+    return res.status(400).json({
+      error: 'Formulaire invalide',
+      details: parsed.error.issues.map((i) => ({ path: i.path.join('.'), message: i.message })),
+    });
+  }
+  const data = parsed.data;
+
+  // Trace la demande (dashboard admin / suivi).
+  await contactRequestsCol()
+    .add({ ...data, status: 'new', createdAt: FieldValue.serverTimestamp() })
+    .catch((err) => console.error('contact_requests add:', err));
+
+  // Notifie l'équipe. Répond OK même si l'email échoue (la demande est tracée).
+  const inbox = config.CONTACT_INBOX || config.MAIL_FROM;
+  if (inbox) {
+    await sendMail({ to: inbox, type: 'quote_request', ...quoteRequestEmail(data) });
+  }
+  return res.status(201).json({ ok: true });
 });
 
 export default router;
