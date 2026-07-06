@@ -211,3 +211,12 @@ jobs:
           # proxifie vers Cloud Run pfy-web → c'est cette origine qu'attend le CORS.
           gcloud run services update pfy-api --region "$REGION" \
             --update-env-vars "WEB_ORIGIN=https://portforyou.web.app,API_PUBLIC_URL=${{ steps.apiurl.outputs.url }}"
+
+      - name: Purge du cache Firebase Hosting
+        run: |
+          # Hosting proxifie vers pfy-web mais met la réponse en cache CDN
+          # (s-maxage long). Une nouvelle release Hosting invalide ce cache pour
+          # que la nouvelle révision de la vitrine soit servie immédiatement.
+          # Auth via l'ADC posée par google-github-actions/auth (WIF).
+          npx -y firebase-tools@15 deploy --only hosting:portforyou \
+            --project "$PROJECT_ID" --non-interactive

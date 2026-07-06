@@ -87,6 +87,7 @@ for ROLE in \
   roles/run.developer \
   roles/storage.objectAdmin \
   roles/datastore.user \
+  roles/firebasehosting.admin \
   roles/iam.serviceAccountUser; do
   gcloud projects add-iam-policy-binding "$PROJECT" \
     --member="serviceAccount:$CI_SA" --role="$ROLE" --condition=None >/dev/null
