@@ -45,7 +45,8 @@ gcloud tasks queues describe provisioning --location="$REGION" >/dev/null 2>&1 |
     --max-attempts=5 --min-backoff=30s --max-backoff=300s
 
 echo "▶ Service accounts…"
-for SA in pfy-api pfy-ci; do
+# pfy-tenant : SA d'exécution (moindre privilège) des services Cloud Run tenant.
+for SA in pfy-api pfy-ci pfy-tenant; do
   gcloud iam service-accounts describe "$SA@$PROJECT.iam.gserviceaccount.com" >/dev/null 2>&1 ||
     gcloud iam service-accounts create "$SA" --display-name="Port'ForYou $SA"
 done
@@ -64,6 +65,20 @@ for ROLE in \
   gcloud projects add-iam-policy-binding "$PROJECT" \
     --member="serviceAccount:$API_SA" --role="$ROLE" --condition=None >/dev/null
 done
+# Lecture des images templates : requis au preflight du déploiement Cloud Run
+# (le contrôle d'accès à l'image porte sur l'identité qui déploie = pfy-api).
+gcloud artifacts repositories add-iam-policy-binding pfy --location="$REGION" \
+  --member="serviceAccount:$API_SA" --role="roles/artifactregistry.reader" >/dev/null
+
+echo "▶ Rôles du SA d'exécution des tenants (moindre privilège)…"
+TENANT_SA="pfy-tenant@$PROJECT.iam.gserviceaccount.com"
+# Firestore (données du tenant) ; l'accès aux secrets tenant est accordé par
+# le provisioner secret par secret. Le pull de l'image est fait par l'agent
+# Cloud Run, pas par ce SA.
+gcloud projects add-iam-policy-binding "$PROJECT" \
+  --member="serviceAccount:$TENANT_SA" --role="roles/datastore.user" --condition=None >/dev/null
+gcloud storage buckets add-iam-policy-binding gs://portforyou-uploads \
+  --member="serviceAccount:$TENANT_SA" --role="roles/storage.objectAdmin" >/dev/null
 
 echo "▶ Rôles du SA de la CI (déploiement plateforme uniquement)…"
 CI_SA="pfy-ci@$PROJECT.iam.gserviceaccount.com"
@@ -106,7 +121,17 @@ gcloud secrets describe pfy-jwt-secret >/dev/null 2>&1 || {
 ' | gcloud secrets create pfy-jwt-secret --data-file=-
 }
 
-echo "▶ Cloud Scheduler (health checks + purge des slugs)…"
+echo "▶ Secret OAuth Google (placeholder — renseigner la vraie valeur ensuite)…"
+# Le client OAuth Google se crée à la main dans la console (aucune API/CLI dispo).
+# On crée le secret vide ; pousser la valeur après création du client :
+#   printf '%s' 'GOCSPX-...' | gcloud secrets versions add pfy-google-oauth-secret --data-file=-
+if ! gcloud secrets describe pfy-google-oauth-secret >/dev/null 2>&1; then
+  printf '%s' 'PLACEHOLDER' | gcloud secrets create pfy-google-oauth-secret --data-file=-
+fi
+gcloud secrets add-iam-policy-binding pfy-google-oauth-secret \
+  --member="serviceAccount:$API_SA" --role="roles/secretmanager.secretAccessor" >/dev/null 2>&1 || true
+
+echo "▶ Cloud Scheduler (health checks + purge des slugs + cycle de facturation)…"
 API_URL=$(gcloud run services describe pfy-api --region "$REGION" --format='value(status.url)' 2>/dev/null || echo "")
 if [ -n "$API_URL" ]; then
   gcloud scheduler jobs describe pfy-health-checks --location="$REGION" >/dev/null 2>&1 ||
@@ -116,6 +141,12 @@ if [ -n "$API_URL" ]; then
   gcloud scheduler jobs describe pfy-cleanup-slugs --location="$REGION" >/dev/null 2>&1 ||
     gcloud scheduler jobs create http pfy-cleanup-slugs --location="$REGION" \
       --schedule="0 * * * *" --uri="$API_URL/internal/cleanup-slugs" --http-method=POST \
+      --oidc-service-account-email="$API_SA" --oidc-token-audience="$API_URL"
+  # Facturation : le 1er de chaque mois à 03h00 (Europe/Paris), pousse l'usage infra sur Stripe.
+  gcloud scheduler jobs describe pfy-billing-cycle --location="$REGION" >/dev/null 2>&1 ||
+    gcloud scheduler jobs create http pfy-billing-cycle --location="$REGION" \
+      --schedule="0 3 1 * *" --time-zone="Europe/Paris" \
+      --uri="$API_URL/internal/billing-cycle" --http-method=POST \
       --oidc-service-account-email="$API_SA" --oidc-token-audience="$API_URL"
 else
   echo "  ⚠️  pfy-api pas encore déployé — relancer ce script après le premier deploy pour créer les jobs Scheduler."

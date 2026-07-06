@@ -26,6 +26,9 @@ jobs:
   release:
     runs-on: ubuntu-latest
     environment: production
+    # Ajouter « [skip deploy] » au message de commit pour pousser sur main sans
+    # republier les templates (utile quand la publication a déjà été faite).
+    if: ${{ !contains(github.event.head_commit.message, '[skip deploy]') }}
     strategy:
       matrix:
         template: [atelier, monolith, papier]
