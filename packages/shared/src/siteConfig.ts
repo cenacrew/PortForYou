@@ -21,7 +21,7 @@ export const newsItemSchema = z.object({
 export const siteConfigSchema = z
   .object({
     heroImageUrl: z.string().url(),
-    techniqueImages: z.record(z.string().url()),
+    techniqueImages: z.record(z.string(), z.string().url()),
     biographyText: z.string().max(20000),
     biographyImageUrl: z.string().url(),
     pressItems: z.array(pressItemSchema).max(100),
