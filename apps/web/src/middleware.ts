@@ -1,17 +1,19 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 
 /**
- * CSP stricte avec nonce par requête : Next détecte le nonce dans l'en-tête
- * CSP et l'applique automatiquement à ses scripts inline.
- * `unsafe-eval` est requis uniquement en dev (fast refresh).
+ * CSP compatible avec le rendu statique de Next (pages prérendues + cache CDN
+ * Firebase Hosting). On n'utilise PAS de nonce/`strict-dynamic` : Next n'injecte
+ * le nonce que dans les pages rendues dynamiquement, or nos pages marketing sont
+ * prérendues → les scripts inline d'hydratation (`__next_f`) n'auraient pas de
+ * nonce et seraient tous bloqués. On autorise donc `'self'` (chunks /_next) et
+ * `'unsafe-inline'` (bootstrap inline). `unsafe-eval` uniquement en dev (HMR).
  */
-export function middleware(request: NextRequest) {
-  const nonce = Buffer.from(crypto.randomUUID()).toString('base64');
+export function middleware() {
   const isDev = process.env.NODE_ENV !== 'production';
 
   const csp = [
     `default-src 'self'`,
-    `script-src 'self' 'nonce-${nonce}' 'strict-dynamic'${isDev ? " 'unsafe-eval'" : ''}`,
+    `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ''}`,
     // Emotion/next/font injectent des styles inline ; GSAP pose des styles élément.
     `style-src 'self' 'unsafe-inline'`,
     `img-src 'self' blob: data: https://storage.googleapis.com`,
@@ -26,11 +28,7 @@ export function middleware(request: NextRequest) {
     `frame-ancestors 'none'`,
   ].join('; ');
 
-  const requestHeaders = new Headers(request.headers);
-  requestHeaders.set('x-nonce', nonce);
-  requestHeaders.set('Content-Security-Policy', csp);
-
-  const response = NextResponse.next({ request: { headers: requestHeaders } });
+  const response = NextResponse.next();
   response.headers.set('Content-Security-Policy', csp);
   return response;
 }

@@ -9,6 +9,10 @@ COPY apps/web/package.json apps/web/
 RUN pnpm install --frozen-lockfile --filter @portforyou/web --filter @portforyou/shared
 COPY packages/shared packages/shared
 COPY apps/web apps/web
+# Next.js inline les variables NEXT_PUBLIC_* au BUILD : l'URL de l'API doit
+# donc être fournie ici (build-arg), pas au runtime du conteneur.
+ARG NEXT_PUBLIC_API_URL
+ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
 RUN pnpm --filter @portforyou/shared build && pnpm --filter @portforyou/web build
 
 FROM node:22-slim
