@@ -143,6 +143,13 @@ for S in pfy-stripe-secret pfy-stripe-webhook; do
     --member="serviceAccount:$API_SA" --role="roles/secretmanager.secretAccessor" >/dev/null 2>&1 || true
 done
 
+echo "▶ Secret Resend (envoi d'emails — placeholder)…"
+# Cle API sur resend.com. Pousser ensuite :
+#   printf '%s' 're_...' | gcloud secrets versions add pfy-resend-key --data-file=-
+gcloud secrets describe pfy-resend-key >/dev/null 2>&1 || printf '%s' 'PLACEHOLDER' | gcloud secrets create pfy-resend-key --data-file=-
+gcloud secrets add-iam-policy-binding pfy-resend-key \
+  --member="serviceAccount:$API_SA" --role="roles/secretmanager.secretAccessor" >/dev/null 2>&1 || true
+
 echo "▶ Cloud Scheduler (health checks + purge des slugs + cycle de facturation)…"
 API_URL=$(gcloud run services describe pfy-api --region "$REGION" --format='value(status.url)' 2>/dev/null || echo "")
 if [ -n "$API_URL" ]; then
