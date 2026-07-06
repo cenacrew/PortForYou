@@ -3,3 +3,25 @@ packages:
   - packages/*
   - templates/*/back
   - templates/*/front
+
+# Overrides (pnpm 11 ne lit plus le champ "pnpm" de package.json) :
+# tar = correctif de sécurité ; vite épinglé à 6 car vite 7/8 casse les workers
+# de vitest 4.1 (peer auto-résolu).
+overrides:
+  'tar@<6.2.2': '>=6.2.2'
+  vite: ^6.4.3
+
+# Scripts de build autorisés (pnpm 11 les bloque par défaut) : binaires natifs
+# et codegen légitimes, requis pour esbuild/vitest, sharp (images Next), etc.
+allowBuilds:
+  '@firebase/util': true
+  esbuild: true
+  protobufjs: true
+  re2: true
+  sharp: true
+
+# pnpm 11 active par défaut une politique « minimum release age » (refuse les
+# paquets trop récents) qui rejette le lockfile. On la désactive pour retrouver
+# le comportement pnpm 10 (fichier copié dans les images Docker → vaut aussi au
+# déploiement, contrairement à un .npmrc non copié).
+minimumReleaseAge: 0
