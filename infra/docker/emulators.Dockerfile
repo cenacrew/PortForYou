@@ -3,13 +3,13 @@
 # démarrage rapide, aucun Java ni firebase-tools sur la machine hôte.
 #
 #   docker compose up emulators
-FROM node:22-slim
+FROM node:24-slim
 
 RUN apt-get update -qq \
   && apt-get install -y -qq --no-install-recommends default-jre-headless curl \
   && rm -rf /var/lib/apt/lists/*
 
-RUN npm install -g firebase-tools@14
+RUN npm install -g firebase-tools@15
 
 # Pré-télécharger les binaires des émulateurs dans l'image
 RUN firebase setup:emulators:firestore \
