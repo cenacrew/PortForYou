@@ -30,10 +30,16 @@ router.post('/stripe/webhook', raw({ type: 'application/json' }), async (req, re
     return res.status(400).json({ error: 'Signature invalide' });
   }
 
-  // Idempotence : chaque événement Stripe n'est traité qu'une fois.
+  // Idempotence : chaque événement Stripe n'est traité qu'une fois. `.create()`
+  // échoue atomiquement si le doc existe déjà — contrairement à un
+  // get()-puis-set(), ça tient même si Stripe redélivre le même event.id en
+  // concurrence (retry réseau, double webhook).
   const eventRef = stripeEventsCol().doc(event.id);
-  if ((await eventRef.get()).exists) return res.json({ received: true, duplicate: true });
-  await eventRef.set({ type: event.type, createdAt: FieldValue.serverTimestamp() });
+  try {
+    await eventRef.create({ type: event.type, createdAt: FieldValue.serverTimestamp() });
+  } catch {
+    return res.json({ received: true, duplicate: true });
+  }
 
   try {
     switch (event.type) {

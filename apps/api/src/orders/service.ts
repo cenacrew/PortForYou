@@ -44,41 +44,51 @@ export async function isSlugAvailable(slug: string): Promise<boolean> {
 
 /**
  * Confirme une commande payée : crée le site, le déploiement, et lance le
- * provisioning en tâche de fond. Idempotent (rejouable par le webhook).
+ * provisioning en tâche de fond. Idempotent (rejouable par le webhook) —
+ * le read-check-create est fait dans une transaction Firestore pour rester
+ * atomique même si deux appels concurrents arrivent pour la même commande
+ * (rejeu de webhook Stripe, double clic sur la confirmation fake en local).
  */
 export async function confirmPaidOrder(orderId: string): Promise<{ siteId: string }> {
   const orderRef = ordersCol().doc(orderId);
-  const order = (await orderRef.get()).data();
-  if (!order) throw new Error(`Commande ${orderId} introuvable`);
+  const siteRef = sitesCol().doc(); // id pré-généré, utilisé seulement si créé cette fois
 
-  // Idempotence : si un site existe déjà pour cette commande, ne rien refaire.
-  if (order.siteId) return { siteId: order.siteId };
+  const result = await db.runTransaction(async (tx) => {
+    const order = (await tx.get(orderRef)).data();
+    if (!order) throw new Error(`Commande ${orderId} introuvable`);
 
-  const siteRef = await sitesCol().add({
-    uid: order.uid,
-    slug: order.siteSlug,
-    templateSlug: order.templateSlug,
-    artistName: order.artistName,
-    contactEmail: order.contactEmail,
-    clientEmail: order.clientEmail,
-    status: 'provisioning',
-    plannedUrl: tenantFrontUrl(order.siteSlug),
-    createdAt: FieldValue.serverTimestamp(),
+    // Idempotence : si un site existe déjà pour cette commande, ne rien refaire.
+    if (order.siteId) return { created: false as const, siteId: order.siteId as string, order };
+
+    tx.set(siteRef, {
+      uid: order.uid,
+      slug: order.siteSlug,
+      templateSlug: order.templateSlug,
+      artistName: order.artistName,
+      contactEmail: order.contactEmail,
+      clientEmail: order.clientEmail,
+      status: 'provisioning',
+      plannedUrl: tenantFrontUrl(order.siteSlug),
+      createdAt: FieldValue.serverTimestamp(),
+    });
+    tx.update(orderRef, {
+      status: 'paid',
+      siteId: siteRef.id,
+      paidAt: FieldValue.serverTimestamp(),
+    });
+    tx.set(
+      slugsCol().doc(order.siteSlug),
+      { status: 'confirmed', uid: order.uid, siteId: siteRef.id },
+      { merge: true },
+    );
+    return { created: true as const, siteId: siteRef.id, order };
   });
 
-  await orderRef.update({
-    status: 'paid',
-    siteId: siteRef.id,
-    paidAt: FieldValue.serverTimestamp(),
-  });
-  await slugsCol()
-    .doc(order.siteSlug)
-    .set({ status: 'confirmed', uid: order.uid, siteId: siteRef.id }, { merge: true });
+  if (result.created) {
+    const mail = orderConfirmationEmail(result.order.artistName, result.order.siteSlug);
+    await sendMail({ to: result.order.clientEmail, type: 'order_confirmed', ...mail });
+    await dispatchProvisioning(result.siteId, result.order.uid, 'order');
+  }
 
-  const mail = orderConfirmationEmail(order.artistName, order.siteSlug);
-  await sendMail({ to: order.clientEmail, type: 'order_confirmed', ...mail });
-
-  await dispatchProvisioning(siteRef.id, order.uid, 'order');
-
-  return { siteId: siteRef.id };
+  return { siteId: result.siteId };
 }
