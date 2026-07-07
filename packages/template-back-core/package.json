@@ -1,0 +1,52 @@
+{
+  "name": "@portforyou/template-back-core",
+  "version": "1.0.0",
+  "main": "./dist/app.js",
+  "types": "./dist/app.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/app.d.ts",
+      "import": "./dist/app.js"
+    },
+    "./seed": {
+      "types": "./dist/seed.d.ts",
+      "import": "./dist/seed.js"
+    }
+  },
+  "type": "module",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "dev": "tsc -p tsconfig.json --watch",
+    "test": "vitest run"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "Back Express commun aux 3 templates artistes (routes, auth, back-office, provisioning multi-tenant TENANT_ID). Chaque template l'importe en dépendance workspace et garde son propre Dockerfile/déploiement.",
+  "dependencies": {
+    "bcryptjs": "^3.0.3",
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.6",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "express-rate-limit": "^8.5.2",
+    "firebase-admin": "^14.1.0",
+    "helmet": "^8.2.0",
+    "jsonwebtoken": "^9.0.3",
+    "morgan": "^1.11.0",
+    "multer": "^2.2.0"
+  },
+  "devDependencies": {
+    "@types/cookie-parser": "^1.4.10",
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.6",
+    "@types/jsonwebtoken": "^9.0.10",
+    "@types/morgan": "^1.9.10",
+    "@types/multer": "^2.0.0",
+    "@types/node": "^24.13.2",
+    "@types/supertest": "^7.2.0",
+    "supertest": "^7.2.2",
+    "typescript": "^5.9.3",
+    "vitest": "^4.1.10"
+  }
+}

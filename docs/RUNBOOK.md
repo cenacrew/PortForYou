@@ -28,10 +28,15 @@ Alternative conteneurisée : `docker compose up` (émulateurs + API + vitrine).
 seedé dans l'émulateur. Pour visiter le site du tenant en local :
 
 ```bash
+pnpm --filter @portforyou/template-back-core build   # ou `dev` (tsc --watch) si vous itérez dessus
 cd templates/atelier
 TENANT_ID=<slug> FIRESTORE_EMULATOR_HOST=localhost:8090 pnpm --filter @portforyou/atelier-back dev   # port 8080
 pnpm --filter @portforyou/atelier-front dev                                                          # port 3000 (proxy /api → 8080)
 ```
+
+Le back des templates est TypeScript (`packages/template-back-core`, compilé en `dist/`) : la
+commande `dev` de chaque template (`node src/index.js`) importe le package déjà compilé, donc un
+premier `build` (ou un `dev` en watch dans un terminal séparé) est requis avant de le lancer.
 
 **Devenir admin plateforme** (dashboard /admin) — après s'être inscrit sur la vitrine :
 

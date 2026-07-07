@@ -70,7 +70,9 @@ jobs:
       - name: Build & push image back (cache GHA)
         uses: docker/build-push-action@v7
         with:
-          context: templates/${{ matrix.template }}/back
+          # Contexte = racine du repo : le back dépend de packages/template-back-core.
+          context: .
+          file: templates/${{ matrix.template }}/back/Dockerfile
           push: true
           tags: |
             ${{ env.REGISTRY }}/${{ env.PROJECT_ID }}/pfy/${{ matrix.template }}-back:${{ steps.version.outputs.v }}
