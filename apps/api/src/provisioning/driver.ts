@@ -28,4 +28,11 @@ export interface ProvisionerDriver {
   verify(urls: DeployedUrls): Promise<void>;
   /** Supprime toutes les ressources du tenant. */
   deprovision(slug: string): Promise<void>;
+  /**
+   * Fait tourner le secret de signature JWT du back-office du tenant (session
+   * uniquement) et force le rechargement de la nouvelle version — le mot de
+   * passe admin n'est jamais touché ici (rotation manuelle, via régénération
+   * côté dashboard, pour ne pas couper l'accès de l'artiste sans le prévenir).
+   */
+  rotateJwtSecret(slug: string): Promise<void>;
 }
