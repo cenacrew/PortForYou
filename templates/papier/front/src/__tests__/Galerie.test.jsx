@@ -74,7 +74,7 @@ describe('Galerie', () => {
     const unobserveSpy = vi.fn();
     vi.stubGlobal(
       'IntersectionObserver',
-      vi.fn((cb) => {
+      vi.fn(function (cb) {
         observerCallback = cb;
         return { observe: observeSpy, unobserve: unobserveSpy };
       }),
