@@ -102,9 +102,24 @@ jobs:
           path: apps/web/playwright-report
           retention-days: 7
 
-  templates:
-    # Chaque back de template testé dans son propre job (résumé lisible et
-    # attribué, plutôt que N blocs Vitest empilés dans un seul job).
+  templates-back:
+    # Le back est commun aux 3 templates (packages/template-back-core) : un seul
+    # job suffit, plus besoin d'une matrice qui rejouerait 3x les mêmes tests.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Tests du back commun des templates
+        run: pnpm --filter @portforyou/template-back-core test
+
+  templates-front:
+    # Le front diffère par template (DA propre à chacun) : chacun testé dans
+    # son propre job (résumé lisible et attribué, plutôt qu'un seul bloc).
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -118,8 +133,8 @@ jobs:
           node-version-file: .nvmrc
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      - name: Tests du template ${{ matrix.template }}
-        run: pnpm --filter @portforyou/${{ matrix.template }}-back test
+      - name: Tests du front ${{ matrix.template }}
+        run: pnpm --filter @portforyou/${{ matrix.template }}-front test
 
   deploy:
     # Déploiement de la plateforme : seulement sur main, si lint + tests passent,

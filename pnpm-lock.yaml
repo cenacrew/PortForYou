@@ -214,7 +214,7 @@ importers:
         specifier: ^4.1.10
         version: 4.1.10(@opentelemetry/api@1.9.1)(@types/node@26.1.0)(@vitest/ui@4.1.10)(jsdom@29.1.1(@noble/hashes@1.8.0))(vite@8.1.3(@types/node@26.1.0)(esbuild@0.28.1)(jiti@2.6.1)(tsx@4.23.0)(yaml@2.9.0))
 
-  templates/atelier/back:
+  packages/template-back-core:
     dependencies:
       bcryptjs:
         specifier: ^3.0.3
@@ -250,12 +250,45 @@ importers:
         specifier: ^2.2.0
         version: 2.2.0
     devDependencies:
+      '@types/cookie-parser':
+        specifier: ^1.4.10
+        version: 1.4.10(@types/express@5.0.6)
+      '@types/cors':
+        specifier: ^2.8.19
+        version: 2.8.19
+      '@types/express':
+        specifier: ^5.0.6
+        version: 5.0.6
+      '@types/jsonwebtoken':
+        specifier: ^9.0.10
+        version: 9.0.10
+      '@types/morgan':
+        specifier: ^1.9.10
+        version: 1.9.10
+      '@types/multer':
+        specifier: ^2.0.0
+        version: 2.2.0
+      '@types/node':
+        specifier: ^24.13.2
+        version: 24.13.2
+      '@types/supertest':
+        specifier: ^7.2.0
+        version: 7.2.0
       supertest:
         specifier: ^7.2.2
         version: 7.2.2
+      typescript:
+        specifier: ^5.9.3
+        version: 5.9.3
       vitest:
         specifier: ^4.1.10
-        version: 4.1.10(@opentelemetry/api@1.9.1)(@types/node@26.1.0)(@vitest/ui@4.1.10)(jsdom@29.1.1(@noble/hashes@1.8.0))(vite@8.1.3(@types/node@26.1.0)(esbuild@0.28.1)(jiti@2.6.1)(tsx@4.23.0)(yaml@2.9.0))
+        version: 4.1.10(@opentelemetry/api@1.9.1)(@types/node@24.13.2)(@vitest/ui@4.1.10)(jsdom@29.1.1(@noble/hashes@1.8.0))(vite@8.1.3(@types/node@24.13.2)(esbuild@0.28.1)(jiti@2.6.1)(tsx@4.23.0)(yaml@2.9.0))
+
+  templates/atelier/back:
+    dependencies:
+      '@portforyou/template-back-core':
+        specifier: workspace:*
+        version: link:../../../packages/template-back-core
 
   templates/atelier/front:
     dependencies:
@@ -323,46 +356,9 @@ importers:
 
   templates/monolith/back:
     dependencies:
-      bcryptjs:
-        specifier: ^3.0.3
-        version: 3.0.3
-      cookie-parser:
-        specifier: ^1.4.7
-        version: 1.4.7
-      cors:
-        specifier: ^2.8.6
-        version: 2.8.6
-      dotenv:
-        specifier: ^17.4.2
-        version: 17.4.2
-      express:
-        specifier: ^5.2.1
-        version: 5.2.1
-      express-rate-limit:
-        specifier: ^8.5.2
-        version: 8.5.2(express@5.2.1)
-      firebase-admin:
-        specifier: ^14.1.0
-        version: 14.1.0
-      helmet:
-        specifier: ^8.2.0
-        version: 8.2.0
-      jsonwebtoken:
-        specifier: ^9.0.3
-        version: 9.0.3
-      morgan:
-        specifier: ^1.11.0
-        version: 1.11.0
-      multer:
-        specifier: ^2.2.0
-        version: 2.2.0
-    devDependencies:
-      supertest:
-        specifier: ^7.2.2
-        version: 7.2.2
-      vitest:
-        specifier: ^4.1.10
-        version: 4.1.10(@opentelemetry/api@1.9.1)(@types/node@26.1.0)(@vitest/ui@4.1.10)(jsdom@29.1.1(@noble/hashes@1.8.0))(vite@8.1.3(@types/node@26.1.0)(esbuild@0.28.1)(jiti@2.6.1)(tsx@4.23.0)(yaml@2.9.0))
+      '@portforyou/template-back-core':
+        specifier: workspace:*
+        version: link:../../../packages/template-back-core
 
   templates/monolith/front:
     dependencies:
@@ -430,46 +426,9 @@ importers:
 
   templates/papier/back:
     dependencies:
-      bcryptjs:
-        specifier: ^3.0.3
-        version: 3.0.3
-      cookie-parser:
-        specifier: ^1.4.7
-        version: 1.4.7
-      cors:
-        specifier: ^2.8.6
-        version: 2.8.6
-      dotenv:
-        specifier: ^17.4.2
-        version: 17.4.2
-      express:
-        specifier: ^5.2.1
-        version: 5.2.1
-      express-rate-limit:
-        specifier: ^8.5.2
-        version: 8.5.2(express@5.2.1)
-      firebase-admin:
-        specifier: ^14.1.0
-        version: 14.1.0
-      helmet:
-        specifier: ^8.2.0
-        version: 8.2.0
-      jsonwebtoken:
-        specifier: ^9.0.3
-        version: 9.0.3
-      morgan:
-        specifier: ^1.11.0
-        version: 1.11.0
-      multer:
-        specifier: ^2.2.0
-        version: 2.2.0
-    devDependencies:
-      supertest:
-        specifier: ^7.2.2
-        version: 7.2.2
-      vitest:
-        specifier: ^4.1.10
-        version: 4.1.10(@opentelemetry/api@1.9.1)(@types/node@26.1.0)(@vitest/ui@4.1.10)(jsdom@29.1.1(@noble/hashes@1.8.0))(vite@8.1.3(@types/node@26.1.0)(esbuild@0.28.1)(jiti@2.6.1)(tsx@4.23.0)(yaml@2.9.0))
+      '@portforyou/template-back-core':
+        specifier: workspace:*
+        version: link:../../../packages/template-back-core
 
   templates/papier/front:
     dependencies:
@@ -2303,6 +2262,9 @@ packages:
 
   '@types/ms@2.1.0':
     resolution: {integrity: sha512-GsCCIZDE/p3i96vtEqx+7dBUGXrc7zeSK3wwPHIaRThS+9OhWIXRqzs4d6k1SVU8g91DrNRWxWUGhp5KXQb2VA==}
+
+  '@types/multer@2.2.0':
+    resolution: {integrity: sha512-3U1troeqGV8Ntp7Q3klwf4zr23VEoqYVocYXaswm9+8z3O9UHDYAqLxjJ/h550iRADTjKdOdhhasXw6gD6kYtg==}
 
   '@types/node@24.13.2':
     resolution: {integrity: sha512-fRa09kZTgu8o71KFcDjUFuc7F+dEbZYZmkI0mg5YBTRs0yMKjYHsq/c0urDKeDb+D5qVgXOdFcuu+DZPKOITwA==}
@@ -7799,6 +7761,10 @@ snapshots:
 
   '@types/ms@2.1.0': {}
 
+  '@types/multer@2.2.0':
+    dependencies:
+      '@types/express': 5.0.6
+
   '@types/node@24.13.2':
     dependencies:
       undici-types: 7.18.2
@@ -11030,7 +10996,7 @@ snapshots:
       '@protobufjs/path': 1.1.2
       '@protobufjs/pool': 1.1.0
       '@protobufjs/utf8': 1.1.2
-      '@types/node': 26.1.0
+      '@types/node': 24.13.2
       long: 5.3.2
 
   proxy-addr@2.0.7:

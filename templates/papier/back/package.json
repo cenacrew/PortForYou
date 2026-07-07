@@ -5,28 +5,13 @@
   "type": "module",
   "scripts": {
     "dev": "node src/index.js",
-    "seed": "node seed.js",
-    "test": "vitest run"
+    "seed": "node seed.js"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "description": "",
   "dependencies": {
-    "bcryptjs": "^3.0.3",
-    "cookie-parser": "^1.4.7",
-    "cors": "^2.8.6",
-    "dotenv": "^17.4.2",
-    "express": "^5.2.1",
-    "express-rate-limit": "^8.5.2",
-    "firebase-admin": "^14.1.0",
-    "helmet": "^8.2.0",
-    "jsonwebtoken": "^9.0.3",
-    "morgan": "^1.11.0",
-    "multer": "^2.2.0"
-  },
-  "devDependencies": {
-    "supertest": "^7.2.2",
-    "vitest": "^4.1.10"
+    "@portforyou/template-back-core": "workspace:*"
   }
 }
