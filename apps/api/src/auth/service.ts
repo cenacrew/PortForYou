@@ -28,6 +28,7 @@ export interface PublicUser {
 const sessionsCol = () => db.collection('sessions');
 const emailsCol = () => db.collection('user_emails');
 const resetsCol = () => db.collection('password_resets');
+const verificationsCol = () => db.collection('email_verifications');
 
 const sha256 = (value: string) => crypto.createHash('sha256').update(value).digest('hex');
 
@@ -225,4 +226,30 @@ export async function consumePasswordReset(token: string): Promise<string | null
   if (reset.usedAt || reset.expiresAt.toMillis() < Date.now()) return null;
   await doc.ref.update({ usedAt: FieldValue.serverTimestamp() });
   return reset.uid as string;
+}
+
+// ---- Vérification d'email ---------------------------------------------------
+
+const VERIFICATION_TTL_MS = 24 * 3600 * 1000;
+
+export async function createEmailVerification(uid: string): Promise<string> {
+  const token = crypto.randomBytes(32).toString('base64url');
+  await verificationsCol().add({
+    uid,
+    tokenHash: sha256(token),
+    expiresAt: Timestamp.fromMillis(Date.now() + VERIFICATION_TTL_MS),
+    usedAt: null,
+    createdAt: FieldValue.serverTimestamp(),
+  });
+  return token;
+}
+
+export async function consumeEmailVerification(token: string): Promise<string | null> {
+  const snap = await verificationsCol().where('tokenHash', '==', sha256(token)).limit(1).get();
+  const doc = snap.docs[0];
+  if (!doc) return null;
+  const verification = doc.data();
+  if (verification.usedAt || verification.expiresAt.toMillis() < Date.now()) return null;
+  await doc.ref.update({ usedAt: FieldValue.serverTimestamp() });
+  return verification.uid as string;
 }

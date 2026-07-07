@@ -7,6 +7,7 @@ set -euo pipefail
 PROJECT="${1:-portforyou-vsp}"
 REGION="europe-west1"
 GITHUB_REPO="${GITHUB_REPO:-cenacrew/PortForYou}" # owner/repo pour la CI (WIF)
+ALERT_EMAIL="${ALERT_EMAIL:-valetnina.sp@gmail.com}" # destinataire des alertes 5xx
 
 echo "▶ Projet: $PROJECT — Région: $REGION"
 gcloud config set project "$PROJECT" >/dev/null
@@ -150,7 +151,7 @@ gcloud secrets describe pfy-resend-key >/dev/null 2>&1 || printf '%s' 'PLACEHOLD
 gcloud secrets add-iam-policy-binding pfy-resend-key \
   --member="serviceAccount:$API_SA" --role="roles/secretmanager.secretAccessor" >/dev/null 2>&1 || true
 
-echo "▶ Cloud Scheduler (health checks + purge des slugs + cycle de facturation)…"
+echo "▶ Cloud Scheduler (health checks + purge des slugs + cycle de facturation + rotation secrets)…"
 API_URL=$(gcloud run services describe pfy-api --region "$REGION" --format='value(status.url)' 2>/dev/null || echo "")
 if [ -n "$API_URL" ]; then
   gcloud scheduler jobs describe pfy-health-checks --location="$REGION" >/dev/null 2>&1 ||
@@ -167,13 +168,23 @@ if [ -n "$API_URL" ]; then
       --schedule="0 3 1 * *" --time-zone="Europe/Paris" \
       --uri="$API_URL/internal/billing-cycle" --http-method=POST \
       --oidc-service-account-email="$API_SA" --oidc-token-audience="$API_URL"
+  # Rotation trimestrielle du JWT_SECRET des tenants (mot de passe admin non touché).
+  gcloud scheduler jobs describe pfy-rotate-secrets --location="$REGION" >/dev/null 2>&1 ||
+    gcloud scheduler jobs create http pfy-rotate-secrets --location="$REGION" \
+      --schedule="0 4 1 */3 *" --time-zone="Europe/Paris" \
+      --uri="$API_URL/internal/rotate-secrets" --http-method=POST \
+      --oidc-service-account-email="$API_SA" --oidc-token-audience="$API_URL"
 else
   echo "  ⚠️  pfy-api pas encore déployé — relancer ce script après le premier deploy pour créer les jobs Scheduler."
 fi
 
 echo "▶ Dashboard Cloud Monitoring…"
+# Note : les noms contiennent une apostrophe ("Port'ForYou") — on passe par une
+# variable + guillemets doubles dans --filter pour éviter tout souci
+# d'échappement bash / grammaire de filtre gcloud (qui accepte aussi bien ' que ").
+DASHBOARD_DISPLAY_NAME="Port'ForYou — Vue d'ensemble plateforme & tenants"
 DASHBOARD_NAME=$(gcloud monitoring dashboards list \
-  --filter="displayName:'Port'ForYou — Vue d'ensemble plateforme & tenants'" \
+  --filter="displayName=\"$DASHBOARD_DISPLAY_NAME\"" \
   --format='value(name)' 2>/dev/null | head -n1)
 if [ -n "$DASHBOARD_NAME" ]; then
   gcloud monitoring dashboards update "$DASHBOARD_NAME" \
@@ -182,6 +193,26 @@ else
   gcloud monitoring dashboards create \
     --config-from-file="$(dirname "$0")/../monitoring/dashboard.json" >/dev/null
 fi
+
+echo "▶ Alertes 5xx Cloud Monitoring…"
+CHANNEL_DISPLAY_NAME="Port'ForYou — alertes"
+CHANNEL_NAME=$(gcloud alpha monitoring channels list \
+  --filter="displayName=\"$CHANNEL_DISPLAY_NAME\"" --format='value(name)' 2>/dev/null | head -n1)
+if [ -z "$CHANNEL_NAME" ]; then
+  CHANNEL_NAME=$(gcloud alpha monitoring channels create \
+    --display-name="$CHANNEL_DISPLAY_NAME" --type=email \
+    --channel-labels="email_address=$ALERT_EMAIL" --format='value(name)')
+fi
+POLICY_NAME=$(gcloud alpha monitoring policies list \
+  --filter='displayName="Erreurs 5xx — plateforme & tenants"' --format='value(name)' 2>/dev/null | head -n1)
+POLICY_FILE=$(mktemp)
+sed "s#__NOTIFICATION_CHANNEL__#$CHANNEL_NAME#" "$(dirname "$0")/../monitoring/alert-5xx.json" > "$POLICY_FILE"
+if [ -n "$POLICY_NAME" ]; then
+  gcloud alpha monitoring policies update "$POLICY_NAME" --policy-from-file="$POLICY_FILE" >/dev/null
+else
+  gcloud alpha monitoring policies create --policy-from-file="$POLICY_FILE" >/dev/null
+fi
+rm -f "$POLICY_FILE"
 
 echo "▶ Budget avec alertes (5/10/20 €)…"
 if [ -n "${BILLING_ACCOUNT:-}" ]; then

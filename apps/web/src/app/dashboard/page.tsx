@@ -28,10 +28,11 @@ const STATUS_LABELS: Record<string, string> = {
 
 function Dashboard() {
   const { user } = useAuth();
-  const { logout } = useAuthActions();
+  const { logout, resendVerification } = useAuthActions();
   const router = useRouter();
   const [sites, setSites] = useState<Site[] | null>(null);
   const [billingBusy, setBillingBusy] = useState(false);
+  const [verifSent, setVerifSent] = useState(false);
 
   useEffect(() => {
     api<{ items: Site[] }>('/me/sites')
@@ -76,6 +77,31 @@ function Dashboard() {
             </button>
           </div>
         </div>
+
+        {user && !user.emailVerified && (
+          <div
+            className="cartel"
+            style={{
+              display: 'flex',
+              gap: '1rem',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              padding: '0.8rem 1rem',
+              marginBottom: '1.5rem',
+              border: '1px solid currentColor',
+              borderRadius: '0.4rem',
+            }}
+          >
+            <span>Confirmez votre adresse email pour profiter de toutes les fonctionnalités.</span>
+            <button
+              className={`btn ${styles.btnSmall}`}
+              disabled={verifSent}
+              onClick={() => resendVerification().then(() => setVerifSent(true))}
+            >
+              {verifSent ? 'Email envoyé' : "Renvoyer l'email"}
+            </button>
+          </div>
+        )}
 
         {sites === null ? (
           <p className="cartel">Chargement…</p>

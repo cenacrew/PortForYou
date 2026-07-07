@@ -1,7 +1,7 @@
 'use client';
 
 import { createContext, useContext, useEffect, useState, useCallback } from 'react';
-import { API_URL, setAccessToken } from './api';
+import { API_URL, api, setAccessToken } from './api';
 
 /**
  * Auth maison : access token JWT gardé en mémoire (jamais dans le
@@ -107,5 +107,7 @@ export function useAuthActions() {
     forgotPassword: (email: string) => callAuth('forgot-password', { email }),
     resetPassword: (token: string, password: string) =>
       callAuth('reset-password', { token, password }),
+    verifyEmail: (token: string) => callAuth('verify-email', { token }),
+    resendVerification: () => api('/auth/resend-verification', { method: 'POST' }),
   };
 }

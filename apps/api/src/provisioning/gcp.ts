@@ -293,4 +293,23 @@ export const gcpProvisionerDriver: ProvisionerDriver = {
     // Purge des données du tenant.
     await db.recursiveDelete(db.collection('tenants').doc(slug));
   },
+
+  async rotateJwtSecret(slug: string) {
+    await upsertSecret(`tenant-${slug}-jwt`, crypto.randomBytes(32).toString('hex'));
+
+    // Le service ne relit `latest` qu'au démarrage d'un nouveau conteneur :
+    // on force une révision par un patch d'annotation ciblé (updateMask), sans
+    // toucher au reste de la config du service (image, env, scaling…).
+    const serviceId = tenantServiceName(slug);
+    const parent = `projects/${PROJECT}/locations/${REGION}`;
+    const patch = await gfetch(
+      `${RUN_API}/${parent}/services/${serviceId}?updateMask=template.annotations`,
+      {
+        method: 'PATCH',
+        body: { template: { annotations: { 'pfy-rotated-at': String(Date.now()) } } },
+      },
+    );
+    assertOk(patch, `Rotation JWT_SECRET de ${serviceId}`);
+    await waitOperation(String(patch.json.name), 'https://run.googleapis.com/v2');
+  },
 };

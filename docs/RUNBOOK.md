@@ -38,6 +38,11 @@ Le back des templates est TypeScript (`packages/template-back-core`, compilé en
 commande `dev` de chaque template (`node src/index.js`) importe le package déjà compilé, donc un
 premier `build` (ou un `dev` en watch dans un terminal séparé) est requis avant de le lancer.
 
+**Email de vérification** : en local (`RESEND_API_KEY` absent), les emails sont loggés dans la
+console de l'API au lieu d'être envoyés — récupérer le lien `/verify-email?token=...` dans les
+logs après une inscription. `REQUIRE_VERIFIED_EMAIL=0` par défaut en dev (la commande n'est pas
+bloquée) ; mettre `1` pour tester le blocage comme en prod.
+
 **Devenir admin plateforme** (dashboard /admin) — après s'être inscrit sur la vitrine :
 
 ```bash
@@ -94,8 +99,23 @@ relancer le script après modification du fichier pour le pousser) : requêtes/e
 instances actives, latence p95), opérations Firestore, profondeur et tentatives de la queue Cloud
 Tasks `provisioning`, exécutions des jobs Cloud Scheduler. Mise à jour manuelle sans relancer tout
 le script : `gcloud monitoring dashboards update <NAME> --config-from-file=infra/monitoring/dashboard.json`.
-C'est un outil de visualisation — il ne remplace pas les alertes 5xx (item encore ouvert dans
-`docs/SECURITY.md`), qui nécessitent des `gcloud alpha monitoring policies create` séparées.
+
+**Alertes 5xx** (`infra/monitoring/alert-5xx.json`) : policy Cloud Monitoring, également créée/mise
+à jour par `setup-gcp.sh` — canal de notification email (`ALERT_EMAIL`, par défaut
+`valetnina.sp@gmail.com`) + policy à 2 conditions (`pfy-api`/`pfy-web`, `tenant-*`), seuil >1 req/s
+en 5xx sur 5 min. Mise à jour manuelle : régénérer le fichier avec le nom du canal
+(`gcloud alpha monitoring channels list`) puis `gcloud alpha monitoring policies update <NAME>
+--policy-from-file=...`. Nécessite le composant `gcloud alpha` (`gcloud components install alpha`).
+
+## Rotation des secrets tenants
+
+Le `JWT_SECRET` de chaque tenant live tourne automatiquement (Cloud Scheduler `pfy-rotate-secrets`,
+trimestriel, 1er jour du mois tous les 3 mois à 04h Europe/Paris → `POST /internal/rotate-secrets`) :
+nouvelle valeur poussée en Secret Manager puis nouvelle révision Cloud Run forcée pour la recharger.
+Effet visible : les sessions back-office en cours sur les tenants concernés retombent (reconnexion
+nécessaire), sans impact sur l'artiste ni son mot de passe. Le mot de passe admin, lui, ne tourne
+jamais automatiquement — seule la régénération manuelle depuis le dashboard client (§ ci-dessus,
+« Site tenant 401 sur /admin ») le change, pour ne jamais couper l'accès sans prévenir.
 
 ## Incidents courants
 

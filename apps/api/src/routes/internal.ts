@@ -136,4 +136,28 @@ router.post('/internal/billing-cycle', requireCloudTasksOidc, async (_req, res) 
   res.json({ month: monthKey, sites: results });
 });
 
+/**
+ * Rotation périodique du JWT_SECRET des tenants live — Cloud Scheduler
+ * (trimestriel). Le mot de passe admin n'est jamais touché (rotation
+ * manuelle uniquement, via le dashboard client).
+ */
+router.post('/internal/rotate-secrets', requireCloudTasksOidc, async (_req, res) => {
+  const { sitesCol } = await import('../lib/firebase.js');
+  const driver = await getProvisionerDriver();
+  const sites = await sitesCol().where('status', '==', 'live').get();
+
+  const results = await Promise.allSettled(
+    sites.docs.map((doc) => driver.rotateJwtSecret(doc.data().slug as string)),
+  );
+  const failed: string[] = [];
+  results.forEach((r, i) => {
+    if (r.status === 'rejected') {
+      const slug = sites.docs[i]!.data().slug as string;
+      console.error(`rotate-secrets ${slug}:`, r.reason);
+      failed.push(slug);
+    }
+  });
+  res.json({ rotated: results.length - failed.length, failed });
+});
+
 export default router;

@@ -35,4 +35,8 @@ export const fakeProvisionerDriver: ProvisionerDriver = {
   async deprovision(_slug: string) {
     await wait(500);
   },
+
+  async rotateJwtSecret(_slug: string) {
+    await wait(500);
+  },
 };
