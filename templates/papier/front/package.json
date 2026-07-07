@@ -5,12 +5,12 @@
   "dependencies": {
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.1",
-    "@mui/icons-material": "^7",
-    "@mui/material": "^7",
+    "@mui/icons-material": "^7.3.11",
+    "@mui/material": "^7.3.11",
     "react": "^19.2.7",
     "react-colorful": "^5.7.0",
     "react-dom": "^19.2.7",
-    "react-easy-crop": "^6.1.0",
+    "react-easy-crop": "^6.2.0",
     "react-router-dom": "^7.18.1"
   },
   "devDependencies": {
