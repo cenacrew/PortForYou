@@ -22,6 +22,7 @@ Mesures appliquées, par couche. Référence : PortForYou.md §9.
 | Back-office tenant                    | Bcrypt + JWT cookie httpOnly `SameSite` ; secrets par tenant dans Secret Manager                                                                                                                                                                                                             |
 | `/internal/*` (Cloud Tasks/Scheduler) | Token OIDC Google vérifié : audience = URL de l'API, émetteur = service account `pfy-api`                                                                                                                                                                                                    |
 | Ownership                             | Toute route `/me/sites/:id` vérifie `site.uid == token.uid`                                                                                                                                                                                                                                  |
+| Vérification d'email                  | Token à usage unique (24 h) envoyé à l'inscription (`POST /auth/verify-email`, renvoi via `/auth/resend-verification`) ; `REQUIRE_VERIFIED_EMAIL=1` en prod bloque la commande tant que l'email n'est pas confirmé — comptes Google vérifiés d'office                                        |
 
 ## Firestore
 
@@ -35,6 +36,11 @@ Mesures appliquées, par couche. Référence : PortForYou.md §9.
   injectés par référence dans les services Cloud Run.
 - Le mot de passe back-office est envoyé une seule fois par email, jamais stocké en clair.
 - CI : Workload Identity Federation (aucune clé de service account exportée).
+- **Rotation** : `tenant-<slug>-jwt` tourne automatiquement (Cloud Scheduler `pfy-rotate-secrets`,
+  trimestriel → `POST /internal/rotate-secrets`) — force une nouvelle révision Cloud Run pour
+  recharger le secret, invalide les sessions back-office en cours (reconnexion requise), sans
+  impact pour l'artiste. Le mot de passe admin reste à rotation manuelle (régénération depuis le
+  dashboard client) pour ne jamais couper l'accès sans prévenir.
 
 ## Réseau & HTTP
 
@@ -52,9 +58,18 @@ Mesures appliquées, par couche. Référence : PortForYou.md §9.
 
 ## Anti-abus
 
-- Vérification d'email non requise en démo mais champ prévu (`MAX_SITES_PER_USER=3`).
+- Email de vérification requis avant commande en prod (`REQUIRE_VERIFIED_EMAIL=1`), plafond de
+  sites par compte (`MAX_SITES_PER_USER=3`).
 - Honeypot sur le formulaire de contact des tenants.
 - Analytics sans cookie ni PII : hash journalier salé non réversible, jamais persisté brut.
+
+## Observabilité & alerting
+
+- Dashboard Cloud Monitoring (`infra/monitoring/dashboard.json`) : requêtes/latence/erreurs/CPU
+  de `pfy-api`/`pfy-web`, agrégat + détail par tenant, opérations Firestore, queue de provisioning.
+- **Alertes 5xx** (`infra/monitoring/alert-5xx.json`, policy Cloud Monitoring déployée par
+  `setup-gcp.sh`) : notifie par email dès qu'un taux de 5xx soutenu (5 min) est détecté sur
+  `pfy-api`/`pfy-web` ou sur un ou plusieurs `tenant-*`.
 
 ## Dépendances & CI
 
@@ -63,9 +78,11 @@ Mesures appliquées, par couche. Référence : PortForYou.md §9.
 
 ## À faire avant une mise en production commerciale
 
-- [ ] Email de vérification à l'inscription (le flag `REQUIRE_VERIFIED_EMAIL` existe mais reste off tant que l'envoi n'est pas implémenté ; les comptes Google sont vérifiés d'office)
+- [x] Email de vérification à l'inscription (`REQUIRE_VERIFIED_EMAIL=1` en prod ; comptes Google vérifiés d'office)
 - [x] CSP stricte avec nonces par requête (`apps/web/src/middleware.ts`)
 - [x] Budget GCP avec alertes (`setup-gcp.sh`, variable `BILLING_ACCOUNT`)
-- [ ] Alertes 5xx Cloud Monitoring
-- [ ] Rotation périodique des secrets tenants
-- [ ] Pénétration test du flow de provisioning
+- [x] Alertes 5xx Cloud Monitoring (`infra/monitoring/alert-5xx.json`)
+- [x] Rotation périodique des secrets tenants (JWT_SECRET, trimestriel — mot de passe admin en rotation manuelle assumée)
+- [x] Test de pénétration du flow de provisioning (revue de code + exploitation réelle contre l'API locale, `apps/api/src/__tests__/pentest.provisioning.int.test.ts`)
+  - **Faille trouvée et corrigée** : `confirmPaidOrder` faisait un read-check-create non transactionnel — un rejeu concurrent du webhook Stripe (ou double appel) pouvait créer deux sites pour la même commande. Corrigé par une transaction Firestore (`apps/api/src/orders/service.ts`) ; l'idempotence de la réclamation d'événement webhook est également passée en écriture atomique (`.create()` au lieu de get-puis-set). Les deux tiennent désormais sous contention réelle (testé avec 10 requêtes concurrentes sur le même slug, et un rejeu concurrent du paiement).
+  - IDOR, auth OIDC des routes `/internal/*` et réservation de slug : aucune faille trouvée, protections validées empiriquement (pas seulement à la lecture du code).

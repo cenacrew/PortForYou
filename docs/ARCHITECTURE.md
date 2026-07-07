@@ -43,7 +43,7 @@ graph TB
         Firestore[("Firestore\n(natif)")]
         SecretMgr[("Secret Manager")]
         Tasks[["Cloud Tasks\nqueue: provisioning"]]
-        Scheduler[["Cloud Scheduler\nhealth-checks / cleanup-slugs / billing-cycle"]]
+        Scheduler[["Cloud Scheduler\nhealth-checks / cleanup-slugs / billing-cycle / rotate-secrets"]]
         GCS[("GCS\ntemplate-builds + uploads")]
         Monitoring["Cloud Monitoring\ndashboard"]
     end
@@ -188,6 +188,7 @@ graph TB
         SchedHealth["Cloud Scheduler: pfy-health-checks (*/10 min)"]
         SchedCleanup["Cloud Scheduler: pfy-cleanup-slugs (horaire)"]
         SchedBilling["Cloud Scheduler: pfy-billing-cycle (1er du mois 03h Paris)"]
+        SchedRotate["Cloud Scheduler: pfy-rotate-secrets (trimestriel)"]
     end
     subgraph "Secrets & identité"
         SM["Secret Manager\npfy-jwt-secret, pfy-stripe-secret,\npfy-stripe-webhook, pfy-google-oauth-secret,\npfy-resend-key, tenant-<slug>-admin-hash,\ntenant-<slug>-jwt"]
@@ -196,6 +197,7 @@ graph TB
     end
     subgraph "Observabilité & coûts"
         MonDash["Cloud Monitoring\ndashboard (infra/monitoring/dashboard.json)"]
+        MonAlert["Cloud Monitoring\nalerte 5xx (infra/monitoring/alert-5xx.json)\n→ canal email"]
         Budget["Budget + alertes 5/10/20 €"]
     end
 
@@ -215,20 +217,21 @@ graph TB
 
 ### 5.2 Inventaire des ressources
 
-| Ressource          | Nom                                                           | Créée par                                                     |
-| ------------------ | ------------------------------------------------------------- | ------------------------------------------------------------- |
-| Cloud Run          | `pfy-api`, `pfy-web`                                          | CI (`ci.yml` job `deploy`, `gcloud run deploy`)               |
-| Cloud Run          | `tenant-<slug>` (×N)                                          | provisioning (`gcp.ts` → Cloud Run Admin API)                 |
-| Firebase Hosting   | `portforyou` (vitrine)                                        | `firebase.json` racine                                        |
-| Firebase Hosting   | `pfy-<slug>` (×N)                                             | provisioning (`gcp.ts` → Hosting REST API)                    |
-| Firestore (native) | base par défaut                                               | `setup-gcp.sh`                                                |
-| Cloud Storage      | `portforyou-template-builds`, `portforyou-uploads`            | `setup-gcp.sh`                                                |
-| Artifact Registry  | `pfy` (docker)                                                | `setup-gcp.sh`                                                |
-| Cloud Tasks        | queue `provisioning`                                          | `setup-gcp.sh`                                                |
-| Cloud Scheduler    | `pfy-health-checks`, `pfy-cleanup-slugs`, `pfy-billing-cycle` | `setup-gcp.sh` (après 1er déploiement de `pfy-api`)           |
-| Secret Manager     | secrets plateforme + `tenant-<slug>-{admin-hash,jwt}`         | `setup-gcp.sh` (placeholders) + provisioning (secrets tenant) |
-| Cloud Monitoring   | dashboard « Vue d'ensemble plateforme & tenants »             | `setup-gcp.sh` / `infra/monitoring/dashboard.json`            |
-| Budget             | `portforyou-budget` (20 €, seuils 25/50/100 %)                | `setup-gcp.sh` (si `BILLING_ACCOUNT` fourni)                  |
+| Ressource          | Nom                                                                                 | Créée par                                                                     |
+| ------------------ | ----------------------------------------------------------------------------------- | ----------------------------------------------------------------------------- |
+| Cloud Run          | `pfy-api`, `pfy-web`                                                                | CI (`ci.yml` job `deploy`, `gcloud run deploy`)                               |
+| Cloud Run          | `tenant-<slug>` (×N)                                                                | provisioning (`gcp.ts` → Cloud Run Admin API)                                 |
+| Firebase Hosting   | `portforyou` (vitrine)                                                              | `firebase.json` racine                                                        |
+| Firebase Hosting   | `pfy-<slug>` (×N)                                                                   | provisioning (`gcp.ts` → Hosting REST API)                                    |
+| Firestore (native) | base par défaut                                                                     | `setup-gcp.sh`                                                                |
+| Cloud Storage      | `portforyou-template-builds`, `portforyou-uploads`                                  | `setup-gcp.sh`                                                                |
+| Artifact Registry  | `pfy` (docker)                                                                      | `setup-gcp.sh`                                                                |
+| Cloud Tasks        | queue `provisioning`                                                                | `setup-gcp.sh`                                                                |
+| Cloud Scheduler    | `pfy-health-checks`, `pfy-cleanup-slugs`, `pfy-billing-cycle`, `pfy-rotate-secrets` | `setup-gcp.sh` (après 1er déploiement de `pfy-api`)                           |
+| Secret Manager     | secrets plateforme + `tenant-<slug>-{admin-hash,jwt}`                               | `setup-gcp.sh` (placeholders) + provisioning (secrets tenant)                 |
+| Cloud Monitoring   | dashboard « Vue d'ensemble plateforme & tenants »                                   | `setup-gcp.sh` / `infra/monitoring/dashboard.json`                            |
+| Cloud Monitoring   | policy d'alerte « Erreurs 5xx — plateforme & tenants » + canal email                | `setup-gcp.sh` / `infra/monitoring/alert-5xx.json` (composant `gcloud alpha`) |
+| Budget             | `portforyou-budget` (20 €, seuils 25/50/100 %)                                      | `setup-gcp.sh` (si `BILLING_ACCOUNT` fourni)                                  |
 
 ### 5.3 IAM — service accounts (moindre privilège)
 
@@ -302,22 +305,25 @@ sequenceDiagram
 
 **Suivi temps réel** : contrairement à une architecture `onSnapshot` client-side, le dashboard consomme un flux **SSE servi par l'API** (`GET /me/sites/:id/deployments/stream`, auth par token en query via `requireAuthSse`) — cohérent avec les règles Firestore deny-all (`firestore.rules`) : le navigateur ne parle jamais directement à Firestore.
 
+**Idempotence sous contention réelle** : `confirmPaidOrder` (`apps/api/src/orders/service.ts`, appelé par le webhook Stripe et par `/payments/fake/confirm`) fait son read-check-create dans une **transaction Firestore** — un rejeu concurrent du webhook (ce que Stripe fait parfois en cas de timeout réseau) ne crée jamais deux sites pour la même commande. Validé par test d'exploitation réel (10 requêtes concurrentes sur le même slug, confirmation concurrente d'une même commande) dans `apps/api/src/__tests__/pentest.provisioning.int.test.ts` — voir `docs/SECURITY.md` pour le détail de la faille trouvée et corrigée.
+
 ---
 
 ## 7. Modèle de données Firestore
 
 ### 7.1 Domaine plateforme
 
-| Collection                                        | Contenu                                                                                              | Accès                      |
-| ------------------------------------------------- | ---------------------------------------------------------------------------------------------------- | -------------------------- |
-| `users/{uid}`                                     | Profil (displayName, email, stripeCustomerId, role, createdAt)                                       | API uniquement (Admin SDK) |
-| `orders/{orderId}`                                | uid, templateSlug, siteSlug, stripeSessionId, status, montants                                       | idem                       |
-| `sites/{siteId}`                                  | uid, slug, templateSlug, status (`provisioning\|live\|error\|suspended`), urls, stripeSubscriptionId | idem                       |
-| `deployments/{deployId}`                          | siteId, trigger, status, `steps[]` (id, label, status, startedAt, finishedAt, error?)                | idem                       |
-| `slugs/{slug}`                                    | réservation atomique (transaction), TTL 30 min                                                       | idem                       |
-| `stripe_events/{eventId}`                         | idempotence des webhooks                                                                             | idem                       |
-| `templates/{slug}`                                | `currentVersion` (poussé par `release-templates.yml`)                                                | idem                       |
-| `stripe_events`, `email_logs`, `contact_requests` | Journalisation (webhooks, emails envoyés, formulaire vitrine)                                        | idem                       |
+| Collection                                                          | Contenu                                                                                                     | Accès                      |
+| ------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- | -------------------------- |
+| `users/{uid}`                                                       | Profil (displayName, email, stripeCustomerId, role, createdAt)                                              | API uniquement (Admin SDK) |
+| `orders/{orderId}`                                                  | uid, templateSlug, siteSlug, stripeSessionId, status, montants                                              | idem                       |
+| `sites/{siteId}`                                                    | uid, slug, templateSlug, status (`provisioning\|live\|error\|suspended`), urls, stripeSubscriptionId        | idem                       |
+| `deployments/{deployId}`                                            | siteId, trigger, status, `steps[]` (id, label, status, startedAt, finishedAt, error?)                       | idem                       |
+| `slugs/{slug}`                                                      | réservation atomique (transaction), TTL 30 min                                                              | idem                       |
+| `stripe_events/{eventId}`                                           | idempotence des webhooks                                                                                    | idem                       |
+| `templates/{slug}`                                                  | `currentVersion` (poussé par `release-templates.yml`)                                                       | idem                       |
+| `stripe_events`, `email_logs`, `contact_requests`                   | Journalisation (webhooks, emails envoyés, formulaire vitrine)                                               | idem                       |
+| `sessions`, `user_emails`, `password_resets`, `email_verifications` | Auth maison : refresh tokens (hash), pointeur email→uid, tokens de reset/vérification à usage unique (hash) | idem                       |
 
 ### 7.2 Domaine tenant (`tenants/{slug}/...`)
 
@@ -344,10 +350,11 @@ graph TB
         Refresh["Refresh token opaque rotatif\ncookie httpOnly, 30j\nréutilisation détectée → révocation globale"]
         GoogleOAuth["OAuth Google fait main\nstate signé anti-CSRF, id_token vérifié serveur"]
         AdminRole["role=admin (champ Firestore users/)\nposé par set-admin, porté par le JWT"]
+        EmailVerif["Vérification email\ntoken 24h (email_verifications)\nREQUIRE_VERIFIED_EMAIL=1 bloque /orders"]
     end
     subgraph "Auth back-office tenant (packages/template-back-core)"
         TLogin["POST /api/v1/auth/login\nbcrypt + JWT cookie httpOnly"]
-        TSecrets["Secrets par tenant\nSecret Manager: tenant-<slug>-{admin-hash,jwt}"]
+        TSecrets["Secrets par tenant\nSecret Manager: tenant-<slug>-{admin-hash,jwt}\nJWT tourne trimestriellement (pfy-rotate-secrets)"]
     end
     subgraph "Auth machine-à-machine"
         OIDC["Token OIDC Google\n(Cloud Tasks / Cloud Scheduler → /internal/*)\naudience = URL API, émetteur = SA pfy-api"]
@@ -361,9 +368,10 @@ graph TB
 ```
 
 - **Plateforme** : `requireAuth` (Bearer JWT), `requireAdmin` (rôle Firestore), `requireAuthSse` (token en query pour EventSource, seule variante côté API à accepter un token hors header `Authorization`).
-- **Ownership** : toute route `/me/sites/:id` vérifie `site.uid === token.uid` (voir `apps/api/src/routes/me.ts`).
-- **Tenant** : modèle repris tel quel de `marcel-nino-pajot` — un seul compte admin par tenant, email + hash bcrypt injectés en variables d'env (via Secret Manager en prod).
-- **`/internal/*`** (`internal.ts`) : `requireCloudTasksOidc` — seul un token OIDC signé par le SA `pfy-api` avec la bonne audience passe.
+- **Ownership** : toute route `/me/sites/:id` vérifie `site.uid === token.uid` (voir `apps/api/src/routes/me.ts`) — validé par test d'exploitation réel (IDOR) sur les 5 sous-routes (`pentest.provisioning.int.test.ts`).
+- **Vérification d'email** : token à usage unique 24h (`createEmailVerification`/`consumeEmailVerification`, `auth/service.ts`), envoyé à l'inscription et sur demande (`POST /auth/resend-verification`, authentifié). `REQUIRE_VERIFIED_EMAIL=1` en prod bloque `POST /orders` tant que non confirmé ; comptes Google vérifiés d'office.
+- **Tenant** : modèle repris tel quel de `marcel-nino-pajot` — un seul compte admin par tenant, email + hash bcrypt injectés en variables d'env (via Secret Manager en prod). Le `JWT_SECRET` (session back-office uniquement) tourne automatiquement tous les trimestres ; le mot de passe admin ne tourne jamais automatiquement (régénération manuelle uniquement, pour ne jamais couper l'accès de l'artiste sans le prévenir).
+- **`/internal/*`** (`internal.ts`) : `requireCloudTasksOidc` — seul un token OIDC signé par le SA `pfy-api` avec la bonne audience passe ; validé par test d'exploitation réel (sans token, avec un Bearer forgé) sur les 5 endpoints internes.
 
 ---
 
@@ -408,15 +416,15 @@ graph TB
 
 ## 11. Observabilité
 
-| Mécanisme                                | Fréquence                                           | Détail                                                                                                                                                                                                                                                                                      |
-| ---------------------------------------- | --------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Health checks tenants                    | `pfy-health-checks` (Cloud Scheduler, */10 min)     | `POST /internal/health-checks` → ping `/` et `/api/v1/health` de chaque site `live`, met à jour `sites/{id}.health`                                                                                                                                                                         |
-| Purge des réservations de slugs expirées | `pfy-cleanup-slugs` (horaire)                       | `POST /internal/cleanup-slugs`                                                                                                                                                                                                                                                              |
-| Cycle de facturation                     | `pfy-billing-cycle` (1er du mois, 03h Europe/Paris) | `POST /internal/billing-cycle`                                                                                                                                                                                                                                                              |
-| Dashboard Cloud Monitoring               | continu                                             | `infra/monitoring/dashboard.json` — requêtes/latence/erreurs/CPU/mémoire/instances de `pfy-api` et `pfy-web`, agrégat + détail par service pour les `tenant-*`, opérations Firestore, profondeur de la queue `provisioning`, exécutions Cloud Scheduler. Créé/mis à jour par `setup-gcp.sh` |
-| Budget                                   | continu                                             | Alertes 25/50/100 % d'un budget de 20 €                                                                                                                                                                                                                                                     |
-
-⚠️ Le dashboard Cloud Monitoring est un outil de **visualisation**, pas d'**alerting**. Les alertes 5xx (policy d'alerte séparée) restent un item ouvert de `docs/SECURITY.md`.
+| Mécanisme                                | Fréquence                                            | Détail                                                                                                                                                                                                                                                                                      |
+| ---------------------------------------- | ---------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Health checks tenants                    | `pfy-health-checks` (Cloud Scheduler, */10 min)      | `POST /internal/health-checks` → ping `/` et `/api/v1/health` de chaque site `live`, met à jour `sites/{id}.health`                                                                                                                                                                         |
+| Purge des réservations de slugs expirées | `pfy-cleanup-slugs` (horaire)                        | `POST /internal/cleanup-slugs`                                                                                                                                                                                                                                                              |
+| Cycle de facturation                     | `pfy-billing-cycle` (1er du mois, 03h Europe/Paris)  | `POST /internal/billing-cycle`                                                                                                                                                                                                                                                              |
+| Rotation des secrets tenants             | `pfy-rotate-secrets` (trimestriel, 04h Europe/Paris) | `POST /internal/rotate-secrets` — nouveau `JWT_SECRET` par tenant live + nouvelle révision Cloud Run pour le recharger                                                                                                                                                                      |
+| Dashboard Cloud Monitoring               | continu                                              | `infra/monitoring/dashboard.json` — requêtes/latence/erreurs/CPU/mémoire/instances de `pfy-api` et `pfy-web`, agrégat + détail par service pour les `tenant-*`, opérations Firestore, profondeur de la queue `provisioning`, exécutions Cloud Scheduler. Créé/mis à jour par `setup-gcp.sh` |
+| Alertes 5xx                              | continu                                              | `infra/monitoring/alert-5xx.json` — policy Cloud Monitoring (2 conditions : plateforme, tenants), notifie un canal email. Créée/mise à jour par `setup-gcp.sh`                                                                                                                              |
+| Budget                                   | continu                                              | Alertes 25/50/100 % d'un budget de 20 €                                                                                                                                                                                                                                                     |
 
 ---
 
@@ -430,8 +438,9 @@ graph TB
 - IAM moindre privilège (3 SA dédiés, voir §5.3).
 - Uploads : MIME réel + taille max 10 Mo + noms régénérés (UUID).
 - `pnpm audit --audit-level high` (hebdomadaire, `security.yml`).
+- Email de vérification obligatoire avant commande en prod, alertes 5xx, rotation trimestrielle du `JWT_SECRET` tenant, pentest interne du flow de provisioning (revue de code + exploitation réelle — une faille de concurrence trouvée et corrigée, voir `docs/SECURITY.md`).
 
-**Items encore ouverts** (checklist vivante dans `docs/SECURITY.md`) : email de vérification à l'inscription, alertes 5xx Cloud Monitoring, rotation périodique des secrets tenants, test de pénétration du flow de provisioning.
+Checklist « avant prod commerciale » de `docs/SECURITY.md` : entièrement cochée à ce stade.
 
 ---
 
@@ -445,3 +454,4 @@ graph TB
 | `README.md`                       | Démarrage rapide, structure du repo, conventions de commit                                                                                              |
 | `infra/scripts/setup-gcp.sh`      | Script idempotent de provisioning de l'infra GCP                                                                                                        |
 | `infra/monitoring/dashboard.json` | Définition du dashboard Cloud Monitoring                                                                                                                |
+| `infra/monitoring/alert-5xx.json` | Définition de la policy d'alerte 5xx Cloud Monitoring                                                                                                   |
