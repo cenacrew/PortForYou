@@ -42,6 +42,17 @@ export async function sendMail({ to, subject, text, type }: MailInput): Promise<
     .catch(() => {});
 }
 
+export function verificationEmail(displayName: string, link: string) {
+  return {
+    subject: 'Confirmez votre adresse email — Port’ForYou',
+    text:
+      `Bonjour ${displayName},\n\n` +
+      `Pour confirmer votre adresse email, ouvrez ce lien (valable 24 h) :\n${link}\n\n` +
+      `Si vous n'êtes pas à l'origine de cette inscription, ignorez cet email.\n\n` +
+      `L'équipe Port'ForYou`,
+  };
+}
+
 export function orderConfirmationEmail(artistName: string, siteSlug: string) {
   return {
     subject: 'Votre commande Port’ForYou est confirmée 🎨',

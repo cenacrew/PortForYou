@@ -1,8 +1,9 @@
 import { Router } from 'express';
 import { z } from 'zod';
 import { validateBody } from '../middleware/validate.js';
+import { requireAuth } from '../middleware/auth.js';
 import { usersCol } from '../lib/firebase.js';
-import { sendMail } from '../emails/mailer.js';
+import { sendMail, verificationEmail } from '../emails/mailer.js';
 import { config } from '../config.js';
 import {
   REFRESH_COOKIE,
@@ -19,10 +20,21 @@ import {
   clearRefreshCookie,
   createPasswordReset,
   consumePasswordReset,
+  createEmailVerification,
+  consumeEmailVerification,
   toPublicUser,
   type PublicUser,
 } from './service.js';
 import { googleEnabled, googleAuthUrl, checkState, exchangeCode } from './google.js';
+
+async function sendVerificationEmail(uid: string, displayName: string, email: string) {
+  const token = await createEmailVerification(uid);
+  const { subject, text } = verificationEmail(
+    displayName,
+    `${config.WEB_ORIGIN}/verify-email?token=${token}`,
+  );
+  await sendMail({ to: email, type: 'email_verification', subject, text });
+}
 
 const router: Router = Router();
 
@@ -51,6 +63,7 @@ router.post(
         provider: 'password',
         emailVerified: false,
       });
+      await sendVerificationEmail(user.uid, user.displayName, user.email);
       return res.status(201).json(await issueTokens(res, user));
     } catch (err) {
       if (err instanceof Error && err.message === 'EMAIL_TAKEN') {
@@ -154,6 +167,27 @@ router.post(
     return res.json({ ok: true });
   },
 );
+
+// ---- Vérification d'email ---------------------------------------------------
+
+router.post(
+  '/auth/verify-email',
+  validateBody(z.object({ token: z.string().min(10) })),
+  async (req, res) => {
+    const uid = await consumeEmailVerification(req.body.token);
+    if (!uid) return res.status(400).json({ error: 'Lien invalide ou expiré' });
+    await usersCol().doc(uid).update({ emailVerified: true });
+    return res.json({ ok: true });
+  },
+);
+
+router.post('/auth/resend-verification', requireAuth, async (req, res) => {
+  const user = req.user!;
+  if (user.emailVerified) return res.json({ ok: true });
+  const snap = await usersCol().doc(user.uid).get();
+  await sendVerificationEmail(user.uid, snap.data()?.displayName ?? '', user.email);
+  return res.json({ ok: true });
+});
 
 // ---- OAuth Google (fait main) ----------------------------------------------
 
