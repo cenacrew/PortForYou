@@ -183,14 +183,7 @@
               }
             ],
             "yAxis": { "label": "ms", "scale": "LINEAR" },
-            "thresholds": [
-              {
-                "value": 3000,
-                "color": "RED",
-                "direction": "ABOVE",
-                "label": "objectif < 3 min de bout en bout"
-              }
-            ]
+            "thresholds": [{ "value": 3000, "label": "objectif < 3 min de bout en bout" }]
           }
         }
       },
@@ -337,14 +330,7 @@
               }
             ],
             "yAxis": { "label": "erreurs/s", "scale": "LINEAR" },
-            "thresholds": [
-              {
-                "value": 0,
-                "color": "RED",
-                "direction": "ABOVE",
-                "label": "tout 5xx tenant = incident potentiel"
-              }
-            ]
+            "thresholds": [{ "value": 0, "label": "tout 5xx tenant = incident potentiel" }]
           }
         }
       },
@@ -512,14 +498,7 @@
               }
             ],
             "yAxis": { "label": "tâches", "scale": "LINEAR" },
-            "thresholds": [
-              {
-                "value": 5,
-                "color": "YELLOW",
-                "direction": "ABOVE",
-                "label": "file qui s'accumule = provisioning bloqué"
-              }
-            ]
+            "thresholds": [{ "value": 5, "label": "file qui s'accumule = provisioning bloqué" }]
           }
         }
       },
@@ -553,8 +532,6 @@
             "thresholds": [
               {
                 "value": 0,
-                "color": "RED",
-                "direction": "ABOVE",
                 "label": "tout `result=failed` sur pfy-health-checks ou pfy-cleanup-slugs à investiguer"
               }
             ]
