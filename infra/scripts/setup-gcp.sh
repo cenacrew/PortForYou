@@ -171,6 +171,18 @@ else
   echo "  ⚠️  pfy-api pas encore déployé — relancer ce script après le premier deploy pour créer les jobs Scheduler."
 fi
 
+echo "▶ Dashboard Cloud Monitoring…"
+DASHBOARD_NAME=$(gcloud monitoring dashboards list \
+  --filter="displayName:'Port'ForYou — Vue d'ensemble plateforme & tenants'" \
+  --format='value(name)' 2>/dev/null | head -n1)
+if [ -n "$DASHBOARD_NAME" ]; then
+  gcloud monitoring dashboards update "$DASHBOARD_NAME" \
+    --config-from-file="$(dirname "$0")/../monitoring/dashboard.json" >/dev/null
+else
+  gcloud monitoring dashboards create \
+    --config-from-file="$(dirname "$0")/../monitoring/dashboard.json" >/dev/null
+fi
+
 echo "▶ Budget avec alertes (5/10/20 €)…"
 if [ -n "${BILLING_ACCOUNT:-}" ]; then
   gcloud billing budgets list --billing-account="$BILLING_ACCOUNT"     --filter="displayName:portforyou-budget" --format='value(name)' | grep -q . ||

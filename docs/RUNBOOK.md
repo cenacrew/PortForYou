@@ -86,6 +86,17 @@ et poser `STRIPE_WEBHOOK_SECRET`. La facturation de la consommation part chaque 
    puis renseigner `demoUrl` dans `apps/web/src/lib/templates.ts` et le catalogue API.
    En local : `FIRESTORE_EMULATOR_HOST=localhost:8090 pnpm --filter @portforyou/api seed-demos`.
 
+## Cloud Monitoring
+
+Dashboard `infra/monitoring/dashboard.json` (créé/mis à jour par `setup-gcp.sh`, idempotent —
+relancer le script après modification du fichier pour le pousser) : requêtes/erreurs/latence
+`pfy-api` et `pfy-web`, agrégat + détail par service pour les `tenant-*` (requêtes, erreurs 5xx,
+instances actives, latence p95), opérations Firestore, profondeur et tentatives de la queue Cloud
+Tasks `provisioning`, exécutions des jobs Cloud Scheduler. Mise à jour manuelle sans relancer tout
+le script : `gcloud monitoring dashboards update <NAME> --config-from-file=infra/monitoring/dashboard.json`.
+C'est un outil de visualisation — il ne remplace pas les alertes 5xx (item encore ouvert dans
+`docs/SECURITY.md`), qui nécessitent des `gcloud alpha monitoring policies create` séparées.
+
 ## Incidents courants
 
 | Symptôme                                             | Cause probable                           | Remède                                                         |

@@ -1,0 +1,566 @@
+{
+  "displayName": "Port'ForYou — Vue d'ensemble plateforme & tenants",
+  "mosaicLayout": {
+    "columns": 48,
+    "tiles": [
+      {
+        "xPos": 0,
+        "yPos": 0,
+        "width": 48,
+        "height": 2,
+        "widget": { "text": { "content": "Plateforme — pfy-api & pfy-web", "format": "MARKDOWN" } }
+      },
+
+      {
+        "xPos": 0,
+        "yPos": 2,
+        "width": 12,
+        "height": 4,
+        "widget": {
+          "title": "pfy-api — requêtes/s (1h)",
+          "scorecard": {
+            "timeSeriesQuery": {
+              "timeSeriesFilter": {
+                "filter": "metric.type=\"run.googleapis.com/request_count\" resource.type=\"cloud_run_revision\" resource.label.\"service_name\"=\"pfy-api\"",
+                "aggregation": {
+                  "alignmentPeriod": "60s",
+                  "perSeriesAligner": "ALIGN_RATE",
+                  "crossSeriesReducer": "REDUCE_SUM"
+                }
+              }
+            },
+            "sparkChartView": { "sparkChartType": "SPARK_LINE" }
+          }
+        }
+      },
+      {
+        "xPos": 12,
+        "yPos": 2,
+        "width": 12,
+        "height": 4,
+        "widget": {
+          "title": "pfy-api — erreurs 5xx/s",
+          "scorecard": {
+            "timeSeriesQuery": {
+              "timeSeriesFilter": {
+                "filter": "metric.type=\"run.googleapis.com/request_count\" resource.type=\"cloud_run_revision\" resource.label.\"service_name\"=\"pfy-api\" metric.label.\"response_code_class\"=\"5xx\"",
+                "aggregation": {
+                  "alignmentPeriod": "60s",
+                  "perSeriesAligner": "ALIGN_RATE",
+                  "crossSeriesReducer": "REDUCE_SUM"
+                }
+              }
+            },
+            "sparkChartView": { "sparkChartType": "SPARK_LINE" },
+            "thresholds": [{ "value": 0.01, "color": "RED", "direction": "ABOVE" }]
+          }
+        }
+      },
+      {
+        "xPos": 24,
+        "yPos": 2,
+        "width": 12,
+        "height": 4,
+        "widget": {
+          "title": "pfy-web — requêtes/s (1h)",
+          "scorecard": {
+            "timeSeriesQuery": {
+              "timeSeriesFilter": {
+                "filter": "metric.type=\"run.googleapis.com/request_count\" resource.type=\"cloud_run_revision\" resource.label.\"service_name\"=\"pfy-web\"",
+                "aggregation": {
+                  "alignmentPeriod": "60s",
+                  "perSeriesAligner": "ALIGN_RATE",
+                  "crossSeriesReducer": "REDUCE_SUM"
+                }
+              }
+            },
+            "sparkChartView": { "sparkChartType": "SPARK_LINE" }
+          }
+        }
+      },
+      {
+        "xPos": 36,
+        "yPos": 2,
+        "width": 12,
+        "height": 4,
+        "widget": {
+          "title": "Instances tenant actives (Cloud Run)",
+          "scorecard": {
+            "timeSeriesQuery": {
+              "timeSeriesFilter": {
+                "filter": "metric.type=\"run.googleapis.com/container/instance_count\" resource.type=\"cloud_run_revision\" resource.label.\"service_name\"=monitoring.regex.full_match(\"tenant-.*\") metric.label.\"state\"=\"active\"",
+                "aggregation": {
+                  "alignmentPeriod": "60s",
+                  "perSeriesAligner": "ALIGN_MEAN",
+                  "crossSeriesReducer": "REDUCE_SUM"
+                }
+              }
+            },
+            "sparkChartView": { "sparkChartType": "SPARK_LINE" }
+          }
+        }
+      },
+
+      {
+        "xPos": 0,
+        "yPos": 6,
+        "width": 24,
+        "height": 16,
+        "widget": {
+          "title": "pfy-api — requêtes par code de réponse",
+          "xyChart": {
+            "dataSets": [
+              {
+                "timeSeriesQuery": {
+                  "timeSeriesFilter": {
+                    "filter": "metric.type=\"run.googleapis.com/request_count\" resource.type=\"cloud_run_revision\" resource.label.\"service_name\"=\"pfy-api\"",
+                    "aggregation": {
+                      "alignmentPeriod": "60s",
+                      "perSeriesAligner": "ALIGN_RATE",
+                      "crossSeriesReducer": "REDUCE_SUM",
+                      "groupByFields": ["metric.label.\"response_code_class\""]
+                    }
+                  }
+                },
+                "plotType": "STACKED_BAR",
+                "legendTemplate": "${metric.label.response_code_class}"
+              }
+            ],
+            "yAxis": { "label": "req/s", "scale": "LINEAR" }
+          }
+        }
+      },
+      {
+        "xPos": 24,
+        "yPos": 6,
+        "width": 24,
+        "height": 16,
+        "widget": {
+          "title": "pfy-api — latence (p50 / p95 / p99)",
+          "xyChart": {
+            "dataSets": [
+              {
+                "timeSeriesQuery": {
+                  "timeSeriesFilter": {
+                    "filter": "metric.type=\"run.googleapis.com/request_latencies\" resource.type=\"cloud_run_revision\" resource.label.\"service_name\"=\"pfy-api\"",
+                    "aggregation": {
+                      "alignmentPeriod": "60s",
+                      "perSeriesAligner": "ALIGN_PERCENTILE_50",
+                      "crossSeriesReducer": "REDUCE_MEAN"
+                    }
+                  }
+                },
+                "plotType": "LINE",
+                "legendTemplate": "p50"
+              },
+              {
+                "timeSeriesQuery": {
+                  "timeSeriesFilter": {
+                    "filter": "metric.type=\"run.googleapis.com/request_latencies\" resource.type=\"cloud_run_revision\" resource.label.\"service_name\"=\"pfy-api\"",
+                    "aggregation": {
+                      "alignmentPeriod": "60s",
+                      "perSeriesAligner": "ALIGN_PERCENTILE_95",
+                      "crossSeriesReducer": "REDUCE_MEAN"
+                    }
+                  }
+                },
+                "plotType": "LINE",
+                "legendTemplate": "p95"
+              },
+              {
+                "timeSeriesQuery": {
+                  "timeSeriesFilter": {
+                    "filter": "metric.type=\"run.googleapis.com/request_latencies\" resource.type=\"cloud_run_revision\" resource.label.\"service_name\"=\"pfy-api\"",
+                    "aggregation": {
+                      "alignmentPeriod": "60s",
+                      "perSeriesAligner": "ALIGN_PERCENTILE_99",
+                      "crossSeriesReducer": "REDUCE_MEAN"
+                    }
+                  }
+                },
+                "plotType": "LINE",
+                "legendTemplate": "p99"
+              }
+            ],
+            "yAxis": { "label": "ms", "scale": "LINEAR" },
+            "thresholds": [
+              {
+                "value": 3000,
+                "color": "RED",
+                "direction": "ABOVE",
+                "label": "objectif < 3 min de bout en bout"
+              }
+            ]
+          }
+        }
+      },
+
+      {
+        "xPos": 0,
+        "yPos": 22,
+        "width": 24,
+        "height": 16,
+        "widget": {
+          "title": "pfy-api & pfy-web — CPU / mémoire (p99 par révision)",
+          "xyChart": {
+            "dataSets": [
+              {
+                "timeSeriesQuery": {
+                  "timeSeriesFilter": {
+                    "filter": "metric.type=\"run.googleapis.com/container/cpu/utilizations\" resource.type=\"cloud_run_revision\" resource.label.\"service_name\"=monitoring.regex.full_match(\"pfy-(api|web)\")",
+                    "aggregation": {
+                      "alignmentPeriod": "60s",
+                      "perSeriesAligner": "ALIGN_PERCENTILE_99",
+                      "crossSeriesReducer": "REDUCE_MEAN",
+                      "groupByFields": ["resource.label.\"service_name\""]
+                    }
+                  }
+                },
+                "plotType": "LINE",
+                "legendTemplate": "${resource.label.service_name} CPU"
+              },
+              {
+                "timeSeriesQuery": {
+                  "timeSeriesFilter": {
+                    "filter": "metric.type=\"run.googleapis.com/container/memory/utilizations\" resource.type=\"cloud_run_revision\" resource.label.\"service_name\"=monitoring.regex.full_match(\"pfy-(api|web)\")",
+                    "aggregation": {
+                      "alignmentPeriod": "60s",
+                      "perSeriesAligner": "ALIGN_PERCENTILE_99",
+                      "crossSeriesReducer": "REDUCE_MEAN",
+                      "groupByFields": ["resource.label.\"service_name\""]
+                    }
+                  }
+                },
+                "plotType": "LINE",
+                "legendTemplate": "${resource.label.service_name} mem"
+              }
+            ],
+            "yAxis": { "label": "utilisation (0–1)", "scale": "LINEAR" }
+          }
+        }
+      },
+      {
+        "xPos": 24,
+        "yPos": 22,
+        "width": 24,
+        "height": 16,
+        "widget": {
+          "title": "pfy-api & pfy-web — instances (min 0, cold starts)",
+          "xyChart": {
+            "dataSets": [
+              {
+                "timeSeriesQuery": {
+                  "timeSeriesFilter": {
+                    "filter": "metric.type=\"run.googleapis.com/container/instance_count\" resource.type=\"cloud_run_revision\" resource.label.\"service_name\"=monitoring.regex.full_match(\"pfy-(api|web)\")",
+                    "aggregation": {
+                      "alignmentPeriod": "60s",
+                      "perSeriesAligner": "ALIGN_MEAN",
+                      "crossSeriesReducer": "REDUCE_SUM",
+                      "groupByFields": ["resource.label.\"service_name\"", "metric.label.\"state\""]
+                    }
+                  }
+                },
+                "plotType": "STACKED_AREA",
+                "legendTemplate": "${resource.label.service_name} (${metric.label.state})"
+              }
+            ],
+            "yAxis": { "label": "instances", "scale": "LINEAR" }
+          }
+        }
+      },
+
+      {
+        "xPos": 0,
+        "yPos": 38,
+        "width": 48,
+        "height": 2,
+        "widget": {
+          "text": {
+            "content": "Tenants — services `tenant-*` (agrégat + détail par service)",
+            "format": "MARKDOWN"
+          }
+        }
+      },
+
+      {
+        "xPos": 0,
+        "yPos": 40,
+        "width": 24,
+        "height": 16,
+        "widget": {
+          "title": "Tenants — requêtes/s par service",
+          "xyChart": {
+            "dataSets": [
+              {
+                "timeSeriesQuery": {
+                  "timeSeriesFilter": {
+                    "filter": "metric.type=\"run.googleapis.com/request_count\" resource.type=\"cloud_run_revision\" resource.label.\"service_name\"=monitoring.regex.full_match(\"tenant-.*\")",
+                    "aggregation": {
+                      "alignmentPeriod": "300s",
+                      "perSeriesAligner": "ALIGN_RATE",
+                      "crossSeriesReducer": "REDUCE_SUM",
+                      "groupByFields": ["resource.label.\"service_name\""]
+                    }
+                  }
+                },
+                "plotType": "LINE",
+                "legendTemplate": "${resource.label.service_name}"
+              }
+            ],
+            "yAxis": { "label": "req/s", "scale": "LINEAR" }
+          }
+        }
+      },
+      {
+        "xPos": 24,
+        "yPos": 40,
+        "width": 24,
+        "height": 16,
+        "widget": {
+          "title": "Tenants — erreurs 5xx par service",
+          "xyChart": {
+            "dataSets": [
+              {
+                "timeSeriesQuery": {
+                  "timeSeriesFilter": {
+                    "filter": "metric.type=\"run.googleapis.com/request_count\" resource.type=\"cloud_run_revision\" resource.label.\"service_name\"=monitoring.regex.full_match(\"tenant-.*\") metric.label.\"response_code_class\"=\"5xx\"",
+                    "aggregation": {
+                      "alignmentPeriod": "300s",
+                      "perSeriesAligner": "ALIGN_RATE",
+                      "crossSeriesReducer": "REDUCE_SUM",
+                      "groupByFields": ["resource.label.\"service_name\""]
+                    }
+                  }
+                },
+                "plotType": "STACKED_BAR",
+                "legendTemplate": "${resource.label.service_name}"
+              }
+            ],
+            "yAxis": { "label": "erreurs/s", "scale": "LINEAR" },
+            "thresholds": [
+              {
+                "value": 0,
+                "color": "RED",
+                "direction": "ABOVE",
+                "label": "tout 5xx tenant = incident potentiel"
+              }
+            ]
+          }
+        }
+      },
+
+      {
+        "xPos": 0,
+        "yPos": 56,
+        "width": 24,
+        "height": 16,
+        "widget": {
+          "title": "Tenants — instances actives par service",
+          "xyChart": {
+            "dataSets": [
+              {
+                "timeSeriesQuery": {
+                  "timeSeriesFilter": {
+                    "filter": "metric.type=\"run.googleapis.com/container/instance_count\" resource.type=\"cloud_run_revision\" resource.label.\"service_name\"=monitoring.regex.full_match(\"tenant-.*\") metric.label.\"state\"=\"active\"",
+                    "aggregation": {
+                      "alignmentPeriod": "300s",
+                      "perSeriesAligner": "ALIGN_MEAN",
+                      "crossSeriesReducer": "REDUCE_SUM",
+                      "groupByFields": ["resource.label.\"service_name\""]
+                    }
+                  }
+                },
+                "plotType": "LINE",
+                "legendTemplate": "${resource.label.service_name}"
+              }
+            ],
+            "yAxis": { "label": "instances", "scale": "LINEAR" }
+          }
+        }
+      },
+      {
+        "xPos": 24,
+        "yPos": 56,
+        "width": 24,
+        "height": 16,
+        "widget": {
+          "title": "Tenants — latence p95 agrégée",
+          "xyChart": {
+            "dataSets": [
+              {
+                "timeSeriesQuery": {
+                  "timeSeriesFilter": {
+                    "filter": "metric.type=\"run.googleapis.com/request_latencies\" resource.type=\"cloud_run_revision\" resource.label.\"service_name\"=monitoring.regex.full_match(\"tenant-.*\")",
+                    "aggregation": {
+                      "alignmentPeriod": "300s",
+                      "perSeriesAligner": "ALIGN_PERCENTILE_95",
+                      "crossSeriesReducer": "REDUCE_MEAN"
+                    }
+                  }
+                },
+                "plotType": "LINE",
+                "legendTemplate": "p95 tous tenants"
+              }
+            ],
+            "yAxis": { "label": "ms", "scale": "LINEAR" }
+          }
+        }
+      },
+
+      {
+        "xPos": 0,
+        "yPos": 72,
+        "width": 48,
+        "height": 2,
+        "widget": {
+          "text": {
+            "content": "Données & provisioning — Firestore, Cloud Tasks, Cloud Scheduler",
+            "format": "MARKDOWN"
+          }
+        }
+      },
+
+      {
+        "xPos": 0,
+        "yPos": 74,
+        "width": 24,
+        "height": 16,
+        "widget": {
+          "title": "Firestore — opérations (lecture / écriture / suppression)",
+          "xyChart": {
+            "dataSets": [
+              {
+                "timeSeriesQuery": {
+                  "timeSeriesFilter": {
+                    "filter": "metric.type=\"firestore.googleapis.com/document/read_count\" resource.type=\"firestore_instance\"",
+                    "aggregation": {
+                      "alignmentPeriod": "300s",
+                      "perSeriesAligner": "ALIGN_RATE",
+                      "crossSeriesReducer": "REDUCE_SUM"
+                    }
+                  }
+                },
+                "plotType": "LINE",
+                "legendTemplate": "lectures/s"
+              },
+              {
+                "timeSeriesQuery": {
+                  "timeSeriesFilter": {
+                    "filter": "metric.type=\"firestore.googleapis.com/document/write_count\" resource.type=\"firestore_instance\"",
+                    "aggregation": {
+                      "alignmentPeriod": "300s",
+                      "perSeriesAligner": "ALIGN_RATE",
+                      "crossSeriesReducer": "REDUCE_SUM"
+                    }
+                  }
+                },
+                "plotType": "LINE",
+                "legendTemplate": "écritures/s"
+              },
+              {
+                "timeSeriesQuery": {
+                  "timeSeriesFilter": {
+                    "filter": "metric.type=\"firestore.googleapis.com/document/delete_count\" resource.type=\"firestore_instance\"",
+                    "aggregation": {
+                      "alignmentPeriod": "300s",
+                      "perSeriesAligner": "ALIGN_RATE",
+                      "crossSeriesReducer": "REDUCE_SUM"
+                    }
+                  }
+                },
+                "plotType": "LINE",
+                "legendTemplate": "suppressions/s"
+              }
+            ],
+            "yAxis": { "label": "ops/s", "scale": "LINEAR" }
+          }
+        }
+      },
+      {
+        "xPos": 24,
+        "yPos": 74,
+        "width": 24,
+        "height": 16,
+        "widget": {
+          "title": "Provisioning — queue Cloud Tasks (profondeur & tentatives)",
+          "xyChart": {
+            "dataSets": [
+              {
+                "timeSeriesQuery": {
+                  "timeSeriesFilter": {
+                    "filter": "metric.type=\"cloudtasks.googleapis.com/queue/depth\" resource.type=\"cloud_tasks_queue\" resource.label.\"queue_id\"=\"provisioning\"",
+                    "aggregation": { "alignmentPeriod": "60s", "perSeriesAligner": "ALIGN_MEAN" }
+                  }
+                },
+                "plotType": "LINE",
+                "legendTemplate": "profondeur file"
+              },
+              {
+                "timeSeriesQuery": {
+                  "timeSeriesFilter": {
+                    "filter": "metric.type=\"cloudtasks.googleapis.com/queue/task_attempt_count\" resource.type=\"cloud_tasks_queue\" resource.label.\"queue_id\"=\"provisioning\"",
+                    "aggregation": {
+                      "alignmentPeriod": "300s",
+                      "perSeriesAligner": "ALIGN_RATE",
+                      "crossSeriesReducer": "REDUCE_SUM",
+                      "groupByFields": ["metric.label.\"response_code\""]
+                    }
+                  }
+                },
+                "plotType": "STACKED_BAR",
+                "legendTemplate": "tentatives (${metric.label.response_code})"
+              }
+            ],
+            "yAxis": { "label": "tâches", "scale": "LINEAR" },
+            "thresholds": [
+              {
+                "value": 5,
+                "color": "YELLOW",
+                "direction": "ABOVE",
+                "label": "file qui s'accumule = provisioning bloqué"
+              }
+            ]
+          }
+        }
+      },
+
+      {
+        "xPos": 0,
+        "yPos": 90,
+        "width": 48,
+        "height": 16,
+        "widget": {
+          "title": "Cloud Scheduler — exécutions (health checks / purge slugs / cycle de facturation)",
+          "xyChart": {
+            "dataSets": [
+              {
+                "timeSeriesQuery": {
+                  "timeSeriesFilter": {
+                    "filter": "metric.type=\"cloudscheduler.googleapis.com/job/execution_count\" resource.type=\"cloud_scheduler_job\"",
+                    "aggregation": {
+                      "alignmentPeriod": "300s",
+                      "perSeriesAligner": "ALIGN_RATE",
+                      "crossSeriesReducer": "REDUCE_SUM",
+                      "groupByFields": ["resource.label.\"job_id\"", "metric.label.\"result\""]
+                    }
+                  }
+                },
+                "plotType": "STACKED_BAR",
+                "legendTemplate": "${resource.label.job_id} (${metric.label.result})"
+              }
+            ],
+            "yAxis": { "label": "exécutions/s", "scale": "LINEAR" },
+            "thresholds": [
+              {
+                "value": 0,
+                "color": "RED",
+                "direction": "ABOVE",
+                "label": "tout `result=failed` sur pfy-health-checks ou pfy-cleanup-slugs à investiguer"
+              }
+            ]
+          }
+        }
+      }
+    ]
+  }
+}
