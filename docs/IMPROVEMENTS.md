@@ -208,6 +208,42 @@ Le savoir « comment on travaille ici » (stack à installer, `pnpm dev`, conven
 
 ---
 
+## 8. Produit, visibilité et conformité
+
+### SEO des sites tenants (et de la vitrine) 🟡 — priorité haute
+
+Vérifié dans le code : **aucun** sitemap, robots.txt, balise Open Graph ou meta description nulle part — ni sur la vitrine Next.js, ni sur les fronts de templates. Or le produit vendu est littéralement « être visible sur le web » pour un artiste. À ajouter côté templates : title/description par page depuis `site_config`, balises OG + `og:image` (une œuvre), sitemap généré par le back (`/sitemap.xml` dérivé des œuvres du tenant), robots.txt, et un peu de JSON-LD (`Person`/`VisualArtwork`). Côté vitrine : le Metadata API de Next couvre tout. C'est gratuit, et c'est probablement l'amélioration au meilleur rapport valeur-produit/effort de tout ce document.
+
+### Régression visuelle des templates (Playwright) 🟡
+
+Les 3 templates partagent le même back — leur **seule** valeur différenciante est la DA. Aucun test ne la protège aujourd'hui : un CSS cassé passe les tests unitaires sans broncher. Playwright (déjà en place pour le e2e) fait ça nativement avec `toHaveScreenshot()` : quelques captures de référence par template (home, galerie, page œuvre), comparaison au pixel près en CI, mise à jour volontaire via `--update-snapshots`. Gratuit, et ça protège exactement ce que rien d'autre ne teste.
+
+### Lighthouse CI 🟢
+
+Des portfolios d'artistes = des pages lourdes en images par nature. Lighthouse CI (open source, tourne en GitHub Actions) audite performance/accessibilité/SEO/bonnes pratiques à chaque PR avec des budgets (`assertions`) : on voit tout de suite le commit qui fait passer le LCP de 1,5 s à 4 s. Complète l'axe accessibilité de la §7 et l'axe SEO ci-dessus avec une mesure chiffrée continue.
+
+### Optimisation des images à l'upload 🟡
+
+Les œuvres uploadées par les artistes partent vraisemblablement telles quelles vers GCS — un JPEG de 12 Mo sorti d'un appareil photo sera servi tel quel aux visiteurs. `sharp` (déjà whitelisté dans `pnpm-workspace.yaml` → `allowBuilds`) permet de générer à l'upload des variantes WebP redimensionnées (vignette, galerie, plein écran). Triple gain : temps de chargement, facture de stockage/egress GCS, et score Lighthouse ci-dessus.
+
+### RGPD — le minimum légal d'un SaaS français 🟡
+
+Le droit à l'effacement existe déjà (suppression de compte → anonymisation + suspension des sites, vu dans `me.ts`). Il manque : **mentions légales et politique de confidentialité** sur la vitrine (obligatoires dès qu'on encaisse des clients français), un **export des données** du compte (droit à la portabilité — un endpoint qui zippe le JSON du user + ses sites suffit), et un registre simple des traitements (un tableau dans `docs/` : quelle donnée, où, combien de temps, pourquoi). Gratuit, et ce n'est pas optionnel le jour où le projet a de vrais clients.
+
+### Page de statut publique (Upptime) 🟢
+
+Upptime (open source) fournit une page de statut + historique d'uptime hébergée **gratuitement** sur GitHub Pages, pilotée par GitHub Actions qui pinguent les URLs (API, vitrine, sites démo). Complémentaire des uptime checks Cloud Monitoring (§3) : eux alertent _l'équipe_, Upptime informe _les clients_ — « c'est moi ou c'est en panne ? » devient un lien.
+
+### security.txt 🟢
+
+Le standard RFC 9116 : un fichier `/.well-known/security.txt` sur la vitrine avec un contact pour signaler une vulnérabilité, plus l'onglet Security policy du repo GitHub (un `SECURITY.md` à la racine — celui de `docs/` documente la posture interne, celui-ci dit aux chercheurs externes comment signaler). Deux fichiers, dix minutes.
+
+### Renovate : automerge des patchs 🟢
+
+Renovate est en place mais chaque bump attend une action manuelle. Configurer l'automerge pour les updates **patch** et les devDependencies (`"automerge": true` sur ces packageRules) : la CI verte sert de garde-fou, et l'énergie humaine se concentre sur les minors/majors qui méritent un regard. Réduit directement la pile de l'issue #1.
+
+---
+
 ## Par où commencer — top 5 suggéré
 
 1. **Protection de branche `main`** — 10 minutes, verrouille le process existant.
