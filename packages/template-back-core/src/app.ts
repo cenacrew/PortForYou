@@ -1,4 +1,5 @@
-﻿import express, { type Express, type Request, type Response, type NextFunction } from 'express';
+﻿import type { Server } from 'node:http';
+import express, { type Express, type Request, type Response, type NextFunction } from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import cookieParser from 'cookie-parser';
@@ -11,6 +12,8 @@ import trackRouter from './routes/track.js';
 import contactRouter from './routes/contact.js';
 import seoRouter from './routes/seo.js';
 import logger from './middleware/logger.js';
+import { requestId } from './middleware/requestId.js';
+import { installGracefulShutdown } from './lib/shutdown.js';
 import { TENANT_ID, DEMO_MODE } from './lib/tenant.js';
 
 dotenv.config();
@@ -30,6 +33,7 @@ app.use(
 
 app.use(cookieParser());
 app.use(express.json());
+app.use(requestId);
 app.use(logger);
 
 const loginLimiter = rateLimit({
@@ -82,10 +86,21 @@ app.use('/api/v1/auth', authRouter);
 app.use('/api/v1/admin', adminRouter);
 app.use('/api/v1', publicRouter);
 
-app.use((err: unknown, _req: Request, res: Response, _next: NextFunction) => {
-  console.error('Unhandled error:', err);
+app.use((err: unknown, req: Request, res: Response, _next: NextFunction) => {
+  console.error(`Unhandled error [${req.requestId ?? '-'}]:`, err);
   if (res.headersSent) return;
-  res.status(500).json({ error: 'Internal server error' });
+  res.status(500).json({ error: 'Internal server error', requestId: req.requestId });
 });
+
+/**
+ * Démarre le serveur avec arrêt gracieux (SIGTERM Cloud Run). Utilisé par les
+ * wrappers plain-JS des templates pour rester à ~2 lignes tout en héritant du
+ * drain des requêtes en vol.
+ */
+export function startServer(port: number = Number(process.env.PORT) || 8080): Server {
+  const server = app.listen(port, () => console.log(`✅ Server running on port ${port}`));
+  installGracefulShutdown(server);
+  return server;
+}
 
 export default app;

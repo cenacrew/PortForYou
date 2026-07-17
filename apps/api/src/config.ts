@@ -6,6 +6,8 @@ dotenv.config();
 const envSchema = z.object({
   PORT: z.coerce.number().default(8081),
   NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
+  /** SHA du commit déployé (injecté au deploy Cloud Run), exposé par /health. */
+  COMMIT_SHA: z.string().default('dev'),
   WEB_ORIGIN: z.string().url().default('http://localhost:3000'),
   GCP_PROJECT_ID: z.string().default('portforyou-vsp'),
   GCP_REGION: z.string().default('europe-west1'),
