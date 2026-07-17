@@ -9,6 +9,7 @@ import adminRouter from './routes/admin.js';
 import publicRouter from './routes/public.js';
 import trackRouter from './routes/track.js';
 import contactRouter from './routes/contact.js';
+import seoRouter from './routes/seo.js';
 import logger from './middleware/logger.js';
 import { TENANT_ID, DEMO_MODE } from './lib/tenant.js';
 
@@ -70,6 +71,10 @@ app.use('/api/v1/contact', contactLimiter);
 app.get('/api/v1/health', (_req, res) =>
   res.json({ ok: true, tenant: TENANT_ID, demo: DEMO_MODE }),
 );
+
+// SEO servi à la racine (hors /api) : le rewrite Firebase Hosting route
+// /sitemap.xml et /robots.txt vers ce service (voir apps/api/src/provisioning).
+app.use(seoRouter);
 
 app.use('/api/v1', trackRouter);
 app.use('/api/v1', contactRouter);
