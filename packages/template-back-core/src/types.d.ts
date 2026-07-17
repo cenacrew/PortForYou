@@ -8,6 +8,8 @@ declare global {
   namespace Express {
     interface Request {
       user?: TenantUser;
+      /** Identifiant de corrélation (trace Cloud Run ou UUID local). */
+      requestId?: string;
     }
   }
 }

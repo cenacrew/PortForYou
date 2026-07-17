@@ -5,6 +5,7 @@ import helmet from 'helmet';
 import morgan from 'morgan';
 import rateLimit from 'express-rate-limit';
 import { config } from './config.js';
+import { requestId } from './middleware/requestId.js';
 import publicRouter from './routes/public.js';
 import ordersRouter from './routes/orders.js';
 import paymentsRouter from './routes/payments.js';
@@ -21,7 +22,9 @@ app.set('trust proxy', 1);
 app.use(helmet());
 app.use(cors({ origin: config.WEB_ORIGIN, credentials: true }));
 app.use(cookieParser());
-app.use(morgan(':method :url :status :res[content-length] - :response-time ms'));
+app.use(requestId);
+morgan.token('id', (req: express.Request) => req.requestId ?? '-');
+app.use(morgan(':id :method :url :status :res[content-length] - :response-time ms'));
 
 // Le webhook Stripe DOIT recevoir le raw body : monté avant express.json().
 app.use('/api/v1', paymentsRouter);
@@ -73,10 +76,10 @@ app.use('/api/v1', meRouter);
 app.use('/api/v1', adminRouter);
 app.use(internalRouter);
 
-app.use((err: Error, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
-  console.error('Unhandled error:', err);
+app.use((err: Error, req: express.Request, res: express.Response, _next: express.NextFunction) => {
+  console.error(`Unhandled error [${req.requestId ?? '-'}]:`, err);
   if (res.headersSent) return;
-  res.status(500).json({ error: 'Erreur interne' });
+  res.status(500).json({ error: 'Erreur interne', requestId: req.requestId });
 });
 
 export default app;
