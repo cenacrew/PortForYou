@@ -170,6 +170,14 @@ Deux mécanismes de sauvegarde, complémentaires :
 base de secours, et import d'un export GCS) avant d'en avoir besoin en urgence — une procédure de
 restauration jamais exécutée n'est qu'une hypothèse.
 
+## Purge automatique des jetons d'auth (TTL Firestore)
+
+`setup-gcp.sh` active une policy TTL native Firestore sur le champ `expiresAt` des collections
+`sessions`, `password_resets` et `email_verifications` (`apps/api/src/auth/service.ts`) : Firestore
+supprime lui-même les documents expirés, en général sous 24h après expiration (best-effort, pas de
+garantie de délai exact — l'app vérifie déjà l'expiration à la lecture, la TTL n'est qu'un ménage
+de fond gratuit). Rien à opérer côté application.
+
 ## Incidents courants
 
 | Symptôme                                             | Cause probable                           | Remède                                                         |

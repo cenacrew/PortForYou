@@ -128,6 +128,22 @@ fi
 # Exports GCS hebdomadaires (archive longue durée, complémentaire au PITR) :
 # voir infra/scripts/setup-backups.sh, à lancer après ce script.
 
+echo "▶ Politiques TTL Firestore (purge auto des jetons expirés)…"
+# Chaque collection de jetons d'auth maison (apps/api/src/auth/service.ts) a un
+# champ expiresAt (Timestamp) déjà écrit à la création du document — il suffit
+# d'activer la policy TTL native dessus, aucune modification du code API.
+for TTL_COLLECTION in sessions password_resets email_verifications; do
+  TTL_STATE=$(gcloud firestore fields describe expiresAt \
+    --collection-group="$TTL_COLLECTION" --database="(default)" \
+    --format='value(ttlConfig.state)' 2>/dev/null || echo "")
+  if [ "$TTL_STATE" != "ACTIVE" ]; then
+    gcloud firestore fields ttls update expiresAt \
+      --collection-group="$TTL_COLLECTION" --database="(default)" --enable-ttl >/dev/null
+  else
+    echo "  $TTL_COLLECTION.expiresAt déjà en TTL actif, rien à faire."
+  fi
+done
+
 echo "▶ Secret JWT de la plateforme…"
 gcloud secrets describe pfy-jwt-secret >/dev/null 2>&1 || {
   openssl rand -hex 32 | tr -d '

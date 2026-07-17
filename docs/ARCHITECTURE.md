@@ -335,6 +335,10 @@ sequenceDiagram
 | `stripe_events`, `email_logs`, `contact_requests`                   | Journalisation (webhooks, emails envoyés, formulaire vitrine)                                               | idem                       |
 | `sessions`, `user_emails`, `password_resets`, `email_verifications` | Auth maison : refresh tokens (hash), pointeur email→uid, tokens de reset/vérification à usage unique (hash) | idem                       |
 
+TTL Firestore natif sur le champ `expiresAt` de `sessions`, `password_resets` et
+`email_verifications` (`setup-gcp.sh`) : les documents expirés sont purgés automatiquement,
+sans job de nettoyage applicatif.
+
 ### 7.2 Domaine tenant (`tenants/{slug}/...`)
 
 | Sous-collection / doc          | Contenu                                                                                                                               |
@@ -462,7 +466,7 @@ Checklist « avant prod commerciale » de `docs/SECURITY.md` : entièrement coch
 | `docs/RUNBOOK.md`                 | Dev local, mise en production, Stripe, Cloud Monitoring, restauration Firestore, incidents courants                                                     |
 | `docs/SECURITY.md`                | Détail des contrôles de sécurité par couche, checklist avant prod commerciale                                                                           |
 | `README.md`                       | Démarrage rapide, structure du repo, conventions de commit                                                                                              |
-| `infra/scripts/setup-gcp.sh`      | Script idempotent de provisioning de l'infra GCP (inclut PITR + TTL Firestore)                                                                          |
+| `infra/scripts/setup-gcp.sh`      | Script idempotent de provisioning de l'infra GCP (inclut PITR + TTL Firestore natif)                                                                    |
 | `infra/scripts/setup-backups.sh`  | Script idempotent : bucket + export Firestore hebdomadaire vers GCS                                                                                     |
 | `infra/scripts/setup-uptime-checks.sh` | Script idempotent : uptime checks + alerte Cloud Monitoring                                                                                        |
 | `infra/monitoring/dashboard.json` | Définition du dashboard Cloud Monitoring                                                                                                                |
