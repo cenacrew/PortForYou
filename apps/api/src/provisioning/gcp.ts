@@ -164,6 +164,17 @@ export const gcpProvisionerDriver: ProvisionerDriver = {
       body: {
         config: {
           rewrites: [
+            // SEO généré dynamiquement par le back du tenant (sitemap tenant,
+            // robots référençant ce sitemap). Doit précéder le catch-all SPA
+            // sinon Hosting servirait index.html à la place.
+            {
+              glob: '/sitemap.xml',
+              run: { serviceId: tenantServiceName(spec.slug), region: REGION },
+            },
+            {
+              glob: '/robots.txt',
+              run: { serviceId: tenantServiceName(spec.slug), region: REGION },
+            },
             {
               glob: '/api/**',
               run: { serviceId: tenantServiceName(spec.slug), region: REGION },
