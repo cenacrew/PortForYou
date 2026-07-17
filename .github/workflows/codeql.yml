@@ -1,0 +1,69 @@
+name: CodeQL
+
+# Analyse statique de sécurité (SAST) du code JS/TS : injections, path
+# traversal, flux de données dangereux. Complémentaire de `pnpm audit`
+# (security.yml), qui ne regarde que les dépendances, et de dependency-review
+# (dependency-review.yml), qui ne regarde que les dépendances ajoutées en PR.
+#
+# Code scanning (upload SARIF) exige GitHub Advanced Security sur un dépôt
+# privé — sans ça l'upload échoue avec « Resource not accessible by
+# integration ». Le job `analyze` est donc gardé par la visibilité réelle du
+# dépôt (déterminée via l'API, pas via `github.event.repository.private` qui
+# n'existe pas sur l'événement `schedule`) : il tourne (et scanne) une fois le
+# dépôt public, ou GHAS activé sur ce repo privé — sinon il est skippé (vert).
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+  pull_request:
+    branches: [main]
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+  schedule:
+    - cron: '0 7 * * 1' # lundi 07:00 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  check-visibility:
+    # Détermine si le dépôt est privé via l'API (fiable quel que soit
+    # l'événement déclencheur, contrairement à github.event.repository.private
+    # qui n'est pas peuplé sur `schedule`).
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    outputs:
+      private: ${{ steps.repo.outputs.private }}
+    steps:
+      - name: Visibilité du dépôt
+        id: repo
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: echo "private=$(gh api "repos/${{ github.repository }}" --jq .private)" >> "$GITHUB_OUTPUT"
+
+  analyze:
+    needs: [check-visibility]
+    if: needs.check-visibility.outputs.private != 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Initialise CodeQL
+        uses: github/codeql-action/init@v4
+        with:
+          languages: javascript-typescript
+          build-mode: none
+
+      - name: Analyse CodeQL
+        uses: github/codeql-action/analyze@v4
+        with:
+          category: '/language:javascript-typescript'

@@ -80,6 +80,14 @@ jobs:
           cache-from: type=gha,scope=${{ matrix.template }}-back
           cache-to: type=gha,mode=max,scope=${{ matrix.template }}-back
 
+      - name: Scan de l'image back (Trivy)
+        uses: aquasecurity/trivy-action@0.36.0
+        with:
+          image-ref: ${{ env.REGISTRY }}/${{ env.PROJECT_ID }}/pfy/${{ matrix.template }}-back:${{ steps.version.outputs.v }}
+          format: table
+          severity: CRITICAL,HIGH
+          exit-code: '1'
+
       - name: Build front statique
         run: |
           pnpm install --frozen-lockfile
@@ -88,8 +96,8 @@ jobs:
       - name: Upload front vers GCS
         run: |
           gcloud storage rsync --recursive --delete-unmatched-destination-objects \
-            templates/${{ matrix.template }}/front/dist \
-            gs://$BUILDS_BUCKET/${{ matrix.template }}/${{ steps.version.outputs.v }}
+            "templates/${{ matrix.template }}/front/dist" \
+            "gs://$BUILDS_BUCKET/${{ matrix.template }}/${{ steps.version.outputs.v }}"
 
       - name: Mettre à jour la version courante (Firestore)
         run: |

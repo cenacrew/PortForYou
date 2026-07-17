@@ -113,7 +113,8 @@ portforyou/
 │   ├── monitoring/dashboard.json Dashboard Cloud Monitoring
 │   └── docker/emulators.Dockerfile
 ├── docs/                        RUNBOOK.md, SECURITY.md, ARCHITECTURE.md (ce document)
-├── .github/workflows/           ci.yml, release-templates.yml, security.yml
+├── .github/workflows/           ci.yml, release-templates.yml, security.yml,
+│                                 codeql.yml, dependency-review.yml, actionlint.yml
 ├── docker-compose.yml           Dev local conteneurisé (alternative à `pnpm dev`)
 ├── firestore.rules / storage.rules / firestore.indexes.json
 └── pnpm-workspace.yaml          apps/*, packages/*, templates/*/back, templates/*/front
@@ -392,24 +393,32 @@ graph TB
 
 ```mermaid
 graph TB
-    PR["Pull Request"] --> Lint["lint\neslint + prettier --check"]
+    PR["Pull Request"] --> Changes["changes\ndorny/paths-filter — templates/** ou\npackages/template-back-core/** ?"]
+    PR --> Lint["lint\neslint + prettier --check"]
     PR --> Test["test\nAPI (vitest+supertest) + web (vitest+RTL)\n+ test:emu (émulateur Firestore)"]
     PR --> E2E["e2e\nPlaywright — flow démo complet\n(émulateurs + api + web + driver fake)"]
-    PR --> TBack["templates-back\ntemplate-back-core (une fois)"]
-    PR --> TFront["templates-front\nmatrice atelier / monolith / papier"]
+    Changes -->|templates == true| TBack["templates-back\ntemplate-back-core (une fois)"]
+    Changes -->|templates == true| TFront["templates-front\nmatrice atelier / monolith / papier"]
+    Changes -->|templates == false| Skip["skipped\n(traité comme réussi par les required checks)"]
 
     Lint --> Deploy
     Test --> Deploy
-    Push["Push main\n(hors PR, sans [skip deploy])"] --> Deploy["deploy\nbuild+push images api/web (Artifact Registry)\ngcloud run deploy pfy-api, pfy-web\npurge cache Hosting vitrine"]
+    Push["Push main\n(hors PR, sans [skip deploy])"] --> Deploy["deploy\nbuild+push images api/web (Artifact Registry)\nscan Trivy (CRITICAL,HIGH)\ngcloud run deploy pfy-api, pfy-web\npurge cache Hosting vitrine\nsmoke test /api/v1/health + home vitrine"]
 
-    TemplChange["Push templates/**\n(ou déclenchement manuel)"] --> Release["release-templates.yml\npour chaque template modifiée :\nbuild+push image back (atelier-v<N>)\nbuild front Vite → upload GCS\nMAJ templates/{slug}.currentVersion (Firestore)"]
+    TemplChange["Push templates/**\n(ou déclenchement manuel)"] --> Release["release-templates.yml\npour chaque template modifiée :\nbuild+push image back (atelier-v<N>)\nscan Trivy (CRITICAL,HIGH)\nbuild front Vite → upload GCS\nMAJ templates/{slug}.currentVersion (Firestore)"]
 
     Cron["Cron — lundi 06h UTC"] --> Security["security.yml\npnpm audit --audit-level high"]
+    Cron2["Cron — lundi 07h UTC"] --> CodeQL["codeql.yml\nSAST javascript-typescript"]
+    PR --> DepReview["dependency-review.yml\nnouvelles dépendances de la PR, fail-on high+"]
+    WFChange["Push/PR sur .github/workflows/**"] --> Actionlint["actionlint.yml\nlint des workflows (+ shellcheck)"]
 ```
 
-- **`ci.yml`** : pipeline unique validation → déploiement. Auth CI via **Workload Identity Federation** (aucune clé JSON). Le déploiement est sérialisé (`concurrency: deploy-platform, cancel-in-progress: false`) pour ne jamais interrompre une release en cours.
-- **`release-templates.yml`** : matrice `[atelier, monolith, papier]`, déclenché par un changement dans `templates/**` sur `main` ou manuellement (choix de la template ou `all`). Les tenants existants restent sur leur version tant qu'un redeploy admin n'est pas demandé.
+- **`ci.yml`** : pipeline unique validation → déploiement. Auth CI via **Workload Identity Federation** (aucune clé JSON). Le déploiement est sérialisé (`concurrency: deploy-platform, cancel-in-progress: false`) pour ne jamais interrompre une release en cours. Les jobs `templates-back`/`templates-front` sont conditionnés au job de filtre `changes` (`dorny/paths-filter`, pattern `needs`+`if`) : ils ne tournent que si `templates/**` ou `packages/template-back-core/**` a changé — sinon ils passent en statut `skipped`, traité comme réussi par les required checks de branch protection. Le job `deploy` scanne les images `api`/`web` avec Trivy (`CRITICAL,HIGH`, `exit-code: 1`) juste après le build/push et avant le `gcloud run deploy` correspondant, puis termine par un smoke test (`curl --fail` avec retries) sur `/api/v1/health` de l'API et la home de la vitrine.
+- **`release-templates.yml`** : matrice `[atelier, monolith, papier]`, déclenché par un changement dans `templates/**` sur `main` ou manuellement (choix de la template ou `all`). Chaque image back est scannée par Trivy (`CRITICAL,HIGH`) avant le build du front et la mise à jour Firestore. Les tenants existants restent sur leur version tant qu'un redeploy admin n'est pas demandé.
 - **`security.yml`** : `pnpm audit` sorti du pipeline bloquant (hebdomadaire + manuel) pour ne pas casser une PR au hasard sur un nouvel avis de sécurité.
+- **`codeql.yml`** : analyse statique de sécurité (SAST) `javascript-typescript` via `github/codeql-action`, sur PR vers `main`, push `main` et cron hebdomadaire (lundi 07h UTC). Nécessite que le code scanning soit activé côté GitHub (Settings → Code security) pour que les résultats remontent dans l'onglet Security.
+- **`dependency-review.yml`** : `actions/dependency-review-action` sur chaque PR touchant un `package.json`/`pnpm-lock.yaml`, échoue sur une dépendance ajoutée de sévérité high+ et commente la PR.
+- **`actionlint.yml`** : lint des workflows (`.github/workflows/**`) avec `shellcheck` sur le shell inline, à chaque push/PR qui les modifie.
 - **Convention** : `[skip deploy]` dans le message de commit pour pousser sur `main` sans redéployer la plateforme (utilisé par exemple après un simple changement de dashboard/doc).
 
 ---

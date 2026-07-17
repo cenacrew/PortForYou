@@ -1,0 +1,52 @@
+name: Dependency Review
+
+# Sur chaque PR, audite les dépendances ajoutées/modifiées (vulnérabilités
+# connues + licence) au moment où elles entrent — comble le trou entre
+# Renovate (qui propose les mises à jour) et security.yml (pnpm audit
+# hebdomadaire uniquement).
+#
+# L'action dependency-review exige GitHub Advanced Security sur un dépôt
+# privé (« Dependency review is not supported on this repository » sinon).
+# Le job est donc gardé par la visibilité réelle du dépôt, déterminée via
+# l'API : il tourne une fois le dépôt public ou GHAS activé sur ce repo
+# privé — sinon il est skippé (vert).
+on:
+  pull_request:
+    paths:
+      - '**/package.json'
+      - '**/pnpm-lock.yaml'
+      - '.github/workflows/dependency-review.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  check-visibility:
+    # Détermine si le dépôt est privé via l'API (fiable quel que soit
+    # l'événement déclencheur).
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    outputs:
+      private: ${{ steps.repo.outputs.private }}
+    steps:
+      - name: Visibilité du dépôt
+        id: repo
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: echo "private=$(gh api "repos/${{ github.repository }}" --jq .private)" >> "$GITHUB_OUTPUT"
+
+  dependency-review:
+    needs: [check-visibility]
+    if: needs.check-visibility.outputs.private != 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v7
+      - name: Dependency Review
+        uses: actions/dependency-review-action@v5
+        with:
+          fail-on-severity: high
+          comment-summary-in-pr: always
