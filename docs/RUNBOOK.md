@@ -107,6 +107,15 @@ en 5xx sur 5 min. Mise à jour manuelle : régénérer le fichier avec le nom du
 (`gcloud alpha monitoring channels list`) puis `gcloud alpha monitoring policies update <NAME>
 --policy-from-file=...`. Nécessite le composant `gcloud alpha` (`gcloud components install alpha`).
 
+**Uptime checks** (`infra/scripts/setup-uptime-checks.sh`) : les alertes 5xx ne voient que les
+erreurs _avec du trafic_ — un service totalement down et silencieux ne déclenche rien. 4 uptime
+checks gratuits (limite 100) pingent `/api/v1/health` de `pfy-api` et des 3 tenants de démo
+(`demo-atelier`, `demo-monolith`, `demo-papier`), avec une alerte (`infra/monitoring/alert-uptime.json`)
+branchée sur le même canal email que les alertes 5xx. Nécessite le composant `gcloud beta`
+(`gcloud components install beta`) et, comme pour les alertes 5xx, `gcloud alpha` pour la policy.
+À lancer après `setup-gcp.sh` (réutilise son canal de notification) et après le premier déploiement
+de `pfy-api` et des tenants de démo (`seed-demos`).
+
 ## Rotation des secrets tenants
 
 Le `JWT_SECRET` de chaque tenant live tourne automatiquement (Cloud Scheduler `pfy-rotate-secrets`,
@@ -116,6 +125,67 @@ Effet visible : les sessions back-office en cours sur les tenants concernés ret
 nécessaire), sans impact sur l'artiste ni son mot de passe. Le mot de passe admin, lui, ne tourne
 jamais automatiquement — seule la régénération manuelle depuis le dashboard client (§ ci-dessus,
 « Site tenant 401 sur /admin ») le change, pour ne jamais couper l'accès sans prévenir.
+
+## Restauration Firestore
+
+Deux mécanismes de sauvegarde, complémentaires :
+
+- **PITR (Point-in-Time Recovery)** : activé par `setup-gcp.sh` (`gcloud firestore databases
+update --enable-pitr`), retour arrière possible à n'importe quel instant sur les **7 derniers
+  jours**. Couvre l'erreur récente (bug, mauvaise commande, compromission).
+- **Exports GCS hebdomadaires** : `infra/scripts/setup-backups.sh` crée un bucket dédié
+  (`gs://portforyou-firestore-backups`, purge automatique > 180 j) et un job Cloud Scheduler
+  (`pfy-firestore-export`, dimanche 03h00 Europe/Paris) qui appelle l'API REST Firestore
+  `:exportDocuments`. Couvre l'archive longue durée, au-delà de la fenêtre PITR.
+
+### Procédure — restauration PITR (< 7 jours)
+
+1. Identifier l'instant cible (avant l'incident) : `gcloud firestore operations list` et les logs
+   Cloud Audit peuvent aider à dater précisément l'écriture fautive.
+2. **Restaurer vers une base de secours** (jamais directement sur la base de prod, pour pouvoir
+   comparer/valider avant bascule) :
+   ```bash
+   gcloud firestore databases restore \
+     --source-database="projects/portforyou-vsp/databases/(default)" \
+     --destination-database="restore-verif" \
+     --snapshot-time="2026-07-15T10:00:00Z"
+   ```
+3. Vérifier les données restaurées sur `restore-verif` (console ou script de contrôle).
+4. Bascule : soit ré-export sélectif des documents corrigés vers `(default)`, soit — si la
+   restauration complète est nécessaire — coordonner une fenêtre de maintenance (l'API et les
+   tenants pointent tous sur `(default)` : un remplacement de base implique un arrêt du trafic
+   d'écriture pendant la bascule).
+5. Supprimer la base `restore-verif` une fois la vérification terminée (`gcloud firestore
+databases delete --database=restore-verif`) — une base Firestore restée en place a un coût.
+
+### Procédure — import depuis un export GCS (> 7 jours ou récupération sélective)
+
+1. Lister les exports disponibles : `gcloud storage ls gs://portforyou-firestore-backups`.
+2. Repérer l'export voulu (préfixe horodaté par Firestore, ex.
+   `gs://portforyou-firestore-backups/2026-07-13T03:00:00_00001/`).
+3. Import complet (écrase les documents existants aux mêmes chemins, n'efface pas les documents
+   absents de l'export) :
+   ```bash
+   gcloud firestore import gs://portforyou-firestore-backups/2026-07-13T03:00:00_00001/
+   ```
+4. Import ciblé sur une collection (ex. restaurer uniquement `sites` après une purge accidentelle) :
+   ```bash
+   gcloud firestore import gs://portforyou-firestore-backups/2026-07-13T03:00:00_00001/ \
+     --collection-ids=sites
+   ```
+5. Suivre l'opération : `gcloud firestore operations list` (l'import est asynchrone).
+
+**Impératif** : tester au moins une fois chacune des deux procédures (restauration PITR vers une
+base de secours, et import d'un export GCS) avant d'en avoir besoin en urgence — une procédure de
+restauration jamais exécutée n'est qu'une hypothèse.
+
+## Purge automatique des jetons d'auth (TTL Firestore)
+
+`setup-gcp.sh` active une policy TTL native Firestore sur le champ `expiresAt` des collections
+`sessions`, `password_resets` et `email_verifications` (`apps/api/src/auth/service.ts`) : Firestore
+supprime lui-même les documents expirés, en général sous 24h après expiration (best-effort, pas de
+garantie de délai exact — l'app vérifie déjà l'expiration à la lecture, la TTL n'est qu'un ménage
+de fond gratuit). Rien à opérer côté application.
 
 ## Incidents courants
 
