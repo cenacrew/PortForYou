@@ -3,7 +3,19 @@ import Link from 'next/link';
 import { TemplateCard } from '@/components/TemplateCard';
 import { TEMPLATES } from '@/lib/templates';
 
-export const metadata: Metadata = { title: "Templates — Port'ForYou" };
+export const metadata: Metadata = {
+  title: 'Templates',
+  description:
+    'Parcourez la collection de templates de portfolio Port’ForYou — galerie, biographie, ' +
+    'presse, back-office. Trouvez celle qui ressemble à votre travail.',
+  alternates: { canonical: '/templates' },
+  openGraph: {
+    type: 'website',
+    title: "Templates — Port'ForYou",
+    description: 'La collection de templates de portfolio pour artistes visuels.',
+    url: '/templates',
+  },
+};
 
 export default function TemplatesPage() {
   return (
