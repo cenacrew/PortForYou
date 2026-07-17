@@ -88,8 +88,8 @@ jobs:
       - name: Upload front vers GCS
         run: |
           gcloud storage rsync --recursive --delete-unmatched-destination-objects \
-            templates/${{ matrix.template }}/front/dist \
-            gs://$BUILDS_BUCKET/${{ matrix.template }}/${{ steps.version.outputs.v }}
+            "templates/${{ matrix.template }}/front/dist" \
+            "gs://$BUILDS_BUCKET/${{ matrix.template }}/${{ steps.version.outputs.v }}"
 
       - name: Mettre à jour la version courante (Firestore)
         run: |
