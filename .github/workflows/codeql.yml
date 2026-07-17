@@ -1,0 +1,44 @@
+name: CodeQL
+
+# Analyse statique de sécurité (SAST) du code JS/TS : injections, path
+# traversal, flux de données dangereux. Complémentaire de `pnpm audit`
+# (security.yml), qui ne regarde que les dépendances, et de dependency-review
+# (dependency-review.yml), qui ne regarde que les dépendances ajoutées en PR.
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+  pull_request:
+    branches: [main]
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+  schedule:
+    - cron: '0 7 * * 1' # lundi 07:00 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  analyze:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Initialise CodeQL
+        uses: github/codeql-action/init@v4
+        with:
+          languages: javascript-typescript
+          build-mode: none
+
+      - name: Analyse CodeQL
+        uses: github/codeql-action/analyze@v4
+        with:
+          category: '/language:javascript-typescript'
