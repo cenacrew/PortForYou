@@ -1,0 +1,29 @@
+name: Dependency Review
+
+# Sur chaque PR, audite les dépendances ajoutées/modifiées (vulnérabilités
+# connues + licence) au moment où elles entrent — comble le trou entre
+# Renovate (qui propose les mises à jour) et security.yml (pnpm audit
+# hebdomadaire uniquement).
+on:
+  pull_request:
+    paths:
+      - '**/package.json'
+      - '**/pnpm-lock.yaml'
+      - '.github/workflows/dependency-review.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  dependency-review:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v7
+      - name: Dependency Review
+        uses: actions/dependency-review-action@v5
+        with:
+          fail-on-severity: high
+          comment-summary-in-pr: always
