@@ -120,6 +120,8 @@ jobs:
   templates-front:
     # Le front diffère par template (DA propre à chacun) : chacun testé dans
     # son propre job (résumé lisible et attribué, plutôt qu'un seul bloc).
+    needs: [changes]
+    if: needs.changes.outputs.templates == 'true'
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
