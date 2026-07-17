@@ -33,6 +33,29 @@ env:
   REGISTRY: europe-west1-docker.pkg.dev
 
 jobs:
+  changes:
+    # Job-de-filtre : détecte si templates/** ou packages/template-back-core/**
+    # ont changé, pour ne lancer templates-back/templates-front que si besoin.
+    # Pattern needs+if (plutôt qu'un skip interne) : un job dont le `if` est
+    # faux passe en statut "skipped", traité comme réussi par les required
+    # checks de branch protection — donc pas de blocage si ces jobs deviennent
+    # requis plus tard.
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
+    outputs:
+      templates: ${{ steps.filter.outputs.templates }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: dorny/paths-filter@v4
+        id: filter
+        with:
+          filters: |
+            templates:
+              - 'templates/**'
+              - 'packages/template-back-core/**'
+
   lint:
     runs-on: ubuntu-latest
     steps:
@@ -105,6 +128,8 @@ jobs:
   templates-back:
     # Le back est commun aux 3 templates (packages/template-back-core) : un seul
     # job suffit, plus besoin d'une matrice qui rejouerait 3x les mêmes tests.
+    needs: [changes]
+    if: needs.changes.outputs.templates == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
@@ -253,3 +278,15 @@ jobs:
           # Auth via l'ADC posée par google-github-actions/auth (WIF).
           npx -y firebase-tools@15 deploy --only hosting:portforyou \
             --project "$PROJECT_ID" --non-interactive
+
+      - name: Smoke test — santé de l'API déployée
+        run: |
+          curl --fail --silent --show-error \
+            --retry 5 --retry-delay 5 --retry-all-errors \
+            "${{ steps.apiurl.outputs.url }}/api/v1/health"
+
+      - name: Smoke test — home de la vitrine
+        run: |
+          curl --fail --silent --show-error \
+            --retry 5 --retry-delay 5 --retry-all-errors \
+            "https://portforyou.web.app/"
