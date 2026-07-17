@@ -184,6 +184,14 @@ jobs:
           cache-from: type=gha,scope=api
           cache-to: type=gha,mode=max,scope=api
 
+      - name: Scan de l'image API (Trivy)
+        uses: aquasecurity/trivy-action@0.36.0
+        with:
+          image-ref: ${{ env.REGISTRY }}/${{ env.PROJECT_ID }}/pfy/api:${{ github.sha }}
+          format: table
+          severity: CRITICAL,HIGH
+          exit-code: '1'
+
       - name: Deploy API (Cloud Run)
         run: |
           gcloud run deploy pfy-api \
@@ -211,6 +219,14 @@ jobs:
           tags: ${{ env.REGISTRY }}/${{ env.PROJECT_ID }}/pfy/web:${{ github.sha }}
           cache-from: type=gha,scope=web
           cache-to: type=gha,mode=max,scope=web
+
+      - name: Scan de l'image Web (Trivy)
+        uses: aquasecurity/trivy-action@0.36.0
+        with:
+          image-ref: ${{ env.REGISTRY }}/${{ env.PROJECT_ID }}/pfy/web:${{ github.sha }}
+          format: table
+          severity: CRITICAL,HIGH
+          exit-code: '1'
 
       - name: Deploy Web (Cloud Run)
         run: |
