@@ -49,6 +49,7 @@
     "@vitest/coverage-v8": "^4.1.10",
     "supertest": "^7.2.2",
     "typescript": "^6.0.3",
+    "vite": "^6.4.3",
     "vitest": "^4.1.10"
   }
 }
