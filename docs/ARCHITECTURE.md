@@ -12,13 +12,13 @@ Port'ForYou est une plateforme SaaS : un artiste choisit une template de portfol
 
 **Composants principaux** :
 
-| Composant                             | Rôle                                                                                                          | Techno                        | Hébergement                                                   |
-| ------------------------------------- | ------------------------------------------------------------------------------------------------------------- | ----------------------------- | ------------------------------------------------------------- |
-| `apps/web` (`pfy-web`)                | Vitrine publique + dashboards client/admin                                                                    | Next.js App Router, TS strict | Cloud Run                                                     |
-| `apps/api` (`pfy-api`)                | API plateforme (auth, commandes, paiement, provisioning, admin)                                               | Express 5 ESM, TS strict      | Cloud Run                                                     |
-| `packages/template-back-core`         | Back Express commun aux 3 templates (routes, auth tenant, multi-tenant `TENANT_ID`)                           | Express 5 ESM, TS strict      | packagé dans chaque image `tenant-<slug>`                     |
-| `templates/{atelier,monolith,papier}` | 3 templates de portfolio — back = wrapper fin sur `template-back-core`, front = Vite/React propre à chaque DA | JS (ESM/JSX)                  | Cloud Run (`tenant-<slug>`) + Firebase Hosting (`pfy-<slug>`) |
-| `packages/shared`                     | Schémas zod, constantes, types partagés (source de vérité via `z.infer`)                                      | TS strict                     | importé par `api` et les templates                            |
+| Composant                             | Rôle                                                                                                                                            | Techno                        | Hébergement                                                   |
+| ------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------- | ------------------------------------------------------------- |
+| `apps/web` (`pfy-web`)                | Vitrine publique + dashboards client/admin                                                                                                      | Next.js App Router, TS strict | Cloud Run                                                     |
+| `apps/api` (`pfy-api`)                | API plateforme (auth, commandes, paiement, provisioning, admin)                                                                                 | Express 5 ESM, TS strict      | Cloud Run                                                     |
+| `packages/template-back-core`         | Back Express commun aux 3 templates (routes, auth tenant, multi-tenant `TENANT_ID`)                                                             | Express 5 ESM, TS strict      | packagé dans chaque image `tenant-<slug>`                     |
+| `templates/{atelier,monolith,papier}` | 3 templates de portfolio — back = wrapper fin sur `template-back-core`, front = Vite/React propre à chaque DA                                   | JS (ESM/JSX)                  | Cloud Run (`tenant-<slug>`) + Firebase Hosting (`pfy-<slug>`) |
+| `packages/shared`                     | Schémas zod, constantes, types partagés (source de vérité via `z.infer`)                                                                        | TS strict                     | importé par `api` et les templates                            |
 | `infra/`                              | Scripts GCP idempotents (`setup-gcp.sh`, `setup-backups.sh`, `setup-uptime-checks.sh`), dashboard Cloud Monitoring, image Docker des émulateurs | bash, JSON                    | —                                                             |
 
 ---
@@ -228,24 +228,24 @@ graph TB
 
 ### 5.2 Inventaire des ressources
 
-| Ressource          | Nom                                                                                 | Créée par                                                                     |
-| ------------------ | ----------------------------------------------------------------------------------- | ----------------------------------------------------------------------------- |
-| Cloud Run          | `pfy-api`, `pfy-web`                                                                | CI (`ci.yml` job `deploy`, `gcloud run deploy`)                               |
-| Cloud Run          | `tenant-<slug>` (×N)                                                                | provisioning (`gcp.ts` → Cloud Run Admin API)                                 |
-| Firebase Hosting   | `portforyou` (vitrine)                                                              | `firebase.json` racine                                                        |
-| Firebase Hosting   | `pfy-<slug>` (×N)                                                                   | provisioning (`gcp.ts` → Hosting REST API)                                    |
-| Firestore (native) | base par défaut, PITR 7 jours                                                       | `setup-gcp.sh`                                                                |
-| Cloud Storage      | `portforyou-template-builds`, `portforyou-uploads`                                  | `setup-gcp.sh`                                                                |
-| Cloud Storage      | `portforyou-firestore-backups` (exports hebdo, lifecycle > 180j)                    | `setup-backups.sh`                                                            |
-| Artifact Registry  | `pfy` (docker)                                                                      | `setup-gcp.sh`                                                                |
-| Cloud Tasks        | queue `provisioning`                                                                | `setup-gcp.sh`                                                                |
-| Cloud Scheduler    | `pfy-health-checks`, `pfy-cleanup-slugs`, `pfy-billing-cycle`, `pfy-rotate-secrets` | `setup-gcp.sh` (après 1er déploiement de `pfy-api`)                           |
-| Cloud Scheduler    | `pfy-firestore-export` (hebdo, dim. 03h Paris)                                      | `setup-backups.sh`                                                            |
-| Secret Manager     | secrets plateforme + `tenant-<slug>-{admin-hash,jwt}`                               | `setup-gcp.sh` (placeholders) + provisioning (secrets tenant)                 |
-| Cloud Monitoring   | dashboard « Vue d'ensemble plateforme & tenants »                                   | `setup-gcp.sh` / `infra/monitoring/dashboard.json`                            |
-| Cloud Monitoring   | policy d'alerte « Erreurs 5xx — plateforme & tenants » + canal email                | `setup-gcp.sh` / `infra/monitoring/alert-5xx.json` (composant `gcloud alpha`) |
-| Cloud Monitoring   | 4 uptime checks (`pfy-api`, 3 tenants démo) + policy d'alerte, même canal email      | `setup-uptime-checks.sh` / `infra/monitoring/alert-uptime.json` (composants `gcloud beta`+`gcloud alpha`) |
-| Budget             | `portforyou-budget` (20 €, seuils 25/50/100 %)                                      | `setup-gcp.sh` (si `BILLING_ACCOUNT` fourni)                                  |
+| Ressource          | Nom                                                                                 | Créée par                                                                                                 |
+| ------------------ | ----------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
+| Cloud Run          | `pfy-api`, `pfy-web`                                                                | CI (`ci.yml` job `deploy`, `gcloud run deploy`)                                                           |
+| Cloud Run          | `tenant-<slug>` (×N)                                                                | provisioning (`gcp.ts` → Cloud Run Admin API)                                                             |
+| Firebase Hosting   | `portforyou` (vitrine)                                                              | `firebase.json` racine                                                                                    |
+| Firebase Hosting   | `pfy-<slug>` (×N)                                                                   | provisioning (`gcp.ts` → Hosting REST API)                                                                |
+| Firestore (native) | base par défaut, PITR 7 jours                                                       | `setup-gcp.sh`                                                                                            |
+| Cloud Storage      | `portforyou-template-builds`, `portforyou-uploads`                                  | `setup-gcp.sh`                                                                                            |
+| Cloud Storage      | `portforyou-firestore-backups` (exports hebdo, lifecycle > 180j)                    | `setup-backups.sh`                                                                                        |
+| Artifact Registry  | `pfy` (docker)                                                                      | `setup-gcp.sh`                                                                                            |
+| Cloud Tasks        | queue `provisioning`                                                                | `setup-gcp.sh`                                                                                            |
+| Cloud Scheduler    | `pfy-health-checks`, `pfy-cleanup-slugs`, `pfy-billing-cycle`, `pfy-rotate-secrets` | `setup-gcp.sh` (après 1er déploiement de `pfy-api`)                                                       |
+| Cloud Scheduler    | `pfy-firestore-export` (hebdo, dim. 03h Paris)                                      | `setup-backups.sh`                                                                                        |
+| Secret Manager     | secrets plateforme + `tenant-<slug>-{admin-hash,jwt}`                               | `setup-gcp.sh` (placeholders) + provisioning (secrets tenant)                                             |
+| Cloud Monitoring   | dashboard « Vue d'ensemble plateforme & tenants »                                   | `setup-gcp.sh` / `infra/monitoring/dashboard.json`                                                        |
+| Cloud Monitoring   | policy d'alerte « Erreurs 5xx — plateforme & tenants » + canal email                | `setup-gcp.sh` / `infra/monitoring/alert-5xx.json` (composant `gcloud alpha`)                             |
+| Cloud Monitoring   | 4 uptime checks (`pfy-api`, 3 tenants démo) + policy d'alerte, même canal email     | `setup-uptime-checks.sh` / `infra/monitoring/alert-uptime.json` (composants `gcloud beta`+`gcloud alpha`) |
+| Budget             | `portforyou-budget` (20 €, seuils 25/50/100 %)                                      | `setup-gcp.sh` (si `BILLING_ACCOUNT` fourni)                                                              |
 
 ### 5.3 IAM — service accounts (moindre privilège)
 
@@ -442,7 +442,7 @@ graph TB
 | Rotation des secrets tenants             | `pfy-rotate-secrets` (trimestriel, 04h Europe/Paris) | `POST /internal/rotate-secrets` — nouveau `JWT_SECRET` par tenant live + nouvelle révision Cloud Run pour le recharger                                                                                                                                                                      |
 | Dashboard Cloud Monitoring               | continu                                              | `infra/monitoring/dashboard.json` — requêtes/latence/erreurs/CPU/mémoire/instances de `pfy-api` et `pfy-web`, agrégat + détail par service pour les `tenant-*`, opérations Firestore, profondeur de la queue `provisioning`, exécutions Cloud Scheduler. Créé/mis à jour par `setup-gcp.sh` |
 | Alertes 5xx                              | continu                                              | `infra/monitoring/alert-5xx.json` — policy Cloud Monitoring (2 conditions : plateforme, tenants), notifie un canal email. Créée/mise à jour par `setup-gcp.sh`                                                                                                                              |
-| Uptime checks                            | toutes les 5 min                                     | `pfy-api` + 3 tenants démo, `/api/v1/health` — détecte un service down sans trafic (angle mort des alertes 5xx). `infra/scripts/setup-uptime-checks.sh`, alerte sur le même canal email                                                                                                    |
+| Uptime checks                            | toutes les 5 min                                     | `pfy-api` + 3 tenants démo, `/api/v1/health` — détecte un service down sans trafic (angle mort des alertes 5xx). `infra/scripts/setup-uptime-checks.sh`, alerte sur le même canal email                                                                                                     |
 | Budget                                   | continu                                              | Alertes 25/50/100 % d'un budget de 20 €                                                                                                                                                                                                                                                     |
 
 ---
@@ -465,15 +465,15 @@ Checklist « avant prod commerciale » de `docs/SECURITY.md` : entièrement coch
 
 ## 13. Références croisées
 
-| Document                          | Contenu                                                                                                                                                 |
-| --------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `PortForYou.md`                   | Cahier des charges complet, décisions d'architecture actées, roadmap v2 (non implémentée), estimation de coûts (§15), critères d'acceptation démo (§16) |
-| `docs/RUNBOOK.md`                 | Dev local, mise en production, Stripe, Cloud Monitoring, restauration Firestore, incidents courants                                                     |
-| `docs/SECURITY.md`                | Détail des contrôles de sécurité par couche, checklist avant prod commerciale                                                                           |
-| `README.md`                       | Démarrage rapide, structure du repo, conventions de commit                                                                                              |
-| `infra/scripts/setup-gcp.sh`      | Script idempotent de provisioning de l'infra GCP (inclut PITR + TTL Firestore natif)                                                                    |
-| `infra/scripts/setup-backups.sh`  | Script idempotent : bucket + export Firestore hebdomadaire vers GCS                                                                                     |
-| `infra/scripts/setup-uptime-checks.sh` | Script idempotent : uptime checks + alerte Cloud Monitoring                                                                                        |
-| `infra/monitoring/dashboard.json` | Définition du dashboard Cloud Monitoring                                                                                                                |
-| `infra/monitoring/alert-5xx.json` | Définition de la policy d'alerte 5xx Cloud Monitoring                                                                                                   |
-| `infra/monitoring/alert-uptime.json` | Définition de la policy d'alerte uptime checks Cloud Monitoring                                                                                      |
+| Document                               | Contenu                                                                                                                                                 |
+| -------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `PortForYou.md`                        | Cahier des charges complet, décisions d'architecture actées, roadmap v2 (non implémentée), estimation de coûts (§15), critères d'acceptation démo (§16) |
+| `docs/RUNBOOK.md`                      | Dev local, mise en production, Stripe, Cloud Monitoring, restauration Firestore, incidents courants                                                     |
+| `docs/SECURITY.md`                     | Détail des contrôles de sécurité par couche, checklist avant prod commerciale                                                                           |
+| `README.md`                            | Démarrage rapide, structure du repo, conventions de commit                                                                                              |
+| `infra/scripts/setup-gcp.sh`           | Script idempotent de provisioning de l'infra GCP (inclut PITR + TTL Firestore natif)                                                                    |
+| `infra/scripts/setup-backups.sh`       | Script idempotent : bucket + export Firestore hebdomadaire vers GCS                                                                                     |
+| `infra/scripts/setup-uptime-checks.sh` | Script idempotent : uptime checks + alerte Cloud Monitoring                                                                                             |
+| `infra/monitoring/dashboard.json`      | Définition du dashboard Cloud Monitoring                                                                                                                |
+| `infra/monitoring/alert-5xx.json`      | Définition de la policy d'alerte 5xx Cloud Monitoring                                                                                                   |
+| `infra/monitoring/alert-uptime.json`   | Définition de la policy d'alerte uptime checks Cloud Monitoring                                                                                         |

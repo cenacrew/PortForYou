@@ -108,7 +108,7 @@ en 5xx sur 5 min. Mise à jour manuelle : régénérer le fichier avec le nom du
 --policy-from-file=...`. Nécessite le composant `gcloud alpha` (`gcloud components install alpha`).
 
 **Uptime checks** (`infra/scripts/setup-uptime-checks.sh`) : les alertes 5xx ne voient que les
-erreurs *avec du trafic* — un service totalement down et silencieux ne déclenche rien. 4 uptime
+erreurs _avec du trafic_ — un service totalement down et silencieux ne déclenche rien. 4 uptime
 checks gratuits (limite 100) pingent `/api/v1/health` de `pfy-api` et des 3 tenants de démo
 (`demo-atelier`, `demo-monolith`, `demo-papier`), avec une alerte (`infra/monitoring/alert-uptime.json`)
 branchée sur le même canal email que les alertes 5xx. Nécessite le composant `gcloud beta`
@@ -131,7 +131,7 @@ jamais automatiquement — seule la régénération manuelle depuis le dashboard
 Deux mécanismes de sauvegarde, complémentaires :
 
 - **PITR (Point-in-Time Recovery)** : activé par `setup-gcp.sh` (`gcloud firestore databases
-  update --enable-pitr`), retour arrière possible à n'importe quel instant sur les **7 derniers
+update --enable-pitr`), retour arrière possible à n'importe quel instant sur les **7 derniers
   jours**. Couvre l'erreur récente (bug, mauvaise commande, compromission).
 - **Exports GCS hebdomadaires** : `infra/scripts/setup-backups.sh` crée un bucket dédié
   (`gs://portforyou-firestore-backups`, purge automatique > 180 j) et un job Cloud Scheduler
@@ -156,7 +156,7 @@ Deux mécanismes de sauvegarde, complémentaires :
    tenants pointent tous sur `(default)` : un remplacement de base implique un arrêt du trafic
    d'écriture pendant la bascule).
 5. Supprimer la base `restore-verif` une fois la vérification terminée (`gcloud firestore
-   databases delete --database=restore-verif`) — une base Firestore restée en place a un coût.
+databases delete --database=restore-verif`) — une base Firestore restée en place a un coût.
 
 ### Procédure — import depuis un export GCS (> 7 jours ou récupération sélective)
 
