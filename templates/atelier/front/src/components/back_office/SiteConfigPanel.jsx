@@ -125,6 +125,21 @@ export default function SiteConfigPanel() {
     }
   };
 
+  const saveSeo = async () => {
+    setSectionSaving('seo', true);
+    setSectionError('seo', '');
+    try {
+      await saveSiteConfig({
+        siteName: config.siteName || '',
+        siteDescription: config.siteDescription || '',
+      });
+    } catch (e) {
+      setSectionError('seo', e.message);
+    } finally {
+      setSectionSaving('seo', false);
+    }
+  };
+
   const saveContact = async () => {
     setSectionSaving('contact', true);
     setSectionError('contact', '');
@@ -173,6 +188,50 @@ export default function SiteConfigPanel() {
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+      {/* Référencement (SEO) */}
+      <Accordion>
+        <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+          <Typography fontWeight={600}>Référencement (SEO)</Typography>
+        </AccordionSummary>
+        <AccordionDetails>
+          <Stack spacing={2} sx={{ maxWidth: 480 }}>
+            <TextField
+              label="Nom du site / de l'artiste"
+              value={config.siteName || ''}
+              onChange={(e) => setConfig((c) => ({ ...c, siteName: e.target.value }))}
+              size="small"
+              fullWidth
+              placeholder="Prénom Nom"
+              helperText="Utilisé dans le titre des pages et le partage sur les réseaux."
+            />
+            <TextField
+              label="Description du site"
+              value={config.siteDescription || ''}
+              onChange={(e) => setConfig((c) => ({ ...c, siteDescription: e.target.value }))}
+              size="small"
+              fullWidth
+              multiline
+              minRows={2}
+              placeholder="Portfolio d'artiste visuel — œuvres, biographie, presse…"
+              helperText="Résumé affiché dans les résultats de recherche (≈ 160 caractères)."
+            />
+            {errors.seo && (
+              <Typography color="error" variant="caption">
+                {errors.seo}
+              </Typography>
+            )}
+            <Button
+              variant="contained"
+              sx={{ alignSelf: 'flex-start' }}
+              onClick={saveSeo}
+              disabled={saving.seo}
+            >
+              {saving.seo ? 'Sauvegarde...' : 'Sauvegarder'}
+            </Button>
+          </Stack>
+        </AccordionDetails>
+      </Accordion>
+
       {/* Hero */}
       <Accordion defaultExpanded>
         <AccordionSummary expandIcon={<ExpandMoreIcon />}>

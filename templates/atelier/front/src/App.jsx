@@ -6,6 +6,7 @@ import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import ProtectedRoute, { isLoggedIn } from './components/ProtectedRoute';
 import { CircularProgress, Box } from '@mui/material';
 import { trackPageView } from './utils';
+import Seo from './components/Seo';
 
 const Accueil = lazy(() => import('./pages/Accueil'));
 const Biographie = lazy(() => import('./pages/Biographie'));
@@ -47,6 +48,7 @@ function App() {
   return (
     <div className="App" style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
       <PageTracker />
+      <Seo />
       <Header />
       <main style={{ flex: 1 }}>
         <Suspense fallback={<PageLoader />}>
