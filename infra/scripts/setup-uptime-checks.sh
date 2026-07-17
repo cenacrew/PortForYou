@@ -5,7 +5,7 @@
 # Détecte les services down même sans trafic (ce que les alertes 5xx ne voient
 # pas). Idempotent, à relancer sans risque.
 # Prérequis : setup-gcp.sh déjà exécuté (canal de notification, pfy-api déployé).
-# Nécessite le composant `gcloud beta` (`gcloud components install beta`).
+# Nécessite le composant `gcloud alpha` (channels/policies) — `gcloud components install alpha`.
 # Usage : ./setup-uptime-checks.sh [PROJECT_ID]
 set -euo pipefail
 
@@ -39,17 +39,17 @@ for ENTRY in "${CHECKS[@]}"; do
   HOST="${REST%%:*}"
   PATHNAME="${REST#*:}"
 
-  EXISTING=$(gcloud beta monitoring uptime list \
+  EXISTING=$(gcloud monitoring uptime list-configs \
     --filter="displayName=\"$NAME\"" --format='value(name)' 2>/dev/null | head -n1)
   if [ -n "$EXISTING" ]; then
     echo "  $NAME : déjà présent, rien à faire (modifier via la console pour changer la config)."
     continue
   fi
-  gcloud beta monitoring uptime create "$NAME" \
+  gcloud monitoring uptime create "$NAME" \
     --resource-type=uptime-url \
     --resource-labels="host=$HOST,project_id=$PROJECT" \
     --protocol=https --port=443 --path="$PATHNAME" \
-    --period=5 --timeout=10s >/dev/null
+    --period=5 --timeout=10 >/dev/null
   echo "  $NAME créé ($HOST$PATHNAME)."
 done
 
