@@ -1,1 +1,12 @@
+# Ceinture-et-bretelles local en complément du secret scanning + push
+# protection GitHub (serveur, voir docs/SECURITY.md) : si gitleaks est
+# installé, on scanne le contenu staged avant de committer. Pas de blocage
+# si gitleaks n'est pas installé (outil optionnel côté poste dev) — seul le
+# scan côté GitHub est garanti pour tout le monde.
+if command -v gitleaks >/dev/null 2>&1; then
+  gitleaks protect --staged --redact -v --config .gitleaks.toml
+else
+  echo "⚠️  gitleaks non installé — scan local ignoré (secret scanning GitHub reste actif). Voir docs/SECURITY.md."
+fi
+
 pnpm exec lint-staged
