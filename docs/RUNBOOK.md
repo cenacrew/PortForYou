@@ -38,6 +38,12 @@ Le back des templates est TypeScript (`packages/template-back-core`, compilé en
 commande `dev` de chaque template (`node src/index.js`) importe le package déjà compilé, donc un
 premier `build` (ou un `dev` en watch dans un terminal séparé) est requis avant de le lancer.
 
+**Scan de secrets local (optionnel)** : le hook Husky `pre-commit` lance `gitleaks protect --staged`
+si le binaire est installé (`.gitleaks.toml` à la racine) — ceinture-et-bretelles en complément du
+secret scanning + push protection GitHub, déjà actifs côté serveur sur ce dépôt public. Installer
+gitleaks (`brew install gitleaks`, ou binaire depuis https://github.com/gitleaks/gitleaks/releases)
+est recommandé mais pas requis pour committer.
+
 **Email de vérification** : en local (`RESEND_API_KEY` absent), les emails sont loggés dans la
 console de l'API au lieu d'être envoyés — récupérer le lien `/verify-email?token=...` dans les
 logs après une inscription. `REQUIRE_VERIFIED_EMAIL=0` par défaut en dev (la commande n'est pas
@@ -115,6 +121,21 @@ branchée sur le même canal email que les alertes 5xx. Nécessite le composant 
 (`gcloud components install beta`) et, comme pour les alertes 5xx, `gcloud alpha` pour la policy.
 À lancer après `setup-gcp.sh` (réutilise son canal de notification) et après le premier déploiement
 de `pfy-api` et des tenants de démo (`seed-demos`).
+
+## Coûts & rétention
+
+**Budget** : `setup-gcp.sh` crée/met à jour un budget Cloud Billing (`portforyou-budget`,
+`MONTHLY_BUDGET_EUR`, 20 € par défaut) avec alertes email à 50/90/100 % de consommation — nécessite
+`BILLING_ACCOUNT_ID` (action manuelle : `gcloud billing accounts list`, ou console.cloud.google.com
+→ Facturation) passé en variable d'environnement au script (non déductible automatiquement, aucune
+API ne le lie au projet de façon fiable en amont de sa liaison).
+
+**Rétention Artifact Registry** : chaque déploiement (CI + `release-templates.yml`) pousse une
+image taguée par SHA dans le repo `pfy` sans rien purger. `setup-gcp.sh` pose une cleanup policy
+(`AR_KEEP_VERSIONS=10` versions les plus récentes conservées par package, `AR_MAX_AGE_DAYS=90` —
+purge des images plus vieilles) pour éviter l'accumulation de stockage payant. Mise à jour manuelle
+sans relancer tout le script : `gcloud artifacts repositories set-cleanup-policies pfy
+--location=europe-west1 --policy=<fichier>`.
 
 ## Rotation des secrets tenants
 

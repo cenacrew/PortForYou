@@ -190,7 +190,7 @@ graph TB
         GCSBackups[("GCS: portforyou-firestore-backups\n(exports hebdo, purge > 180j)")]
     end
     subgraph "Orchestration"
-        Registry["Artifact Registry: pfy\n(images api, web, {template}-back)"]
+        Registry["Artifact Registry: pfy\n(images api, web, {template}-back)\ncleanup policy: 10 versions, purge > 90j"]
         Queue[["Cloud Tasks: provisioning\n(5 tentatives, backoff 30–300s)"]]
         SchedHealth["Cloud Scheduler: pfy-health-checks (*/10 min)"]
         SchedCleanup["Cloud Scheduler: pfy-cleanup-slugs (horaire)"]
@@ -207,7 +207,7 @@ graph TB
         MonDash["Cloud Monitoring\ndashboard (infra/monitoring/dashboard.json)"]
         MonAlert["Cloud Monitoring\nalerte 5xx (infra/monitoring/alert-5xx.json)\n→ canal email"]
         MonUptime["Cloud Monitoring\n4 uptime checks + alerte\n(infra/monitoring/alert-uptime.json)\n→ même canal email"]
-        Budget["Budget + alertes 5/10/20 €"]
+        Budget["Budget + alertes 50/90/100 %"]
     end
 
     RunApi --> Firestore
@@ -239,7 +239,7 @@ graph TB
 | Firestore (native) | base par défaut, PITR 7 jours                                                       | `setup-gcp.sh`                                                                                            |
 | Cloud Storage      | `portforyou-template-builds`, `portforyou-uploads`                                  | `setup-gcp.sh`                                                                                            |
 | Cloud Storage      | `portforyou-firestore-backups` (exports hebdo, lifecycle > 180j)                    | `setup-backups.sh`                                                                                        |
-| Artifact Registry  | `pfy` (docker)                                                                      | `setup-gcp.sh`                                                                                            |
+| Artifact Registry  | `pfy` (docker), cleanup policy (garde 10 versions, purge > 90j)                     | `setup-gcp.sh`                                                                                            |
 | Cloud Tasks        | queue `provisioning`                                                                | `setup-gcp.sh`                                                                                            |
 | Cloud Scheduler    | `pfy-health-checks`, `pfy-cleanup-slugs`, `pfy-billing-cycle`, `pfy-rotate-secrets` | `setup-gcp.sh` (après 1er déploiement de `pfy-api`)                                                       |
 | Cloud Scheduler    | `pfy-firestore-export` (hebdo, dim. 03h Paris)                                      | `setup-backups.sh`                                                                                        |
@@ -247,7 +247,7 @@ graph TB
 | Cloud Monitoring   | dashboard « Vue d'ensemble plateforme & tenants »                                   | `setup-gcp.sh` / `infra/monitoring/dashboard.json`                                                        |
 | Cloud Monitoring   | policy d'alerte « Erreurs 5xx — plateforme & tenants » + canal email                | `setup-gcp.sh` / `infra/monitoring/alert-5xx.json` (composant `gcloud alpha`)                             |
 | Cloud Monitoring   | 4 uptime checks (`pfy-api`, 3 tenants démo) + policy d'alerte, même canal email     | `setup-uptime-checks.sh` / `infra/monitoring/alert-uptime.json` (composants `gcloud beta`+`gcloud alpha`) |
-| Budget             | `portforyou-budget` (20 €, seuils 25/50/100 %)                                      | `setup-gcp.sh` (si `BILLING_ACCOUNT` fourni)                                                              |
+| Budget             | `portforyou-budget` (20 € par défaut, `MONTHLY_BUDGET_EUR`, seuils 50/90/100 %)     | `setup-gcp.sh` (si `BILLING_ACCOUNT_ID` fourni)                                                           |
 
 ### 5.3 IAM — service accounts (moindre privilège)
 
