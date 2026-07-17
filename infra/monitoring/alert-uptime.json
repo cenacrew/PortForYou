@@ -1,0 +1,32 @@
+{
+  "displayName": "Uptime check en échec — plateforme & tenants démo",
+  "combiner": "OR",
+  "conditions": [
+    {
+      "displayName": "Un uptime check échoue",
+      "conditionThreshold": {
+        "filter": "metric.type=\"monitoring.googleapis.com/uptime_check/check_passed\" resource.type=\"uptime_url\"",
+        "comparison": "COMPARISON_GT",
+        "thresholdValue": 1,
+        "duration": "60s",
+        "trigger": { "count": 1 },
+        "aggregations": [
+          {
+            "alignmentPeriod": "1200s",
+            "perSeriesAligner": "ALIGN_NEXT_OLDER",
+            "crossSeriesReducer": "REDUCE_COUNT_FALSE",
+            "groupByFields": [
+              "resource.label.host",
+              "resource.label.project_id",
+              "metric.label.check_id"
+            ]
+          }
+        ]
+      }
+    }
+  ],
+  "notificationChannels": ["__NOTIFICATION_CHANNEL__"],
+  "alertStrategy": {
+    "autoClose": "1800s"
+  }
+}

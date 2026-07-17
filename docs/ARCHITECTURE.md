@@ -204,6 +204,7 @@ graph TB
     subgraph "Observabilité & coûts"
         MonDash["Cloud Monitoring\ndashboard (infra/monitoring/dashboard.json)"]
         MonAlert["Cloud Monitoring\nalerte 5xx (infra/monitoring/alert-5xx.json)\n→ canal email"]
+        MonUptime["Cloud Monitoring\n4 uptime checks + alerte\n(infra/monitoring/alert-uptime.json)\n→ même canal email"]
         Budget["Budget + alertes 5/10/20 €"]
     end
 
@@ -221,6 +222,8 @@ graph TB
     Registry --> RunTenants
     SchedExport -->|"POST :exportDocuments (OAuth SA pfy-api)"| Firestore
     SchedExport --> GCSBackups
+    MonUptime -.->|ping /api/v1/health| RunApi
+    MonUptime -.->|ping /api/v1/health| HostTenants
 ```
 
 ### 5.2 Inventaire des ressources
@@ -241,6 +244,7 @@ graph TB
 | Secret Manager     | secrets plateforme + `tenant-<slug>-{admin-hash,jwt}`                               | `setup-gcp.sh` (placeholders) + provisioning (secrets tenant)                 |
 | Cloud Monitoring   | dashboard « Vue d'ensemble plateforme & tenants »                                   | `setup-gcp.sh` / `infra/monitoring/dashboard.json`                            |
 | Cloud Monitoring   | policy d'alerte « Erreurs 5xx — plateforme & tenants » + canal email                | `setup-gcp.sh` / `infra/monitoring/alert-5xx.json` (composant `gcloud alpha`) |
+| Cloud Monitoring   | 4 uptime checks (`pfy-api`, 3 tenants démo) + policy d'alerte, même canal email      | `setup-uptime-checks.sh` / `infra/monitoring/alert-uptime.json` (composants `gcloud beta`+`gcloud alpha`) |
 | Budget             | `portforyou-budget` (20 €, seuils 25/50/100 %)                                      | `setup-gcp.sh` (si `BILLING_ACCOUNT` fourni)                                  |
 
 ### 5.3 IAM — service accounts (moindre privilège)
@@ -438,6 +442,7 @@ graph TB
 | Rotation des secrets tenants             | `pfy-rotate-secrets` (trimestriel, 04h Europe/Paris) | `POST /internal/rotate-secrets` — nouveau `JWT_SECRET` par tenant live + nouvelle révision Cloud Run pour le recharger                                                                                                                                                                      |
 | Dashboard Cloud Monitoring               | continu                                              | `infra/monitoring/dashboard.json` — requêtes/latence/erreurs/CPU/mémoire/instances de `pfy-api` et `pfy-web`, agrégat + détail par service pour les `tenant-*`, opérations Firestore, profondeur de la queue `provisioning`, exécutions Cloud Scheduler. Créé/mis à jour par `setup-gcp.sh` |
 | Alertes 5xx                              | continu                                              | `infra/monitoring/alert-5xx.json` — policy Cloud Monitoring (2 conditions : plateforme, tenants), notifie un canal email. Créée/mise à jour par `setup-gcp.sh`                                                                                                                              |
+| Uptime checks                            | toutes les 5 min                                     | `pfy-api` + 3 tenants démo, `/api/v1/health` — détecte un service down sans trafic (angle mort des alertes 5xx). `infra/scripts/setup-uptime-checks.sh`, alerte sur le même canal email                                                                                                    |
 | Budget                                   | continu                                              | Alertes 25/50/100 % d'un budget de 20 €                                                                                                                                                                                                                                                     |
 
 ---

@@ -107,6 +107,15 @@ en 5xx sur 5 min. Mise à jour manuelle : régénérer le fichier avec le nom du
 (`gcloud alpha monitoring channels list`) puis `gcloud alpha monitoring policies update <NAME>
 --policy-from-file=...`. Nécessite le composant `gcloud alpha` (`gcloud components install alpha`).
 
+**Uptime checks** (`infra/scripts/setup-uptime-checks.sh`) : les alertes 5xx ne voient que les
+erreurs *avec du trafic* — un service totalement down et silencieux ne déclenche rien. 4 uptime
+checks gratuits (limite 100) pingent `/api/v1/health` de `pfy-api` et des 3 tenants de démo
+(`demo-atelier`, `demo-monolith`, `demo-papier`), avec une alerte (`infra/monitoring/alert-uptime.json`)
+branchée sur le même canal email que les alertes 5xx. Nécessite le composant `gcloud beta`
+(`gcloud components install beta`) et, comme pour les alertes 5xx, `gcloud alpha` pour la policy.
+À lancer après `setup-gcp.sh` (réutilise son canal de notification) et après le premier déploiement
+de `pfy-api` et des tenants de démo (`seed-demos`).
+
 ## Rotation des secrets tenants
 
 Le `JWT_SECRET` de chaque tenant live tourne automatiquement (Cloud Scheduler `pfy-rotate-secrets`,
