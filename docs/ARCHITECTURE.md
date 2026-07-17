@@ -19,7 +19,7 @@ Port'ForYou est une plateforme SaaS : un artiste choisit une template de portfol
 | `packages/template-back-core`         | Back Express commun aux 3 templates (routes, auth tenant, multi-tenant `TENANT_ID`)                           | Express 5 ESM, TS strict      | packagé dans chaque image `tenant-<slug>`                     |
 | `templates/{atelier,monolith,papier}` | 3 templates de portfolio — back = wrapper fin sur `template-back-core`, front = Vite/React propre à chaque DA | JS (ESM/JSX)                  | Cloud Run (`tenant-<slug>`) + Firebase Hosting (`pfy-<slug>`) |
 | `packages/shared`                     | Schémas zod, constantes, types partagés (source de vérité via `z.infer`)                                      | TS strict                     | importé par `api` et les templates                            |
-| `infra/`                              | Scripts GCP idempotents (`setup-gcp.sh`), dashboard Cloud Monitoring, image Docker des émulateurs             | bash, JSON                    | —                                                             |
+| `infra/`                              | Scripts GCP idempotents (`setup-gcp.sh`, `setup-backups.sh`, `setup-uptime-checks.sh`), dashboard Cloud Monitoring, image Docker des émulateurs | bash, JSON                    | —                                                             |
 
 ---
 
@@ -109,8 +109,12 @@ portforyou/
 │   ├── monolith/{back,front}     front = Vite/React, DA sombre/immersive
 │   └── papier/{back,front}       front = Vite/React, DA claire/éditoriale
 ├── infra/
-│   ├── scripts/setup-gcp.sh      Provisioning idempotent de l'infra GCP
-│   ├── monitoring/dashboard.json Dashboard Cloud Monitoring
+│   ├── scripts/setup-gcp.sh              Provisioning idempotent de l'infra GCP
+│   ├── scripts/setup-backups.sh          Bucket + export Firestore hebdo (idempotent)
+│   ├── scripts/setup-uptime-checks.sh    Uptime checks + alerte (idempotent)
+│   ├── monitoring/dashboard.json         Dashboard Cloud Monitoring
+│   ├── monitoring/alert-5xx.json         Policy d'alerte 5xx
+│   ├── monitoring/alert-uptime.json      Policy d'alerte uptime checks
 │   └── docker/emulators.Dockerfile
 ├── docs/                        RUNBOOK.md, SECURITY.md, ARCHITECTURE.md (ce document)
 ├── .github/workflows/           ci.yml, release-templates.yml, security.yml
@@ -178,9 +182,10 @@ graph TB
         HostTenants["Firebase Hosting: pfy-<slug> ×N"]
     end
     subgraph "Données"
-        Firestore[("Firestore native\nune base, deux domaines:\nplateforme + tenants/**")]
+        Firestore[("Firestore native\nune base, deux domaines:\nplateforme + tenants/**\nPITR 7 jours")]
         GCSBuilds[("GCS: portforyou-template-builds")]
         GCSUploads[("GCS: portforyou-uploads\n(lecture publique sur tenants/*/uploads)")]
+        GCSBackups[("GCS: portforyou-firestore-backups\n(exports hebdo, purge > 180j)")]
     end
     subgraph "Orchestration"
         Registry["Artifact Registry: pfy\n(images api, web, {template}-back)"]
@@ -189,6 +194,7 @@ graph TB
         SchedCleanup["Cloud Scheduler: pfy-cleanup-slugs (horaire)"]
         SchedBilling["Cloud Scheduler: pfy-billing-cycle (1er du mois 03h Paris)"]
         SchedRotate["Cloud Scheduler: pfy-rotate-secrets (trimestriel)"]
+        SchedExport["Cloud Scheduler: pfy-firestore-export (hebdo, dim. 03h Paris)"]
     end
     subgraph "Secrets & identité"
         SM["Secret Manager\npfy-jwt-secret, pfy-stripe-secret,\npfy-stripe-webhook, pfy-google-oauth-secret,\npfy-resend-key, tenant-<slug>-admin-hash,\ntenant-<slug>-jwt"]
@@ -213,6 +219,8 @@ graph TB
     Registry --> RunApi
     Registry --> RunWeb
     Registry --> RunTenants
+    SchedExport -->|"POST :exportDocuments (OAuth SA pfy-api)"| Firestore
+    SchedExport --> GCSBackups
 ```
 
 ### 5.2 Inventaire des ressources
@@ -223,11 +231,13 @@ graph TB
 | Cloud Run          | `tenant-<slug>` (×N)                                                                | provisioning (`gcp.ts` → Cloud Run Admin API)                                 |
 | Firebase Hosting   | `portforyou` (vitrine)                                                              | `firebase.json` racine                                                        |
 | Firebase Hosting   | `pfy-<slug>` (×N)                                                                   | provisioning (`gcp.ts` → Hosting REST API)                                    |
-| Firestore (native) | base par défaut                                                                     | `setup-gcp.sh`                                                                |
+| Firestore (native) | base par défaut, PITR 7 jours                                                       | `setup-gcp.sh`                                                                |
 | Cloud Storage      | `portforyou-template-builds`, `portforyou-uploads`                                  | `setup-gcp.sh`                                                                |
+| Cloud Storage      | `portforyou-firestore-backups` (exports hebdo, lifecycle > 180j)                    | `setup-backups.sh`                                                            |
 | Artifact Registry  | `pfy` (docker)                                                                      | `setup-gcp.sh`                                                                |
 | Cloud Tasks        | queue `provisioning`                                                                | `setup-gcp.sh`                                                                |
 | Cloud Scheduler    | `pfy-health-checks`, `pfy-cleanup-slugs`, `pfy-billing-cycle`, `pfy-rotate-secrets` | `setup-gcp.sh` (après 1er déploiement de `pfy-api`)                           |
+| Cloud Scheduler    | `pfy-firestore-export` (hebdo, dim. 03h Paris)                                      | `setup-backups.sh`                                                            |
 | Secret Manager     | secrets plateforme + `tenant-<slug>-{admin-hash,jwt}`                               | `setup-gcp.sh` (placeholders) + provisioning (secrets tenant)                 |
 | Cloud Monitoring   | dashboard « Vue d'ensemble plateforme & tenants »                                   | `setup-gcp.sh` / `infra/monitoring/dashboard.json`                            |
 | Cloud Monitoring   | policy d'alerte « Erreurs 5xx — plateforme & tenants » + canal email                | `setup-gcp.sh` / `infra/monitoring/alert-5xx.json` (composant `gcloud alpha`) |
@@ -449,9 +459,12 @@ Checklist « avant prod commerciale » de `docs/SECURITY.md` : entièrement coch
 | Document                          | Contenu                                                                                                                                                 |
 | --------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `PortForYou.md`                   | Cahier des charges complet, décisions d'architecture actées, roadmap v2 (non implémentée), estimation de coûts (§15), critères d'acceptation démo (§16) |
-| `docs/RUNBOOK.md`                 | Dev local, mise en production, Stripe, Cloud Monitoring, incidents courants                                                                             |
+| `docs/RUNBOOK.md`                 | Dev local, mise en production, Stripe, Cloud Monitoring, restauration Firestore, incidents courants                                                     |
 | `docs/SECURITY.md`                | Détail des contrôles de sécurité par couche, checklist avant prod commerciale                                                                           |
 | `README.md`                       | Démarrage rapide, structure du repo, conventions de commit                                                                                              |
-| `infra/scripts/setup-gcp.sh`      | Script idempotent de provisioning de l'infra GCP                                                                                                        |
+| `infra/scripts/setup-gcp.sh`      | Script idempotent de provisioning de l'infra GCP (inclut PITR + TTL Firestore)                                                                          |
+| `infra/scripts/setup-backups.sh`  | Script idempotent : bucket + export Firestore hebdomadaire vers GCS                                                                                     |
+| `infra/scripts/setup-uptime-checks.sh` | Script idempotent : uptime checks + alerte Cloud Monitoring                                                                                        |
 | `infra/monitoring/dashboard.json` | Définition du dashboard Cloud Monitoring                                                                                                                |
 | `infra/monitoring/alert-5xx.json` | Définition de la policy d'alerte 5xx Cloud Monitoring                                                                                                   |
+| `infra/monitoring/alert-uptime.json` | Définition de la policy d'alerte uptime checks Cloud Monitoring                                                                                      |

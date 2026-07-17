@@ -117,6 +117,59 @@ nécessaire), sans impact sur l'artiste ni son mot de passe. Le mot de passe adm
 jamais automatiquement — seule la régénération manuelle depuis le dashboard client (§ ci-dessus,
 « Site tenant 401 sur /admin ») le change, pour ne jamais couper l'accès sans prévenir.
 
+## Restauration Firestore
+
+Deux mécanismes de sauvegarde, complémentaires :
+
+- **PITR (Point-in-Time Recovery)** : activé par `setup-gcp.sh` (`gcloud firestore databases
+  update --enable-pitr`), retour arrière possible à n'importe quel instant sur les **7 derniers
+  jours**. Couvre l'erreur récente (bug, mauvaise commande, compromission).
+- **Exports GCS hebdomadaires** : `infra/scripts/setup-backups.sh` crée un bucket dédié
+  (`gs://portforyou-firestore-backups`, purge automatique > 180 j) et un job Cloud Scheduler
+  (`pfy-firestore-export`, dimanche 03h00 Europe/Paris) qui appelle l'API REST Firestore
+  `:exportDocuments`. Couvre l'archive longue durée, au-delà de la fenêtre PITR.
+
+### Procédure — restauration PITR (< 7 jours)
+
+1. Identifier l'instant cible (avant l'incident) : `gcloud firestore operations list` et les logs
+   Cloud Audit peuvent aider à dater précisément l'écriture fautive.
+2. **Restaurer vers une base de secours** (jamais directement sur la base de prod, pour pouvoir
+   comparer/valider avant bascule) :
+   ```bash
+   gcloud firestore databases restore \
+     --source-database="projects/portforyou-vsp/databases/(default)" \
+     --destination-database="restore-verif" \
+     --snapshot-time="2026-07-15T10:00:00Z"
+   ```
+3. Vérifier les données restaurées sur `restore-verif` (console ou script de contrôle).
+4. Bascule : soit ré-export sélectif des documents corrigés vers `(default)`, soit — si la
+   restauration complète est nécessaire — coordonner une fenêtre de maintenance (l'API et les
+   tenants pointent tous sur `(default)` : un remplacement de base implique un arrêt du trafic
+   d'écriture pendant la bascule).
+5. Supprimer la base `restore-verif` une fois la vérification terminée (`gcloud firestore
+   databases delete --database=restore-verif`) — une base Firestore restée en place a un coût.
+
+### Procédure — import depuis un export GCS (> 7 jours ou récupération sélective)
+
+1. Lister les exports disponibles : `gcloud storage ls gs://portforyou-firestore-backups`.
+2. Repérer l'export voulu (préfixe horodaté par Firestore, ex.
+   `gs://portforyou-firestore-backups/2026-07-13T03:00:00_00001/`).
+3. Import complet (écrase les documents existants aux mêmes chemins, n'efface pas les documents
+   absents de l'export) :
+   ```bash
+   gcloud firestore import gs://portforyou-firestore-backups/2026-07-13T03:00:00_00001/
+   ```
+4. Import ciblé sur une collection (ex. restaurer uniquement `sites` après une purge accidentelle) :
+   ```bash
+   gcloud firestore import gs://portforyou-firestore-backups/2026-07-13T03:00:00_00001/ \
+     --collection-ids=sites
+   ```
+5. Suivre l'opération : `gcloud firestore operations list` (l'import est asynchrone).
+
+**Impératif** : tester au moins une fois chacune des deux procédures (restauration PITR vers une
+base de secours, et import d'un export GCS) avant d'en avoir besoin en urgence — une procédure de
+restauration jamais exécutée n'est qu'une hypothèse.
+
 ## Incidents courants
 
 | Symptôme                                             | Cause probable                           | Remède                                                         |

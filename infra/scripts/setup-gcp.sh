@@ -117,6 +117,17 @@ echo "▶ Firestore (base par défaut, $REGION)…"
 gcloud firestore databases describe --database="(default)" >/dev/null 2>&1 ||
   gcloud firestore databases create --location="$REGION"
 
+echo "▶ Firestore PITR (Point-in-Time Recovery, 7 jours)…"
+PITR_STATE=$(gcloud firestore databases describe --database="(default)" \
+  --format='value(pointInTimeRecoveryEnablement)' 2>/dev/null || echo "")
+if [ "$PITR_STATE" != "POINT_IN_TIME_RECOVERY_ENABLED" ]; then
+  gcloud firestore databases update --database="(default)" --enable-pitr >/dev/null
+else
+  echo "  déjà activé, rien à faire."
+fi
+# Exports GCS hebdomadaires (archive longue durée, complémentaire au PITR) :
+# voir infra/scripts/setup-backups.sh, à lancer après ce script.
+
 echo "▶ Secret JWT de la plateforme…"
 gcloud secrets describe pfy-jwt-secret >/dev/null 2>&1 || {
   openssl rand -hex 32 | tr -d '
