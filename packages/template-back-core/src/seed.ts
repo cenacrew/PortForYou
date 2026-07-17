@@ -51,6 +51,10 @@ async function main() {
 
   await siteConfigDoc().set(
     {
+      siteName: 'Prénom Nom',
+      siteDescription:
+        "Portfolio d'artiste — œuvres, biographie, actualités et presse. " +
+        '(Exemple à personnaliser depuis votre back-office.)',
       heroImageUrl: '/placeholder-hero.svg',
       biographyImageUrl: '/placeholder-portrait.svg',
       biographyText:

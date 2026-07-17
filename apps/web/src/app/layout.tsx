@@ -5,6 +5,7 @@ import { LenisProvider } from '@/components/LenisProvider';
 import { AuthProvider } from '@/lib/auth';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
+import { SITE_URL, SITE_NAME, SITE_DESCRIPTION } from '@/lib/site';
 
 const fraunces = Fraunces({
   subsets: ['latin'],
@@ -19,9 +20,28 @@ const plexMono = IBM_Plex_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Port'ForYou — Portfolios pour artistes visuels",
-  description:
-    'Choisissez une template, un nom de site : votre portfolio professionnel est en ligne en quelques minutes, avec son back-office.',
+  metadataBase: new URL(SITE_URL),
+  title: {
+    default: "Port'ForYou — Portfolios pour artistes visuels",
+    template: `%s — ${SITE_NAME}`,
+  },
+  description: SITE_DESCRIPTION,
+  applicationName: SITE_NAME,
+  alternates: { canonical: '/' },
+  openGraph: {
+    type: 'website',
+    siteName: SITE_NAME,
+    locale: 'fr_FR',
+    url: SITE_URL,
+    title: "Port'ForYou — Portfolios pour artistes visuels",
+    description: SITE_DESCRIPTION,
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: "Port'ForYou — Portfolios pour artistes visuels",
+    description: SITE_DESCRIPTION,
+  },
+  robots: { index: true, follow: true },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

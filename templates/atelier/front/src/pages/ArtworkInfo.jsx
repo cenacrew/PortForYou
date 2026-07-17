@@ -2,6 +2,8 @@
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { Container, Typography, Stack, Box, Divider, Chip, CircularProgress } from '@mui/material';
 import { techniques, apiUrl } from '../utils';
+import { useSiteConfig } from '../contexts/SiteConfigContext';
+import { applyHead, buildArtworkSeo } from '../seo';
 
 export default function ArtworkInfo() {
   const location = useLocation();
@@ -25,6 +27,11 @@ export default function ArtworkInfo() {
   const [item, setItem] = useState(cachedItem);
   const [loading, setLoading] = useState(!cachedItem);
   const [activeIndex, setActiveIndex] = useState(0);
+  const config = useSiteConfig();
+
+  useEffect(() => {
+    if (item) applyHead(buildArtworkSeo(item, config || {}));
+  }, [item, config]);
 
   useEffect(() => {
     if (cachedItem) return;

@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import Image from 'next/image';
 import { notFound } from 'next/navigation';
@@ -6,6 +7,31 @@ import styles from './page.module.css';
 
 export function generateStaticParams() {
   return TEMPLATES.map((t) => ({ slug: t.slug }));
+}
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}): Promise<Metadata> {
+  const { slug } = await params;
+  const template = getTemplate(slug);
+  if (!template) return { title: 'Template introuvable' };
+  const title = `Template ${template.name}`;
+  const description = template.description;
+  return {
+    title,
+    description,
+    alternates: { canonical: `/templates/${template.slug}` },
+    openGraph: {
+      type: 'article',
+      title,
+      description,
+      url: `/templates/${template.slug}`,
+      images: [{ url: template.image, alt: `Aperçu de la template ${template.name}` }],
+    },
+    twitter: { card: 'summary_large_image', title, description, images: [template.image] },
+  };
 }
 
 export default async function TemplateDetail({ params }: { params: Promise<{ slug: string }> }) {

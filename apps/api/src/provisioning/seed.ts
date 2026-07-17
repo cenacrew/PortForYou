@@ -33,6 +33,8 @@ export async function seedTenant(slug: string, artistName: string, contactEmail:
     .doc('main')
     .set(
       {
+        siteName: artistName,
+        siteDescription: `Portfolio de ${artistName} — œuvres, biographie, actualités et presse.`,
         heroImageUrl: '/placeholder-hero.svg',
         biographyImageUrl: '/placeholder-portrait.svg',
         biographyText:

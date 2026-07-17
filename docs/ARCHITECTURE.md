@@ -80,7 +80,7 @@ graph TB
     Monitoring -.->|métriques| TenantRun
 
     EndVisitor --> TenantHosting
-    TenantHosting -->|"rewrite /api/**"| TenantRun
+    TenantHosting -->|"rewrite /api/**, /sitemap.xml, /robots.txt"| TenantRun
     TenantRun --> Firestore
     TenantRun --> GCS
     TenantRun --> Resend
@@ -163,6 +163,7 @@ graph LR
 
 - **Une seule image Docker par template**, paramétrée par la variable d'env `TENANT_ID` : toutes les lectures/écritures Firestore du back sont préfixées `tenants/{TENANT_ID}/...` (voir `packages/template-back-core/src/lib/tenant.ts`), et les uploads Storage sous `tenants/{TENANT_ID}/uploads/...`. **Aucun rebuild par client.**
 - **Un seul build statique par template** pour le front : il utilise des URLs relatives `/api/v1`, donc le même artefact sert tous les tenants — c'est le rewrite Firebase Hosting (`/api/** → service Cloud Run du tenant`) qui route chaque site vers son propre back.
+- **SEO par-tenant servi par le back** : le HTML statique du front étant partagé, `/sitemap.xml` et `/robots.txt` sont générés dynamiquement par le back du tenant (depuis ses œuvres et son `site_config`). Le provisioning ajoute donc deux rewrites Hosting supplémentaires (`/sitemap.xml → Cloud Run` et `/robots.txt → Cloud Run`), placés **avant** le catch-all SPA `** → /index.html` (sinon Hosting servirait `index.html`). Les balises `<head>` par-page (title, description, Open Graph, JSON-LD) sont, elles, injectées au runtime côté front une fois `site_config` chargé (`templates/*/front/src/seo.js`).
 - **Instance démo** (`demo-atelier`, `demo-monolith`, `demo-papier`) : même mécanisme, avec `DEMO_MODE=1` qui fait renvoyer 403 à toute mutation du back-office (lecture seule pour les prospects).
 
 ---

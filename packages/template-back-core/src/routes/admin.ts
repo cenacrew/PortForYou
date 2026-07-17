@@ -138,6 +138,8 @@ router.put('/site-config', authMiddleware, async (req, res) => {
     if (!db) return res.status(500).json({ error: 'Firestore non configuré' });
 
     const allowed = [
+      'siteName',
+      'siteDescription',
       'heroImageUrl',
       'techniqueImages',
       'biographyImageUrl',
