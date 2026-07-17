@@ -3,16 +3,30 @@ import { z } from 'zod';
 import { slugSchema, TECHNIQUE_LABELS } from '@portforyou/shared';
 import { isSlugAvailable } from '../orders/service.js';
 import { config } from '../config.js';
-import { contactRequestsCol } from '../lib/firebase.js';
+import { contactRequestsCol, db } from '../lib/firebase.js';
 import { FieldValue } from 'firebase-admin/firestore';
 import { sendMail, quoteRequestEmail } from '../emails/mailer.js';
 
 const router: Router = Router();
 
-router.get('/health', (_req, res) => {
+router.get('/health', async (_req, res) => {
+  // Lecture Firestore légère : un souci d'IAM/connexion (SA mal configuré,
+  // réseau) doit sortir la révision du pool, pas répondre 200 à vide.
+  try {
+    await db.collection('_health').limit(1).get();
+  } catch (err) {
+    console.error('Healthcheck Firestore KO:', err);
+    return res.status(503).json({
+      ok: false,
+      service: 'portforyou-api',
+      commit: config.COMMIT_SHA,
+      error: 'firestore_unreachable',
+    });
+  }
   res.json({
     ok: true,
     service: 'portforyou-api',
+    commit: config.COMMIT_SHA,
     payment: config.PAYMENT_DRIVER,
     provisioner: config.PROVISIONER_DRIVER,
   });

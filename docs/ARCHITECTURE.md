@@ -455,6 +455,12 @@ graph TB
 | Uptime checks                            | toutes les 5 min                                     | `pfy-api` + 3 tenants démo, `/api/v1/health` — détecte un service down sans trafic (angle mort des alertes 5xx). `infra/scripts/setup-uptime-checks.sh`, alerte sur le même canal email                                                                                                     |
 | Budget                                   | continu                                              | Alertes 25/50/100 % d'un budget de 20 €                                                                                                                                                                                                                                                     |
 
+**Robustesse runtime (plateforme + backs templates)** :
+
+- **`/api/v1/health` enrichi** (`pfy-api`) : effectue une lecture Firestore légère (`_health`, `limit(1)`) pour détecter un souci d'IAM/connexion → **503** `{ ok: false, error: 'firestore_unreachable' }` sinon **200** `{ ok: true, commit, … }`. Le champ `commit` reprend l'env var `COMMIT_SHA` injectée au déploiement Cloud Run de `pfy-api` (`ci.yml`, `--set-env-vars COMMIT_SHA=${{ github.sha }}`) — permet de savoir quelle révision répond.
+- **Corrélation des requêtes** : middleware `requestId` (avant morgan) qui reprend l'en-tête `X-Cloud-Trace-Context` de Cloud Run (ou génère un UUID en local), l'expose sur `req.requestId`, le journalise (format morgan `:id`), le renvoie dans l'en-tête `X-Request-Id` et dans les réponses d'erreur (`requestId`). Présent sur `pfy-api` **et** les backs templates.
+- **Arrêt gracieux** : `pfy-api` et les backs templates écoutent `SIGTERM`/`SIGINT` (Cloud Run laisse ~10 s avant `SIGKILL`) — `server.close()` draine les requêtes en vol, avec un filet de sécurité (timeout) avant `process.exit`. Les wrappers plain-JS des templates délèguent à `startServer()` exposé par `@portforyou/template-back-core`.
+
 ---
 
 ## 12. Sécurité — résumé (détail complet : `docs/SECURITY.md`)
