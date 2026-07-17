@@ -93,6 +93,14 @@ describe('Galerie', () => {
     renderGalerie();
     await waitFor(() => screen.getByText('Peinture 1'));
 
+    // L'apparition du texte (commit React) et l'exécution de l'effect qui
+    // instancie IntersectionObserver (passive effect, flush asynchrone) ne
+    // sont pas garanties dans le même tick : attendre explicitement que le
+    // constructeur mocké ait été appelé évite d'invoquer observerCallback
+    // avant qu'il ne soit assigné (source du flake "observerCallback is not
+    // a function").
+    await waitFor(() => expect(observerCallback).toEqual(expect.any(Function)));
+
     // Simuler l'entrée dans le viewport du sentinel
     observerCallback([{ isIntersecting: true }]);
     await waitFor(() => expect(screen.getByText('Peinture 2')).toBeDefined());
