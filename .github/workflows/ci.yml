@@ -245,6 +245,7 @@ jobs:
           # NEXT_PUBLIC_API_URL est inliné au BUILD par Next.js → build-arg obligatoire.
           build-args: |
             NEXT_PUBLIC_API_URL=${{ steps.apiurl.outputs.url }}
+            NEXT_PUBLIC_SENTRY_DSN=${{ vars.NEXT_PUBLIC_SENTRY_DSN }}
           tags: ${{ env.REGISTRY }}/${{ env.PROJECT_ID }}/pfy/web:${{ github.sha }}
           cache-from: type=gha,scope=web
           cache-to: type=gha,mode=max,scope=web
@@ -265,7 +266,8 @@ jobs:
             --image "$REGISTRY/$PROJECT_ID/pfy/web:${{ github.sha }}" \
             --region "$REGION" \
             --allow-unauthenticated \
-            --min-instances 0 --max-instances 3
+            --min-instances 0 --max-instances 3 \
+            --set-env-vars "NEXT_PUBLIC_SENTRY_DSN=${{ vars.NEXT_PUBLIC_SENTRY_DSN }}"
 
       - name: Post-deploy — CORS/URLs de l'API
         run: |

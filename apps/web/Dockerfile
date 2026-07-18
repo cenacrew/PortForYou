@@ -13,6 +13,9 @@ COPY apps/web apps/web
 # donc être fournie ici (build-arg), pas au runtime du conteneur.
 ARG NEXT_PUBLIC_API_URL
 ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
+# DSN Sentry côté navigateur (inliné au build, valeur publique par nature).
+ARG NEXT_PUBLIC_SENTRY_DSN
+ENV NEXT_PUBLIC_SENTRY_DSN=$NEXT_PUBLIC_SENTRY_DSN
 RUN pnpm --filter @portforyou/shared build && pnpm --filter @portforyou/web build
 
 FROM node:24-slim
