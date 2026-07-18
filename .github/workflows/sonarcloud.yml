@@ -13,13 +13,15 @@ name: SonarCloud
 # sonarcloud.io (import du repo GitHub) et poser le secret `SONAR_TOKEN`
 # dans les secrets du dépôt. Sans ce secret, le job échoue à l'étape
 # d'analyse (documenté dans la PR qui introduit ce workflow).
+# Analyse uniquement sur `main` (pas sur les PR) : sur le plan gratuit de
+# SonarCloud le quality gate n'est pas personnalisable (couverture + duplication
+# du code nouveau échouent, conditions non désactivables sans plan payant).
+# Analyser les PR ferait poster à l'app SonarCloud un check « failed » (croix
+# rouge) non pertinent et non bloquant. On garde donc le suivi sur `main`
+# (dashboard, sécurité, duplication, badges) sans polluer les PR.
 on:
   push:
     branches: [main]
-    paths-ignore:
-      - '**.md'
-      - 'docs/**'
-  pull_request:
     paths-ignore:
       - '**.md'
       - 'docs/**'
