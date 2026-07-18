@@ -17,6 +17,11 @@ pour poser une contribution : installation, conventions, et process de PR.
 Aucun compte GCP ni Stripe n'est nécessaire en local : les drivers de
 paiement et de provisioning tournent en mode `fake` par défaut.
 
+Pour éviter d'installer tout ça à la main (ou en dépannage sur une nouvelle
+machine), `.devcontainer/devcontainer.json` fige cet environnement — ouvrez le
+repo dans VS Code (extension Dev Containers) ou dans un GitHub Codespace,
+tout est prêt automatiquement.
+
 ## Démarrer
 
 ```bash
