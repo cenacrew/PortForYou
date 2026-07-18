@@ -22,9 +22,9 @@ supersède (statut `Remplacé par ADR-000X`).
 
 ## Index
 
-| ADR                                              | Titre                                                     | Statut |
-| ------------------------------------------------- | ---------------------------------------------------------- | ------ |
+| ADR                                                    | Titre                                                       | Statut  |
+| ------------------------------------------------------ | ----------------------------------------------------------- | ------- |
 | [0001](./0001-auth-maison-plutot-que-firebase-auth.md) | Auth maison plutôt que Firebase Auth côté serveur           | Accepté |
 | [0002](./0002-extraction-template-back-core.md)        | Extraction du back commun dans `template-back-core`         | Accepté |
-| [0003](./0003-sse-plutot-que-onsnapshot-client.md)      | SSE plutôt que `onSnapshot` client pour le suivi temps réel | Accepté |
-| [0004](./0004-un-seul-projet-gcp-multi-tenant.md)       | Un seul projet GCP multi-tenant                             | Accepté |
+| [0003](./0003-sse-plutot-que-onsnapshot-client.md)     | SSE plutôt que `onSnapshot` client pour le suivi temps réel | Accepté |
+| [0004](./0004-un-seul-projet-gcp-multi-tenant.md)      | Un seul projet GCP multi-tenant                             | Accepté |
