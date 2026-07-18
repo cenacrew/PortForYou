@@ -14,6 +14,7 @@ import paymentsRouter from './routes/payments.js';
 import meRouter from './routes/me.js';
 import adminRouter from './routes/admin.js';
 import authRouter from './auth/routes.js';
+import docsRouter from './routes/docs.js';
 import internalRouter from './routes/internal.js';
 
 const app: express.Express = express();
@@ -79,6 +80,9 @@ app.use('/api/v1/auth/resend-verification', authLimiter);
 
 app.use('/api/v1', authRouter);
 app.use('/api/v1', publicRouter);
+// Doc OpenAPI publique : montée avant les routers authentifiés (admin applique
+// requireAuth au niveau du routeur, ce qui intercepterait /api/v1/docs sinon).
+app.use('/api/v1', docsRouter);
 app.use('/api/v1', ordersRouter);
 app.use('/api/v1', meRouter);
 app.use('/api/v1', adminRouter);
