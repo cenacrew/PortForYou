@@ -81,7 +81,7 @@ jobs:
           cache-to: type=gha,mode=max,scope=${{ matrix.template }}-back
 
       - name: Scan de l'image back (Trivy)
-        uses: aquasecurity/trivy-action@0.36.0
+        uses: aquasecurity/trivy-action@v0.36.0
         with:
           image-ref: ${{ env.REGISTRY }}/${{ env.PROJECT_ID }}/pfy/${{ matrix.template }}-back:${{ steps.version.outputs.v }}
           format: table
