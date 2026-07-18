@@ -35,7 +35,7 @@ export async function sendMail({ to, subject, text, type }: MailInput): Promise<
     }
   } catch (err) {
     status = 'failed';
-    console.error(`Envoi email "${type}" à ${to} échoué:`, err);
+    console.error('Envoi email échoué', { type, to }, err);
   }
   await emailLogsCol()
     .add({ to, subject, type, driver, status, createdAt: FieldValue.serverTimestamp() })
