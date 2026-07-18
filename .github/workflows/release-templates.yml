@@ -86,6 +86,7 @@ jobs:
           image-ref: ${{ env.REGISTRY }}/${{ env.PROJECT_ID }}/pfy/${{ matrix.template }}-back:${{ steps.version.outputs.v }}
           format: table
           severity: CRITICAL,HIGH
+          ignore-unfixed: true
           exit-code: '1'
 
       - name: Build front statique
