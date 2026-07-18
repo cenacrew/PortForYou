@@ -120,6 +120,7 @@ portforyou/
 ├── .github/workflows/           ci.yml, release-templates.yml, security.yml,
 │                                 codeql.yml, dependency-review.yml, actionlint.yml,
 │                                 lighthouse.yml
+│                                 sonarcloud.yml, knip.yml, scorecard.yml, release-please.yml
 ├── docker-compose.yml           Dev local conteneurisé (alternative à `pnpm dev`)
 ├── firestore.rules / storage.rules / firestore.indexes.json
 └── pnpm-workspace.yaml          apps/*, packages/*, templates/*/back, templates/*/front
@@ -430,9 +431,13 @@ graph TB
 
     Cron["Cron — lundi 06h UTC"] --> Security["security.yml\npnpm audit --audit-level high"]
     Cron2["Cron — lundi 07h UTC"] --> CodeQL["codeql.yml\nSAST javascript-typescript"]
+    Cron3["Cron — lundi 08h UTC"] --> Scorecard["scorecard.yml\nOSSF Scorecard, SARIF"]
     PR --> DepReview["dependency-review.yml\nnouvelles dépendances de la PR, fail-on high+"]
+    PR --> Sonar["sonarcloud.yml\nquality gate + couverture lcov (api, template-back-core)"]
+    PR --> Knip["knip.yml\ncode mort — informatif, continue-on-error"]
     WFChange["Push/PR sur .github/workflows/**"] --> Actionlint["actionlint.yml\nlint des workflows (+ shellcheck)"]
     WebChange["Push/PR sur apps/web/**"] --> Lighthouse["lighthouse.yml\nbuild+serve vitrine, audit home +\n/templates/atelier (perf/a11y/SEO/bonnes pratiques)"]
+    Push --> ReleasePlease["release-please.yml\nPR de release (CHANGELOG + version) à jour"]
 ```
 
 - **`ci.yml`** : pipeline unique validation → déploiement. Auth CI via **Workload Identity Federation** (aucune clé JSON). Le déploiement est sérialisé (`concurrency: deploy-platform, cancel-in-progress: false`) pour ne jamais interrompre une release en cours. Les jobs `templates-back`/`templates-front` sont conditionnés au job de filtre `changes` (`dorny/paths-filter`, pattern `needs`+`if`) : ils ne tournent que si `templates/**` ou `packages/template-back-core/**` a changé — sinon ils passent en statut `skipped`, traité comme réussi par les required checks de branch protection. Le job `deploy` scanne les images `api`/`web` avec Trivy (`CRITICAL,HIGH`, `exit-code: 1`) juste après le build/push et avant le `gcloud run deploy` correspondant, puis termine par un smoke test (`curl --fail` avec retries) sur `/api/v1/health` de l'API et la home de la vitrine.
@@ -442,6 +447,10 @@ graph TB
 - **`dependency-review.yml`** : `actions/dependency-review-action` sur chaque PR touchant un `package.json`/`pnpm-lock.yaml`, échoue sur une dépendance ajoutée de sévérité high+ et commente la PR.
 - **`actionlint.yml`** : lint des workflows (`.github/workflows/**`) avec `shellcheck` sur le shell inline, à chaque push/PR qui les modifie.
 - **`lighthouse.yml`** : audite la vitrine (`apps/web`) avec Lighthouse CI (`treosh/lighthouse-ci-action`, config `lighthouserc.json` à la racine) — build (`next build`) puis `next start` servi localement, audité sur la home (`/`) et une page riche en images (`/templates/atelier`), 3 runs par URL. Déclenché sur PR/push `main` limité aux chemins `apps/web/**`/`packages/shared/**`. Assertions perf/accessibilité/SEO/bonnes pratiques en **`warn`** (non bloquant) tant que les budgets ne sont pas calibrés sur une baseline réelle — à durcir en `error` une fois posée.
+- **`sonarcloud.yml`** : quality gate (bugs probables, code smells, duplication, dette technique) sur push `main` et chaque PR. Génère la couverture Vitest (`test:coverage`, lcov) de `apps/api` et `packages/template-back-core` puis la passe à Sonar via `sonar-project.properties` (`sonar.javascript.lcov.reportPaths`). Nécessite la création du projet sur sonarcloud.io et le secret `SONAR_TOKEN` (action manuelle du mainteneur).
+- **`knip.yml`** : détection de code mort (exports/fichiers/dépendances inutilisés) sur tout le monorepo (`knip.json`), job informatif (`continue-on-error: true`) sur push `main` et chaque PR — ne bloque jamais, les résidus sont à trier manuellement (faux positifs fréquents sur les entry points multiples d'un monorepo).
+- **`scorecard.yml`** : OSSF Scorecard (pratiques de sécurité du dépôt : branch protection, pinning des actions, etc.), publié en SARIF dans l'onglet Security, sur push `main` et cron hebdomadaire (lundi 08h UTC). Même garde de visibilité que `codeql.yml`/`dependency-review.yml`.
+- **`release-please.yml`** : maintient une PR de release à jour (CHANGELOG.md + bump de version du package racine `portforyou`) à partir des Conventional Commits déjà enforcés par commitlint, sur chaque push `main`. Merger cette PR crée le tag Git de la release. Config dans `release-please-config.json` / `.release-please-manifest.json` (un seul package versionné : les apps/templates sont déployées en continu, pas publiées indépendamment).
 - **Convention** : `[skip deploy]` dans le message de commit pour pousser sur `main` sans redéployer la plateforme (utilisé par exemple après un simple changement de dashboard/doc).
 
 ---

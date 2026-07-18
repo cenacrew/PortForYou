@@ -1,0 +1,56 @@
+{
+  "$schema": "https://unpkg.com/knip@6/schema.json",
+  "workspaces": {
+    ".": {
+      "entry": [],
+      "project": []
+    },
+    "apps/api": {
+      "entry": ["src/index.ts", "src/**/*.test.ts"],
+      "project": ["src/**/*.ts"]
+    },
+    "apps/web": {
+      "entry": [
+        "src/app/**/{page,layout,route,loading,error,not-found,template,default}.{ts,tsx}",
+        "src/middleware.ts",
+        "playwright.config.ts",
+        "src/**/*.test.{ts,tsx}"
+      ],
+      "project": ["src/**/*.{ts,tsx}"]
+    },
+    "packages/shared": {
+      "entry": ["src/index.ts"],
+      "project": ["src/**/*.ts"]
+    },
+    "packages/template-back-core": {
+      "entry": ["src/app.ts", "src/seed.ts", "src/**/*.test.ts"],
+      "project": ["src/**/*.ts"]
+    },
+    "templates/atelier/back": {
+      "entry": ["src/index.js", "seed.js"],
+      "project": ["**/*.js"]
+    },
+    "templates/monolith/back": {
+      "entry": ["src/index.js", "seed.js"],
+      "project": ["**/*.js"]
+    },
+    "templates/papier/back": {
+      "entry": ["src/index.js", "seed.js"],
+      "project": ["**/*.js"]
+    },
+    "templates/atelier/front": {
+      "entry": ["src/index.jsx", "vite.config.js"],
+      "project": ["src/**/*.{js,jsx}"]
+    },
+    "templates/monolith/front": {
+      "entry": ["src/index.jsx", "vite.config.js"],
+      "project": ["src/**/*.{js,jsx}"]
+    },
+    "templates/papier/front": {
+      "entry": ["src/index.jsx", "vite.config.js"],
+      "project": ["src/**/*.{js,jsx}"]
+    }
+  },
+  "ignoreDependencies": [],
+  "ignoreExportsUsedInFile": true
+}
