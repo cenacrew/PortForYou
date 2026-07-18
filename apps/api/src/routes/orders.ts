@@ -7,6 +7,7 @@ import { ordersCol, sitesCol } from '../lib/firebase.js';
 import { reserveSlug } from '../orders/service.js';
 import { getPaymentDriver } from '../payments/index.js';
 import { config } from '../config.js';
+import { sendError } from '../lib/apiError.js';
 
 const router: Router = Router();
 
@@ -16,17 +17,23 @@ router.post('/orders', requireAuth, validateBody(orderCreateSchema), async (req,
   const { templateSlug, siteSlug, artistName, contactEmail } = req.body;
 
   if (config.REQUIRE_VERIFIED_EMAIL && !user.emailVerified) {
-    return res.status(403).json({
-      error: 'Vérifiez votre adresse email avant de commander.',
-    });
+    return sendError(
+      res,
+      403,
+      'email_not_verified',
+      'Vérifiez votre adresse email avant de commander.',
+    );
   }
 
   // Anti-abus : nombre de sites par compte plafonné.
   const existing = await sitesCol().where('uid', '==', user.uid).count().get();
   if (existing.data().count >= config.MAX_SITES_PER_USER) {
-    return res
-      .status(403)
-      .json({ error: `Limite de ${config.MAX_SITES_PER_USER} sites par compte atteinte` });
+    return sendError(
+      res,
+      403,
+      'site_limit_reached',
+      `Limite de ${config.MAX_SITES_PER_USER} sites par compte atteinte`,
+    );
   }
 
   const orderRef = ordersCol().doc();
@@ -34,7 +41,7 @@ router.post('/orders', requireAuth, validateBody(orderCreateSchema), async (req,
     await reserveSlug(siteSlug, user.uid, orderRef.id);
   } catch (err) {
     if (err instanceof Error && err.message === 'SLUG_TAKEN') {
-      return res.status(409).json({ error: 'Ce nom de site est déjà pris' });
+      return sendError(res, 409, 'slug_taken', 'Ce nom de site est déjà pris');
     }
     throw err;
   }

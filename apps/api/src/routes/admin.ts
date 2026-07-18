@@ -4,6 +4,7 @@ import { requireAuth, requireAdmin } from '../middleware/auth.js';
 import { usersCol, sitesCol, deploymentsCol, ordersCol, slugsCol } from '../lib/firebase.js';
 import { createDeployment, runProvisioning } from '../provisioning/pipeline.js';
 import { getProvisionerDriver } from '../provisioning/index.js';
+import { sendError } from '../lib/apiError.js';
 
 const router: Router = Router();
 router.use(requireAuth, requireAdmin);
@@ -75,7 +76,7 @@ router.get('/admin/orders', async (_req, res) => {
 
 router.post('/admin/sites/:id/redeploy', async (req, res) => {
   const snap = await sitesCol().doc(req.params.id).get();
-  if (!snap.exists) return res.status(404).json({ error: 'Site introuvable' });
+  if (!snap.exists) return sendError(res, 404, 'site_not_found', 'Site introuvable');
 
   await snap.ref.update({ status: 'provisioning' });
   const deployId = await createDeployment(snap.id, snap.data()!.uid, 'redeploy');
@@ -85,7 +86,7 @@ router.post('/admin/sites/:id/redeploy', async (req, res) => {
 
 router.post('/admin/deployments/:id/retry', async (req, res) => {
   const snap = await deploymentsCol().doc(req.params.id).get();
-  if (!snap.exists) return res.status(404).json({ error: 'Déploiement introuvable' });
+  if (!snap.exists) return sendError(res, 404, 'deployment_not_found', 'Déploiement introuvable');
   const { siteId, uid } = snap.data()!;
 
   await sitesCol().doc(siteId).update({ status: 'provisioning' });
@@ -96,14 +97,14 @@ router.post('/admin/deployments/:id/retry', async (req, res) => {
 
 router.post('/admin/sites/:id/suspend', async (req, res) => {
   const ref = sitesCol().doc(req.params.id);
-  if (!(await ref.get()).exists) return res.status(404).json({ error: 'Site introuvable' });
+  if (!(await ref.get()).exists) return sendError(res, 404, 'site_not_found', 'Site introuvable');
   await ref.update({ status: 'suspended', suspendedAt: FieldValue.serverTimestamp() });
   return res.json({ ok: true });
 });
 
 router.delete('/admin/sites/:id', async (req, res) => {
   const snap = await sitesCol().doc(req.params.id).get();
-  if (!snap.exists) return res.status(404).json({ error: 'Site introuvable' });
+  if (!snap.exists) return sendError(res, 404, 'site_not_found', 'Site introuvable');
   const slug = snap.data()!.slug as string;
 
   await (await getProvisionerDriver()).deprovision(slug);

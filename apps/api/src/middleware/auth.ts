@@ -1,5 +1,6 @@
 import type { Request, Response, NextFunction } from 'express';
 import { verifyAccessToken } from '../auth/service.js';
+import { sendError } from '../lib/apiError.js';
 
 function authenticate(req: Request, token: string | undefined): boolean {
   if (!token) return false;
@@ -23,7 +24,7 @@ export function requireAuth(req: Request, res: Response, next: NextFunction) {
   const header = req.headers.authorization || '';
   const [scheme, token] = header.split(' ');
   if (scheme !== 'Bearer' || !authenticate(req, token)) {
-    return res.status(401).json({ error: 'Authentification requise' });
+    return sendError(res, 401, 'auth_required', 'Authentification requise');
   }
   next();
 }
@@ -38,14 +39,14 @@ export function requireAuthSse(req: Request, res: Response, next: NextFunction) 
       ? req.query.token
       : (req.headers.authorization || '').replace('Bearer ', '');
   if (!authenticate(req, token)) {
-    return res.status(401).json({ error: 'Authentification requise' });
+    return sendError(res, 401, 'auth_required', 'Authentification requise');
   }
   next();
 }
 
 export function requireAdmin(req: Request, res: Response, next: NextFunction) {
   if (!req.user?.admin) {
-    return res.status(403).json({ error: 'Accès réservé aux administrateurs' });
+    return sendError(res, 403, 'admin_required', 'Accès réservé aux administrateurs');
   }
   next();
 }

@@ -1,8 +1,9 @@
 import { FieldValue } from 'firebase-admin/firestore';
-import { tenantFrontUrl } from '@portforyou/shared';
+import { tenantFrontUrl, storedOrderSchema, INITIAL_SITE_STATUS } from '@portforyou/shared';
 import { db, ordersCol, sitesCol, slugsCol } from '../lib/firebase.js';
 import { dispatchProvisioning } from '../provisioning/pipeline.js';
 import { sendMail, orderConfirmationEmail } from '../emails/mailer.js';
+import { parseDoc } from '../lib/parseDoc.js';
 
 /** Durée de validité d'une réservation de slug non payée. */
 const SLUG_RESERVATION_TTL_MS = 30 * 60 * 1000;
@@ -54,11 +55,12 @@ export async function confirmPaidOrder(orderId: string): Promise<{ siteId: strin
   const siteRef = sitesCol().doc(); // id pré-généré, utilisé seulement si créé cette fois
 
   const result = await db.runTransaction(async (tx) => {
-    const order = (await tx.get(orderRef)).data();
-    if (!order) throw new Error(`Commande ${orderId} introuvable`);
+    const orderSnap = await tx.get(orderRef);
+    if (!orderSnap.exists) throw new Error(`Commande ${orderId} introuvable`);
+    const order = parseDoc(storedOrderSchema, orderSnap, 'orders');
 
     // Idempotence : si un site existe déjà pour cette commande, ne rien refaire.
-    if (order.siteId) return { created: false as const, siteId: order.siteId as string, order };
+    if (order.siteId) return { created: false as const, siteId: order.siteId, order };
 
     tx.set(siteRef, {
       uid: order.uid,
@@ -67,7 +69,7 @@ export async function confirmPaidOrder(orderId: string): Promise<{ siteId: strin
       artistName: order.artistName,
       contactEmail: order.contactEmail,
       clientEmail: order.clientEmail,
-      status: 'provisioning',
+      status: INITIAL_SITE_STATUS,
       plannedUrl: tenantFrontUrl(order.siteSlug),
       createdAt: FieldValue.serverTimestamp(),
     });

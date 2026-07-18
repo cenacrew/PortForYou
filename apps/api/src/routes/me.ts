@@ -5,6 +5,9 @@ import { requireAuth, requireAuthSse } from '../middleware/auth.js';
 import { sitesCol, tenantDoc, deploymentsCol } from '../lib/firebase.js';
 import { getPaymentDriver } from '../payments/index.js';
 import { getProvisionerDriver } from '../provisioning/index.js';
+import { sendError } from '../lib/apiError.js';
+import { parseDoc } from '../lib/parseDoc.js';
+import { storedSiteSchema } from '@portforyou/shared';
 
 const router: Router = Router();
 
@@ -39,14 +42,14 @@ router.use('/me', (req, res, next) => {
 router.get('/me/sites', async (req, res) => {
   const snap = await sitesCol().where('uid', '==', req.user!.uid).get();
   const items = snap.docs
-    .map((doc) => serializeSite(doc.id, doc.data()))
+    .map((doc) => serializeSite(doc.id, parseDoc(storedSiteSchema, doc, 'sites')))
     .sort((a, b) => (b.createdAt ?? '').localeCompare(a.createdAt ?? ''));
   res.json({ items });
 });
 
 router.get('/me/sites/:id', async (req, res) => {
   const snap = await ownedSite(req, req.params.id);
-  if (!snap) return res.status(404).json({ error: 'Site introuvable' });
+  if (!snap) return sendError(res, 404, 'site_not_found', 'Site introuvable');
 
   const deployments = await deploymentsCol().where('siteId', '==', req.params.id).get();
   const lastDeployment = deployments.docs
@@ -60,7 +63,7 @@ router.get('/me/sites/:id', async (req, res) => {
     )[0];
 
   return res.json({
-    site: serializeSite(snap.id, snap.data()!),
+    site: serializeSite(snap.id, parseDoc(storedSiteSchema, snap, 'sites')),
     lastDeployment: lastDeployment ?? null,
   });
 });
@@ -68,10 +71,10 @@ router.get('/me/sites/:id', async (req, res) => {
 /** Régénère le mot de passe back-office du tenant et redéploie sa config. */
 router.post('/me/sites/:id/regenerate-password', async (req, res) => {
   const snap = await ownedSite(req, req.params.id);
-  if (!snap) return res.status(404).json({ error: 'Site introuvable' });
+  if (!snap) return sendError(res, 404, 'site_not_found', 'Site introuvable');
   const site = snap.data()!;
   if (site.status !== 'live') {
-    return res.status(409).json({ error: 'Le site doit être en ligne' });
+    return sendError(res, 409, 'site_not_live', 'Le site doit être en ligne');
   }
 
   const password = crypto.randomBytes(9).toString('base64url');
@@ -106,10 +109,15 @@ router.post('/me/sites/:id/regenerate-password', async (req, res) => {
  */
 router.post('/me/sites/:id/retry', async (req, res) => {
   const snap = await ownedSite(req, req.params.id);
-  if (!snap) return res.status(404).json({ error: 'Site introuvable' });
+  if (!snap) return sendError(res, 404, 'site_not_found', 'Site introuvable');
   const site = snap.data()!;
   if (site.status !== 'error') {
-    return res.status(409).json({ error: 'Seuls les sites en échec peuvent être relancés' });
+    return sendError(
+      res,
+      409,
+      'site_not_in_error',
+      'Seuls les sites en échec peuvent être relancés',
+    );
   }
 
   const { dispatchProvisioning } = await import('../provisioning/pipeline.js');
@@ -121,7 +129,7 @@ router.post('/me/sites/:id/retry', async (req, res) => {
 /** Agrégats analytics du tenant (lus depuis tenants/{slug}/analytics_daily). */
 router.get('/me/sites/:id/analytics', async (req, res) => {
   const snap = await ownedSite(req, req.params.id);
-  if (!snap) return res.status(404).json({ error: 'Site introuvable' });
+  if (!snap) return sendError(res, 404, 'site_not_found', 'Site introuvable');
 
   const range = req.query.range === '7d' ? 7 : 30;
   const since = new Date(Date.now() - range * 24 * 3600 * 1000).toISOString().slice(0, 10);
@@ -173,7 +181,7 @@ router.get('/me/sites/:id/analytics', async (req, res) => {
 router.get('/me/sites/:id/deployments/stream', requireAuthSse, async (req, res) => {
   const siteId = String(req.params.id);
   const snap = await ownedSite(req, siteId);
-  if (!snap) return res.status(404).json({ error: 'Site introuvable' });
+  if (!snap) return sendError(res, 404, 'site_not_found', 'Site introuvable');
 
   res.set({
     'Content-Type': 'text/event-stream',
@@ -217,7 +225,7 @@ router.get('/me/sites/:id/deployments/stream', requireAuthSse, async (req, res) 
 /** Consommation du mois en cours (estimation transparente) + formule client. */
 router.get('/me/sites/:id/billing', async (req, res) => {
   const snap = await ownedSite(req, req.params.id);
-  if (!snap) return res.status(404).json({ error: 'Site introuvable' });
+  if (!snap) return sendError(res, 404, 'site_not_found', 'Site introuvable');
 
   const { estimateTenantCost, clientMonthlyTotal, GCP_RATES } =
     await import('../billing/estimate.js');
