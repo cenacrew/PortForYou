@@ -11,7 +11,7 @@ import publicRouter from './routes/public.js';
 import trackRouter from './routes/track.js';
 import contactRouter from './routes/contact.js';
 import seoRouter from './routes/seo.js';
-import logger from './middleware/logger.js';
+import { httpLogger } from './middleware/logger.js';
 import { requestId } from './middleware/requestId.js';
 import { installGracefulShutdown } from './lib/shutdown.js';
 import { TENANT_ID, DEMO_MODE } from './lib/tenant.js';
@@ -38,7 +38,8 @@ app.use(
 app.use(cookieParser());
 app.use(express.json());
 app.use(requestId);
-app.use(logger);
+// Logs HTTP structurés (pino) : request-id AVANT le logger pour la corrélation.
+app.use(httpLogger);
 
 const loginLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
