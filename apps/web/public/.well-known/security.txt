@@ -1,0 +1,6 @@
+Contact: mailto:security@portforyou.example
+Contact: https://github.com/cenacrew/PortForYou/security/advisories/new
+Expires: 2027-07-17T00:00:00.000Z
+Preferred-Languages: fr, en
+Canonical: https://portforyou.web.app/.well-known/security.txt
+Policy: https://github.com/cenacrew/PortForYou/blob/main/SECURITY.md

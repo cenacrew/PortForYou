@@ -75,12 +75,15 @@ Mesures appliquées, par couche. Référence : PortForYou.md §9.
 
 - `pnpm audit --audit-level high` bloquant en CI.
 - Lint + tests + build obligatoires avant tout déploiement.
+- Secret scanning + push protection GitHub (natif, dépôt public) en première ligne de défense ;
+  complété localement par `gitleaks` en hook `pre-commit` (`.gitleaks.toml`, ceinture-et-bretelles
+  — scan si l'outil est installé sur le poste, non bloquant sinon).
 
 ## À faire avant une mise en production commerciale
 
 - [x] Email de vérification à l'inscription (`REQUIRE_VERIFIED_EMAIL=1` en prod ; comptes Google vérifiés d'office)
 - [x] CSP stricte avec nonces par requête (`apps/web/src/middleware.ts`)
-- [x] Budget GCP avec alertes (`setup-gcp.sh`, variable `BILLING_ACCOUNT`)
+- [x] Budget GCP avec alertes 50/90/100 % (`setup-gcp.sh`, variable `BILLING_ACCOUNT_ID`)
 - [x] Alertes 5xx Cloud Monitoring (`infra/monitoring/alert-5xx.json`)
 - [x] Rotation périodique des secrets tenants (JWT_SECRET, trimestriel — mot de passe admin en rotation manuelle assumée)
 - [x] Test de pénétration du flow de provisioning (revue de code + exploitation réelle contre l'API locale, `apps/api/src/__tests__/pentest.provisioning.int.test.ts`)

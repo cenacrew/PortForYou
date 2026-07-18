@@ -1,0 +1,32 @@
+# Config Upptime — page de statut publique (https://upptime.js.org).
+# Complémentaire aux uptime checks Cloud Monitoring (infra/scripts/setup-uptime-checks.sh) :
+# eux alertent l'équipe en interne, Upptime informe les clients (« c'est moi ou c'est en
+# panne ? » devient un lien public). Voir docs/RUNBOOK.md pour les actions manuelles
+# d'activation (GitHub Pages + secret GH_PAT).
+owner: cenacrew
+repo: PortForYou
+
+sites:
+  - name: API plateforme
+    # URL Cloud Run dynamique (pas de domaine custom, voir PortForYou.md §Domaines) —
+    # à renseigner après le premier déploiement de pfy-api (gcloud run services describe
+    # pfy-api --region europe-west1 --format='value(status.url)').
+    url: https://REPLACE_WITH_PFY_API_URL/api/v1/health
+  - name: Vitrine
+    url: https://portforyou.web.app
+  - name: Démo — Atelier
+    url: https://pfy-demo-atelier.web.app/api/v1/health
+  - name: Démo — Monolith
+    url: https://pfy-demo-monolith.web.app/api/v1/health
+  - name: Démo — Papier
+    url: https://pfy-demo-papier.web.app/api/v1/health
+
+status-website:
+  name: "Port'ForYou — Statut"
+  introTitle: "Statut de la plateforme Port'ForYou"
+  introMessage: "Disponibilité de l'API plateforme, de la vitrine et des sites de démonstration."
+  navbar:
+    - title: Site
+      href: https://portforyou.web.app
+
+# Fréquence des checks alignée sur le cron du workflow ci-dessous (5 min).
