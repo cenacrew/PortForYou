@@ -2,12 +2,14 @@
 import { useSearchParams, Link } from 'react-router-dom';
 import { Container, Typography, Box, CircularProgress, Button } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
-import ArtworkList from '../components/ArtworkList';
+import { useDesignSystem } from '../design-system/DesignSystemContext';
 import { techniques, apiUrl } from '../utils';
 
 const PAGE_SIZE = 24;
 
 export default function Galerie() {
+  // ArtworkList porte la direction artistique du template — injecté par la DA.
+  const { ArtworkList } = useDesignSystem();
   const [searchParams] = useSearchParams();
   const techniqueFilter = searchParams.get('technique');
   const techniqueLabel = techniqueFilter

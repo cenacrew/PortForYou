@@ -2,16 +2,16 @@ import { describe, it, expect, vi, afterEach } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import Galerie from '../pages/Galerie';
+import { DesignSystemProvider } from '../design-system/DesignSystemContext';
 
-vi.mock('../components/ArtworkList', () => ({
-  default: ({ items }) => (
-    <ul>
-      {items.map((i) => (
-        <li key={i.id}>{i.title}</li>
-      ))}
-    </ul>
-  ),
-}));
+// Stub de la DA (ArtworkList est injecté par le template, pas présent dans le core).
+const StubArtworkList = ({ items }) => (
+  <ul>
+    {items.map((i) => (
+      <li key={i.id}>{i.title}</li>
+    ))}
+  </ul>
+);
 
 const mockFetch = (payload, ok = true) => {
   vi.spyOn(global, 'fetch').mockResolvedValue({
@@ -22,9 +22,11 @@ const mockFetch = (payload, ok = true) => {
 
 const renderGalerie = () =>
   render(
-    <MemoryRouter>
-      <Galerie />
-    </MemoryRouter>,
+    <DesignSystemProvider components={{ ArtworkList: StubArtworkList }}>
+      <MemoryRouter>
+        <Galerie />
+      </MemoryRouter>
+    </DesignSystemProvider>,
   );
 
 describe('Galerie', () => {
@@ -92,14 +94,6 @@ describe('Galerie', () => {
 
     renderGalerie();
     await waitFor(() => screen.getByText('Peinture 1'));
-
-    // L'apparition du texte (commit React) et l'exécution de l'effect qui
-    // instancie IntersectionObserver (passive effect, flush asynchrone) ne
-    // sont pas garanties dans le même tick : attendre explicitement que le
-    // constructeur mocké ait été appelé évite d'invoquer observerCallback
-    // avant qu'il ne soit assigné (source du flake "observerCallback is not
-    // a function").
-    await waitFor(() => expect(observerCallback).toEqual(expect.any(Function)));
 
     // Simuler l'entrée dans le viewport du sentinel
     observerCallback([{ isIntersecting: true }]);

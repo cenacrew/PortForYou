@@ -1,0 +1,50 @@
+{
+  "name": "@portforyou/template-front-core",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Code front partagé des templates Port'ForYou (pages, back-office, logique) — seule la direction artistique (Artwork, ArtworkList, index.css, index.jsx) reste par template.",
+  "exports": {
+    ".": "./src/App.jsx",
+    "./design-system": "./src/design-system/DesignSystemContext.jsx",
+    "./seo": "./src/seo.js",
+    "./utils": "./src/utils.js",
+    "./contexts/SiteConfigContext": "./src/contexts/SiteConfigContext.jsx",
+    "./locales/fr": "./src/locales/fr.json",
+    "./locales/en": "./src/locales/en.json"
+  },
+  "scripts": {
+    "test": "vitest run",
+    "test:ui": "vitest --ui"
+  },
+  "peerDependencies": {
+    "@emotion/react": "^11",
+    "@emotion/styled": "^11",
+    "@mui/icons-material": "^7",
+    "@mui/material": "^7",
+    "react": "^19",
+    "react-colorful": "^5",
+    "react-dom": "^19",
+    "react-easy-crop": "^6",
+    "react-router-dom": "^7"
+  },
+  "devDependencies": {
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.1",
+    "@mui/icons-material": "^7.3.11",
+    "@mui/material": "^7.3.11",
+    "@testing-library/dom": "^10.4.1",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.2",
+    "@testing-library/user-event": "^14.6.1",
+    "@vitejs/plugin-react": "^4.7.0",
+    "jsdom": "^29.1.1",
+    "react": "^19.2.7",
+    "react-colorful": "^5.7.0",
+    "react-dom": "^19.2.7",
+    "react-easy-crop": "^6.2.0",
+    "react-router-dom": "^7.18.1",
+    "vite": "^6.4.3",
+    "vitest": "^4.1.10"
+  }
+}

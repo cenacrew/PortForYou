@@ -55,6 +55,7 @@ jobs:
             templates:
               - 'templates/**'
               - 'packages/template-back-core/**'
+              - 'packages/template-front-core/**'
 
   lint:
     runs-on: ubuntu-latest
@@ -126,8 +127,9 @@ jobs:
           retention-days: 7
 
   templates-back:
-    # Le back est commun aux 3 templates (packages/template-back-core) : un seul
-    # job suffit, plus besoin d'une matrice qui rejouerait 3x les mêmes tests.
+    # Back ET front partagés des templates : le back (packages/template-back-core)
+    # et la logique front commune (packages/template-front-core) sont mutualisés,
+    # un seul job les teste — plus besoin d'une matrice qui rejouerait 3x.
     needs: [changes]
     if: needs.changes.outputs.templates == 'true'
     runs-on: ubuntu-latest
@@ -141,10 +143,14 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - name: Tests du back commun des templates
         run: pnpm --filter @portforyou/template-back-core test
+      - name: Tests du front commun des templates
+        run: pnpm --filter @portforyou/template-front-core test
 
   templates-front:
-    # Le front diffère par template (DA propre à chacun) : chacun testé dans
-    # son propre job (résumé lisible et attribué, plutôt qu'un seul bloc).
+    # Chaque front ne porte plus que sa direction artistique (Artwork,
+    # ArtworkList, index.css, index.jsx) ; on valide que chacun se build bien
+    # avec le core front partagé (le rendu DA est couvert par la régression
+    # visuelle Playwright). Matrice pour un résumé lisible et attribué.
     needs: [changes]
     if: needs.changes.outputs.templates == 'true'
     runs-on: ubuntu-latest
@@ -160,6 +166,8 @@ jobs:
           node-version-file: .nvmrc
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+      - name: Build du front ${{ matrix.template }}
+        run: pnpm --filter @portforyou/${{ matrix.template }}-front build
       - name: Tests du front ${{ matrix.template }}
         run: pnpm --filter @portforyou/${{ matrix.template }}-front test
 

@@ -1,10 +1,18 @@
-﻿import React from 'react';
+import React from 'react';
 import ReactDOM from 'react-dom/client';
 import './index.css';
-import App from './App';
+import App from '@portforyou/template-front-core';
+import { DesignSystemProvider } from '@portforyou/template-front-core/design-system';
+import {
+  SiteConfigProvider,
+  useSiteConfig,
+} from '@portforyou/template-front-core/contexts/SiteConfigContext';
 import { BrowserRouter } from 'react-router-dom';
 import { ThemeProvider, createTheme, CssBaseline } from '@mui/material';
-import { SiteConfigProvider, useSiteConfig } from './contexts/SiteConfigContext';
+import ArtworkList from './components/ArtworkList';
+
+// Composants qui portent la direction artistique de ce template.
+const designSystem = { ArtworkList };
 
 function DynamicThemeProvider({ children }) {
   const config = useSiteConfig();
@@ -36,9 +44,11 @@ root.render(
   <React.StrictMode>
     <SiteConfigProvider>
       <DynamicThemeProvider>
-        <BrowserRouter>
-          <App />
-        </BrowserRouter>
+        <DesignSystemProvider components={designSystem}>
+          <BrowserRouter>
+            <App />
+          </BrowserRouter>
+        </DesignSystemProvider>
       </DynamicThemeProvider>
     </SiteConfigProvider>
   </React.StrictMode>,

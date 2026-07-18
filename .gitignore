@@ -41,3 +41,7 @@ pnpm-debug.log*
 # Généré par Next.js
 apps/web/next-env.d.ts
 CLAUDE.md
+
+# Fichiers locaux (worktrees d agents, notes manuelles) — non suivis
+.claude/
+MANUALTASK.md

@@ -12,14 +12,15 @@ Port'ForYou est une plateforme SaaS : un artiste choisit une template de portfol
 
 **Composants principaux** :
 
-| Composant                             | Rôle                                                                                                                                            | Techno                        | Hébergement                                                   |
-| ------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------- | ------------------------------------------------------------- |
-| `apps/web` (`pfy-web`)                | Vitrine publique + dashboards client/admin                                                                                                      | Next.js App Router, TS strict | Cloud Run                                                     |
-| `apps/api` (`pfy-api`)                | API plateforme (auth, commandes, paiement, provisioning, admin)                                                                                 | Express 5 ESM, TS strict      | Cloud Run                                                     |
-| `packages/template-back-core`         | Back Express commun aux 3 templates (routes, auth tenant, multi-tenant `TENANT_ID`)                                                             | Express 5 ESM, TS strict      | packagé dans chaque image `tenant-<slug>`                     |
-| `templates/{atelier,monolith,papier}` | 3 templates de portfolio — back = wrapper fin sur `template-back-core`, front = Vite/React propre à chaque DA                                   | JS (ESM/JSX)                  | Cloud Run (`tenant-<slug>`) + Firebase Hosting (`pfy-<slug>`) |
-| `packages/shared`                     | Schémas zod, constantes, types partagés (source de vérité via `z.infer`)                                                                        | TS strict                     | importé par `api` et les templates                            |
-| `infra/`                              | Scripts GCP idempotents (`setup-gcp.sh`, `setup-backups.sh`, `setup-uptime-checks.sh`), dashboard Cloud Monitoring, image Docker des émulateurs | bash, JSON                    | —                                                             |
+| Composant                             | Rôle                                                                                                                                                              | Techno                        | Hébergement                                                   |
+| ------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------- | ------------------------------------------------------------- |
+| `apps/web` (`pfy-web`)                | Vitrine publique + dashboards client/admin                                                                                                                        | Next.js App Router, TS strict | Cloud Run                                                     |
+| `apps/api` (`pfy-api`)                | API plateforme (auth, commandes, paiement, provisioning, admin)                                                                                                   | Express 5 ESM, TS strict      | Cloud Run                                                     |
+| `packages/template-back-core`         | Back Express commun aux 3 templates (routes, auth tenant, multi-tenant `TENANT_ID`)                                                                               | Express 5 ESM, TS strict      | packagé dans chaque image `tenant-<slug>`                     |
+| `packages/template-front-core`        | Logique front commune aux 3 templates (pages, back-office, dialogs, router, seo) — seule la DA reste par template                                                 | JS (ESM/JSX)                  | bundlé par Vite dans le `dist/` statique de chaque front      |
+| `templates/{atelier,monolith,papier}` | 3 templates de portfolio — back = wrapper fin sur `template-back-core`, front = `template-front-core` + 4 fichiers de DA (Artwork, ArtworkList, index.css, thème) | JS (ESM/JSX)                  | Cloud Run (`tenant-<slug>`) + Firebase Hosting (`pfy-<slug>`) |
+| `packages/shared`                     | Schémas zod, constantes, types partagés (source de vérité via `z.infer`)                                                                                          | TS strict                     | importé par `api` et les templates                            |
+| `infra/`                              | Scripts GCP idempotents (`setup-gcp.sh`, `setup-backups.sh`, `setup-uptime-checks.sh`), dashboard Cloud Monitoring, image Docker des émulateurs                   | bash, JSON                    | —                                                             |
 
 ---
 
@@ -103,7 +104,8 @@ portforyou/
 │       └── src/{routes,auth,orders,payments,provisioning,emails,middleware,lib}
 ├── packages/
 │   ├── shared/                  zod schemas + constantes (platform, artwork, siteConfig, techniques)
-│   └── template-back-core/      Back Express commun aux 3 templates (TS strict)
+│   ├── template-back-core/      Back Express commun aux 3 templates (TS strict)
+│   └── template-front-core/     Logique front commune aux 3 templates (JSX) — DA injectée par template
 ├── templates/
 │   ├── atelier/{back,front}      back = wrapper fin (package.json + src/index.js + seed.js)
 │   ├── monolith/{back,front}     front = Vite/React, DA sombre/immersive
@@ -416,11 +418,11 @@ graph TB
 
 ```mermaid
 graph TB
-    PR["Pull Request"] --> Changes["changes\ndorny/paths-filter — templates/** ou\npackages/template-back-core/** ?"]
+    PR["Pull Request"] --> Changes["changes\ndorny/paths-filter — templates/** ou\npackages/template-{back,front}-core/** ?"]
     PR --> Lint["lint\neslint + prettier --check"]
     PR --> Test["test\nAPI (vitest+supertest) + web (vitest+RTL)\n+ test:emu (émulateur Firestore)"]
     PR --> E2E["e2e\nPlaywright — flow démo complet\n(émulateurs + api + web + driver fake)"]
-    Changes -->|templates == true| TBack["templates-back\ntemplate-back-core (une fois)"]
+    Changes -->|templates == true| TBack["templates-back\ntemplate-back-core + template-front-core (une fois)"]
     Changes -->|templates == true| TFront["templates-front\nmatrice atelier / monolith / papier"]
     Changes -->|templates == false| Skip["skipped\n(traité comme réussi par les required checks)"]
 
@@ -441,7 +443,7 @@ graph TB
     Push --> ReleasePlease["release-please.yml\nPR de release (CHANGELOG + version) à jour"]
 ```
 
-- **`ci.yml`** : pipeline unique validation → déploiement. Auth CI via **Workload Identity Federation** (aucune clé JSON). Le déploiement est sérialisé (`concurrency: deploy-platform, cancel-in-progress: false`) pour ne jamais interrompre une release en cours. Les jobs `templates-back`/`templates-front` sont conditionnés au job de filtre `changes` (`dorny/paths-filter`, pattern `needs`+`if`) : ils ne tournent que si `templates/**` ou `packages/template-back-core/**` a changé — sinon ils passent en statut `skipped`, traité comme réussi par les required checks de branch protection. Le job `deploy` scanne les images `api`/`web` avec Trivy (`CRITICAL,HIGH`, `exit-code: 1`) juste après le build/push et avant le `gcloud run deploy` correspondant, puis termine par un smoke test (`curl --fail` avec retries) sur `/api/v1/health` de l'API et la home de la vitrine.
+- **`ci.yml`** : pipeline unique validation → déploiement. Auth CI via **Workload Identity Federation** (aucune clé JSON). Le déploiement est sérialisé (`concurrency: deploy-platform, cancel-in-progress: false`) pour ne jamais interrompre une release en cours. Les jobs `templates-back`/`templates-front` sont conditionnés au job de filtre `changes` (`dorny/paths-filter`, pattern `needs`+`if`) : ils ne tournent que si `templates/**`, `packages/template-back-core/**` ou `packages/template-front-core/**` a changé — sinon ils passent en statut `skipped`, traité comme réussi par les required checks de branch protection. Le job `deploy` scanne les images `api`/`web` avec Trivy (`CRITICAL,HIGH`, `exit-code: 1`) juste après le build/push et avant le `gcloud run deploy` correspondant, puis termine par un smoke test (`curl --fail` avec retries) sur `/api/v1/health` de l'API et la home de la vitrine.
 - **`release-templates.yml`** : matrice `[atelier, monolith, papier]`, déclenché par un changement dans `templates/**` sur `main` ou manuellement (choix de la template ou `all`). Chaque image back est scannée par Trivy (`CRITICAL,HIGH`) avant le build du front et la mise à jour Firestore. Les tenants existants restent sur leur version tant qu'un redeploy admin n'est pas demandé.
 - **`security.yml`** : `pnpm audit` sorti du pipeline bloquant (hebdomadaire + manuel) pour ne pas casser une PR au hasard sur un nouvel avis de sécurité.
 - **`codeql.yml`** : analyse statique de sécurité (SAST) `javascript-typescript` via `github/codeql-action`, sur PR vers `main`, push `main` et cron hebdomadaire (lundi 07h UTC). Nécessite que le code scanning soit activé côté GitHub (Settings → Code security) pour que les résultats remontent dans l'onglet Security.
