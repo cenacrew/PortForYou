@@ -1,5 +1,16 @@
 import { describe, it, expect, vi } from 'vitest';
 import type { Request } from 'express';
+
+// Les exports nommés d'un module ESM ne sont pas espionnables (`vi.spyOn` échoue
+// avec « Module namespace is not configurable »). On mocke donc le SDK.
+vi.mock('@sentry/node', () => ({
+  init: vi.fn(),
+  captureException: vi.fn(),
+  withScope: vi.fn((cb: (scope: { setTag: () => void; setContext: () => void }) => void) =>
+    cb({ setTag: vi.fn(), setContext: vi.fn() }),
+  ),
+}));
+
 import * as Sentry from '@sentry/node';
 import { initSentry, isSentryEnabled, captureRequestException, scrubEvent } from '../lib/sentry.js';
 
@@ -7,20 +18,16 @@ describe('sentry (no-op sans DSN)', () => {
   it("n'initialise pas Sentry quand SENTRY_DSN est absent", () => {
     const previous = process.env.SENTRY_DSN;
     delete process.env.SENTRY_DSN;
-    const initSpy = vi.spyOn(Sentry, 'init');
     initSentry();
     expect(isSentryEnabled()).toBe(false);
-    expect(initSpy).not.toHaveBeenCalled();
-    initSpy.mockRestore();
+    expect(Sentry.init).not.toHaveBeenCalled();
     if (previous !== undefined) process.env.SENTRY_DSN = previous;
   });
 
   it('captureRequestException est un no-op quand Sentry est désactivé', () => {
-    const captureSpy = vi.spyOn(Sentry, 'captureException');
     const req = { requestId: 'abc', method: 'GET', url: '/x' } as unknown as Request;
     expect(() => captureRequestException(new Error('boom'), req)).not.toThrow();
-    expect(captureSpy).not.toHaveBeenCalled();
-    captureSpy.mockRestore();
+    expect(Sentry.captureException).not.toHaveBeenCalled();
   });
 });
 
