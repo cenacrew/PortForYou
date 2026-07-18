@@ -11,7 +11,7 @@ sites:
     # URL Cloud Run dynamique (pas de domaine custom, voir PortForYou.md §Domaines) —
     # à renseigner après le premier déploiement de pfy-api (gcloud run services describe
     # pfy-api --region europe-west1 --format='value(status.url)').
-    url: https://REPLACE_WITH_PFY_API_URL/api/v1/health
+    url: https://pfy-api-m7w3i5eojq-ew.a.run.app/api/v1/health
   - name: Vitrine
     url: https://portforyou.web.app
   - name: Démo — Atelier
