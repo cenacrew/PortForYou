@@ -2,6 +2,7 @@ import js from '@eslint/js';
 import tseslint from 'typescript-eslint';
 import react from 'eslint-plugin-react';
 import reactHooks from 'eslint-plugin-react-hooks';
+import jsxA11y from 'eslint-plugin-jsx-a11y';
 import prettier from 'eslint-config-prettier';
 import globals from 'globals';
 
@@ -58,9 +59,16 @@ export default tseslint.config(
     languageOptions: { globals: { ...globals.node } },
   },
   {
+    // Accessibilité statique des templates (vitrines publiques d'artistes) :
+    // jsx-a11y sur le front seulement, en respectant les tolérances héritées.
     files: ['templates/*/front/src/**/*.{js,jsx}'],
-    languageOptions: { globals: { ...globals.browser, ...globals.node } },
+    plugins: { 'jsx-a11y': jsxA11y },
+    languageOptions: {
+      ...jsxA11y.flatConfigs.recommended.languageOptions,
+      globals: { ...globals.browser, ...globals.node },
+    },
     rules: {
+      ...jsxA11y.flatConfigs.recommended.rules,
       // Code hérité du portfolio d'origine : patterns tolérés dans les templates.
       'react-hooks/set-state-in-effect': 'off',
       'react/no-unescaped-entities': 'off',

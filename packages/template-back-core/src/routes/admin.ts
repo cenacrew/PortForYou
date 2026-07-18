@@ -5,6 +5,7 @@ import { FieldValue } from 'firebase-admin/firestore';
 import multer from 'multer';
 import { validateNewsItems } from '../lib/validateNewsItems.js';
 import { artworksCol, siteConfigDoc, storagePath, demoGuard } from '../lib/tenant.js';
+import { generateWebpVariants, isOptimizableRaster } from '../lib/images.js';
 import crypto from 'node:crypto';
 
 const router: Router = Router();
@@ -39,23 +40,60 @@ router.post('/uploads', authMiddleware, upload.single('image'), async (req, res)
 
     const folderParam = typeof req.query.folder === 'string' ? req.query.folder : undefined;
     const folder = folderParam && ALLOWED_FOLDERS.includes(folderParam) ? folderParam : 'artworks';
-    const ext = (file.originalname.match(/\.\w{1,8}$/)?.[0] || '').toLowerCase();
-    const filePath = storagePath(`${folder}/${crypto.randomUUID()}${ext}`);
 
     const bucket = storage.bucket(storageBucketName);
-    const gcsFile = bucket.file(filePath);
-
-    await gcsFile.save(file.buffer, {
-      contentType: file.mimetype,
-      public: true,
-      metadata: { contentType: file.mimetype },
-    });
-
     const emulatorHost = process.env.FIREBASE_STORAGE_EMULATOR_HOST;
-    const publicUrl = emulatorHost
-      ? `http://${emulatorHost}/v0/b/${storageBucketName}/o/${encodeURIComponent(filePath)}?alt=media`
-      : `https://storage.googleapis.com/${storageBucketName}/${filePath}`;
-    return res.status(201).json({ url: publicUrl, path: filePath, contentType: file.mimetype });
+    const publicUrlFor = (path: string) =>
+      emulatorHost
+        ? `http://${emulatorHost}/v0/b/${storageBucketName}/o/${encodeURIComponent(path)}?alt=media`
+        : `https://storage.googleapis.com/${storageBucketName}/${path}`;
+
+    const saveToBucket = async (path: string, buffer: Buffer, contentType: string) => {
+      await bucket.file(path).save(buffer, {
+        contentType,
+        public: true,
+        metadata: { contentType },
+      });
+    };
+
+    // Images raster (JPEG/PNG/WebP) : on remplace l'original par des variantes
+    // WebP redimensionnées (vignette/galerie/plein écran) — gain en chargement,
+    // en egress GCS et en score Lighthouse. Les GIF (potentiellement animés) et
+    // tout échec sharp retombent sur un stockage à l'identique de l'original.
+    if (isOptimizableRaster(file.mimetype)) {
+      try {
+        const id = crypto.randomUUID();
+        const variants = await generateWebpVariants(file.buffer);
+        const urls: Record<string, string> = {};
+        let primaryPath = '';
+        for (const variant of variants) {
+          const path = storagePath(`${folder}/${id}/${variant.name}.webp`);
+          await saveToBucket(path, variant.buffer, variant.contentType);
+          urls[variant.name] = publicUrlFor(path);
+          if (variant.name === 'full') primaryPath = path;
+        }
+        // `url` = plein écran (meilleure fidélité) pour rester compatible avec le
+        // stockage d'une seule `imageUrl` côté œuvre ; `variants` expose les
+        // tailles intermédiaires pour un usage plus fin côté front.
+        return res.status(201).json({
+          url: urls.full,
+          path: primaryPath,
+          contentType: 'image/webp',
+          variants: urls,
+        });
+      } catch (err) {
+        console.error('WebP variant generation failed, storing original:', err);
+      }
+    }
+
+    const ext = (file.originalname.match(/\.\w{1,8}$/)?.[0] || '').toLowerCase();
+    const filePath = storagePath(`${folder}/${crypto.randomUUID()}${ext}`);
+    await saveToBucket(filePath, file.buffer, file.mimetype);
+    return res.status(201).json({
+      url: publicUrlFor(filePath),
+      path: filePath,
+      contentType: file.mimetype,
+    });
   } catch (err) {
     console.error('Upload failed:', err);
     return res.status(500).json({ error: "Échec de l'upload" });
