@@ -10,7 +10,12 @@ import crypto from 'node:crypto';
 
 const router: Router = Router();
 router.use(demoGuard);
-const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 10 * 1024 * 1024 } });
+// Uploads mono-image : on borne explicitement la taille (10 Mo) ET le nombre de
+// fichiers (1) pour limiter la surface d'un envoi malveillant.
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 10 * 1024 * 1024, files: 1 },
+});
 
 const TECHNIQUE_ALLOWED = [
   'mixed_canvas',
