@@ -8,10 +8,10 @@ on:
   push:
     branches: [main]
     paths:
-      - ".upptimerc.yml"
-      - ".github/workflows/upptime.yml"
+      - '.upptimerc.yml'
+      - '.github/workflows/upptime.yml'
   schedule:
-    - cron: "*/5 * * * *"
+    - cron: '*/5 * * * *'
   workflow_dispatch:
 
 permissions:
@@ -30,31 +30,33 @@ jobs:
       - name: Vérifie l'uptime et met à jour l'historique
         uses: upptime/uptime-monitor@master
         with:
-          command: "update"
+          command: 'update'
         env:
           GH_PAT: ${{ secrets.GH_PAT }}
 
       - name: Génère les graphiques de temps de réponse
         uses: upptime/uptime-monitor@master
         with:
-          command: "graphs"
+          command: 'graphs'
         env:
           GH_PAT: ${{ secrets.GH_PAT }}
 
       - name: Commit l'historique et les graphiques mis à jour
         run: |
           git add -A --force api README.md graphs
-          git diff --quiet && git diff --staged --quiet || (
-            git config --global user.name 'github-actions[bot]' &&
-            git config --global user.email 'github-actions[bot]@users.noreply.github.com' &&
-            git commit -m "chore(infra): mise à jour du statut Upptime" &&
+          if git diff --quiet && git diff --staged --quiet; then
+            echo "Aucun changement de statut."
+          else
+            git config --global user.name 'github-actions[bot]'
+            git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+            git commit -m "chore(infra): mise à jour du statut Upptime"
             git push
-          )
+          fi
 
       - name: Génère la page de statut statique
         uses: upptime/uptime-monitor@master
         with:
-          command: "site"
+          command: 'site'
         env:
           GH_PAT: ${{ secrets.GH_PAT }}
 
