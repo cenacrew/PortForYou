@@ -1,0 +1,37 @@
+# CODEOWNERS
+#
+# Attribue une revue automatique sur chaque zone du monorepo au mainteneur.
+# Même en solo, ce fichier documente qui possède quoi et prépare l'arrivée
+# d'un contributeur (review auto-assignée sur la PR).
+#
+# Référence : https://docs.github.com/articles/about-code-owners
+
+# Fallback : tout ce qui n'est pas couvert plus bas.
+*                                   @cenacrew
+
+# Platform API
+/apps/api/                         @cenacrew
+
+# Vitrine + dashboards
+/apps/web/                         @cenacrew
+
+# Templates (back = wrapper fin, front = Vite/React par DA)
+/templates/                        @cenacrew
+
+# Packages partagés (schémas zod, back template commun)
+/packages/                         @cenacrew
+
+# Infra GCP (scripts, monitoring, Docker émulateurs)
+/infra/                            @cenacrew
+/*.Dockerfile                      @cenacrew
+/docker-compose*.yml               @cenacrew
+
+# CI/CD
+/.github/                          @cenacrew
+
+# Documentation (spec, architecture, runbook, sécurité)
+/docs/                             @cenacrew
+/PortForYou.md                     @cenacrew
+/README.md                         @cenacrew
+/CONTRIBUTING.md                   @cenacrew
+/SECURITY.md                       @cenacrew

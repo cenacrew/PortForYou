@@ -13,6 +13,26 @@ function ProfileView() {
   const [confirmText, setConfirmText] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
+  const [exporting, setExporting] = useState(false);
+
+  const exportData = async () => {
+    setExporting(true);
+    setError('');
+    try {
+      const data = await api('/me/account/export');
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'portforyou-mes-donnees.json';
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      setError((err as Error).message);
+    } finally {
+      setExporting(false);
+    }
+  };
 
   const deleteAccount = async () => {
     setBusy(true);
@@ -53,6 +73,17 @@ function ProfileView() {
             <span className="cartel">Facturation</span>
             <span>Gérée depuis « Facturation » sur la page Mes sites</span>
           </div>
+        </div>
+
+        <div className={styles.panel} style={{ marginBottom: '2rem' }}>
+          <p className={styles.panelTitle}>Exporter mes données</p>
+          <p style={{ fontSize: '0.95rem' }}>
+            Téléchargez l’intégralité des données de votre compte (profil, sites et commandes) au
+            format JSON — droit à la portabilité (RGPD, art. 20).
+          </p>
+          <button className={`btn ${styles.btnSmall}`} disabled={exporting} onClick={exportData}>
+            {exporting ? 'Préparation…' : 'Télécharger mes données (JSON)'}
+          </button>
         </div>
 
         <div className={styles.panel} style={{ borderColor: '#b3261e55' }}>

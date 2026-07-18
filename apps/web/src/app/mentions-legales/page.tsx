@@ -7,24 +7,70 @@ export default function MentionsLegales() {
         <h1 className="display" style={{ fontSize: '2.4rem', marginBottom: '2rem' }}>
           Mentions légales
         </h1>
-        <div style={{ display: 'grid', gap: '1.2rem' }}>
-          <p>
-            <strong>Éditeur</strong> — Port’ForYou, plateforme de création de portfolios pour
-            artistes visuels. [Raison sociale, adresse et SIREN à compléter avant mise en production
-            commerciale.]
-          </p>
-          <p>
-            <strong>Hébergement</strong> — Google Cloud Platform (Google Ireland Limited, Gordon
-            House, Barrow Street, Dublin 4, Irlande). Données hébergées en région europe-west1
-            (Belgique).
-          </p>
-          <p>
-            <strong>Contact</strong> — contact@portforyou.example (adresse à compléter).
-          </p>
-          <p>
-            <strong>Propriété intellectuelle</strong> — Les œuvres présentées sur les portfolios
-            créés via la plateforme restent la propriété exclusive de leurs artistes.
-          </p>
+        <div style={{ display: 'grid', gap: '1.6rem' }}>
+          <div>
+            <h2 style={{ fontSize: '1.2rem', marginBottom: '0.4rem' }}>Éditeur du site</h2>
+            <p>
+              Port’ForYou, plateforme de création de portfolios pour artistes visuels.
+              <br />
+              [À COMPLÉTER : raison sociale / forme juridique (ex. SAS, EI)]
+              <br />
+              [À COMPLÉTER : adresse du siège social]
+              <br />
+              [À COMPLÉTER : numéro SIREN / SIRET]
+              <br />
+              [À COMPLÉTER : numéro de TVA intracommunautaire, le cas échéant]
+              <br />
+              [À COMPLÉTER : capital social, le cas échéant]
+              <br />
+              Directeur de la publication : [À COMPLÉTER : nom du responsable de la publication]
+            </p>
+          </div>
+
+          <div>
+            <h2 style={{ fontSize: '1.2rem', marginBottom: '0.4rem' }}>Contact</h2>
+            <p>
+              Email : [À COMPLÉTER : email de contact, ex. contact@votredomaine.fr]
+              <br />
+              Téléphone : [À COMPLÉTER : numéro de téléphone, facultatif]
+            </p>
+          </div>
+
+          <div>
+            <h2 style={{ fontSize: '1.2rem', marginBottom: '0.4rem' }}>Hébergement</h2>
+            <p>
+              Le site et les portfolios créés via la plateforme sont hébergés sur Google Cloud
+              Platform — Google Cloud EMEA Limited / Google Ireland Limited, Gordon House, Barrow
+              Street, Dublin 4, Irlande. Les données sont hébergées en région europe-west1 (Belgique
+              / Union européenne).
+            </p>
+          </div>
+
+          <div>
+            <h2 style={{ fontSize: '1.2rem', marginBottom: '0.4rem' }}>Propriété intellectuelle</h2>
+            <p>
+              Les œuvres, textes et images présentés sur les portfolios créés via la plateforme
+              restent la propriété exclusive de leurs auteurs (les artistes clients). La marque, le
+              nom et l’interface Port’ForYou sont protégés et ne peuvent être réutilisés sans
+              autorisation.
+            </p>
+          </div>
+
+          <div>
+            <h2 style={{ fontSize: '1.2rem', marginBottom: '0.4rem' }}>Traitement des données</h2>
+            <p>
+              Les modalités de collecte et de traitement des données personnelles sont décrites dans
+              notre{' '}
+              <a href="/confidentialite" style={{ textDecoration: 'underline' }}>
+                politique de confidentialité
+              </a>
+              . Les conditions d’utilisation du service figurent dans les{' '}
+              <a href="/cgv" style={{ textDecoration: 'underline' }}>
+                conditions générales de vente
+              </a>
+              .
+            </p>
+          </div>
         </div>
       </div>
     </section>

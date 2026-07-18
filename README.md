@@ -1,5 +1,17 @@
 # Port'ForYou
 
+[![CI](https://github.com/cenacrew/PortForYou/actions/workflows/ci.yml/badge.svg)](https://github.com/cenacrew/PortForYou/actions/workflows/ci.yml)
+[![License](https://img.shields.io/badge/license-unspecified-lightgrey)](./SECURITY.md)
+[![Quality Gate Status](https://img.shields.io/badge/SonarCloud-not_yet_configured-lightgrey)](./docs/IMPROVEMENTS.md)
+[![OpenSSF Scorecard](https://img.shields.io/badge/OpenSSF_Scorecard-not_yet_configured-lightgrey)](./docs/IMPROVEMENTS.md)
+
+> Les badges SonarCloud (quality gate) et OSSF Scorecard sont des
+> placeholders : ils s'activeront automatiquement une fois ces outils
+> configurés (voir `docs/IMPROVEMENTS.md` §1 et §2) — un autre lot du projet
+> s'en charge. Le badge de licence reflète l'absence actuelle de fichier
+> `LICENSE` — à trancher par le mainteneur avant une éventuelle ouverture du
+> dépôt à des contributions externes.
+
 Plateforme SaaS de portfolios pour artistes visuels : choisissez une template, un nom de site, payez — votre portfolio complet est en ligne en quelques minutes, avec son back-office.
 
 > Spécification complète : [PortForYou.md](./PortForYou.md)

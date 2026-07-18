@@ -118,7 +118,8 @@ portforyou/
 │   └── docker/emulators.Dockerfile
 ├── docs/                        RUNBOOK.md, SECURITY.md, ARCHITECTURE.md (ce document)
 ├── .github/workflows/           ci.yml, release-templates.yml, security.yml,
-│                                 codeql.yml, dependency-review.yml, actionlint.yml
+│                                 codeql.yml, dependency-review.yml, actionlint.yml,
+│                                 lighthouse.yml
 ├── docker-compose.yml           Dev local conteneurisé (alternative à `pnpm dev`)
 ├── firestore.rules / storage.rules / firestore.indexes.json
 └── pnpm-workspace.yaml          apps/*, packages/*, templates/*/back, templates/*/front
@@ -190,7 +191,7 @@ graph TB
         GCSBackups[("GCS: portforyou-firestore-backups\n(exports hebdo, purge > 180j)")]
     end
     subgraph "Orchestration"
-        Registry["Artifact Registry: pfy\n(images api, web, {template}-back)"]
+        Registry["Artifact Registry: pfy\n(images api, web, {template}-back)\ncleanup policy: 10 versions, purge > 90j"]
         Queue[["Cloud Tasks: provisioning\n(5 tentatives, backoff 30–300s)"]]
         SchedHealth["Cloud Scheduler: pfy-health-checks (*/10 min)"]
         SchedCleanup["Cloud Scheduler: pfy-cleanup-slugs (horaire)"]
@@ -207,7 +208,7 @@ graph TB
         MonDash["Cloud Monitoring\ndashboard (infra/monitoring/dashboard.json)"]
         MonAlert["Cloud Monitoring\nalerte 5xx (infra/monitoring/alert-5xx.json)\n→ canal email"]
         MonUptime["Cloud Monitoring\n4 uptime checks + alerte\n(infra/monitoring/alert-uptime.json)\n→ même canal email"]
-        Budget["Budget + alertes 5/10/20 €"]
+        Budget["Budget + alertes 50/90/100 %"]
     end
 
     RunApi --> Firestore
@@ -239,7 +240,7 @@ graph TB
 | Firestore (native) | base par défaut, PITR 7 jours                                                       | `setup-gcp.sh`                                                                                            |
 | Cloud Storage      | `portforyou-template-builds`, `portforyou-uploads`                                  | `setup-gcp.sh`                                                                                            |
 | Cloud Storage      | `portforyou-firestore-backups` (exports hebdo, lifecycle > 180j)                    | `setup-backups.sh`                                                                                        |
-| Artifact Registry  | `pfy` (docker)                                                                      | `setup-gcp.sh`                                                                                            |
+| Artifact Registry  | `pfy` (docker), cleanup policy (garde 10 versions, purge > 90j)                     | `setup-gcp.sh`                                                                                            |
 | Cloud Tasks        | queue `provisioning`                                                                | `setup-gcp.sh`                                                                                            |
 | Cloud Scheduler    | `pfy-health-checks`, `pfy-cleanup-slugs`, `pfy-billing-cycle`, `pfy-rotate-secrets` | `setup-gcp.sh` (après 1er déploiement de `pfy-api`)                                                       |
 | Cloud Scheduler    | `pfy-firestore-export` (hebdo, dim. 03h Paris)                                      | `setup-backups.sh`                                                                                        |
@@ -247,7 +248,7 @@ graph TB
 | Cloud Monitoring   | dashboard « Vue d'ensemble plateforme & tenants »                                   | `setup-gcp.sh` / `infra/monitoring/dashboard.json`                                                        |
 | Cloud Monitoring   | policy d'alerte « Erreurs 5xx — plateforme & tenants » + canal email                | `setup-gcp.sh` / `infra/monitoring/alert-5xx.json` (composant `gcloud alpha`)                             |
 | Cloud Monitoring   | 4 uptime checks (`pfy-api`, 3 tenants démo) + policy d'alerte, même canal email     | `setup-uptime-checks.sh` / `infra/monitoring/alert-uptime.json` (composants `gcloud beta`+`gcloud alpha`) |
-| Budget             | `portforyou-budget` (20 €, seuils 25/50/100 %)                                      | `setup-gcp.sh` (si `BILLING_ACCOUNT` fourni)                                                              |
+| Budget             | `portforyou-budget` (20 € par défaut, `MONTHLY_BUDGET_EUR`, seuils 50/90/100 %)     | `setup-gcp.sh` (si `BILLING_ACCOUNT_ID` fourni)                                                           |
 
 ### 5.3 IAM — service accounts (moindre privilège)
 
@@ -389,6 +390,7 @@ graph TB
 
 - **Plateforme** : `requireAuth` (Bearer JWT), `requireAdmin` (rôle Firestore), `requireAuthSse` (token en query pour EventSource, seule variante côté API à accepter un token hors header `Authorization`).
 - **Ownership** : toute route `/me/sites/:id` vérifie `site.uid === token.uid` (voir `apps/api/src/routes/me.ts`) — validé par test d'exploitation réel (IDOR) sur les 5 sous-routes (`pentest.provisioning.int.test.ts`).
+- **RGPD** (`me.ts`) : `GET /me/account/export` (portabilité, art. 20) renvoie en JSON téléchargeable le profil + les sites + les commandes du seul user authentifié (filtrés par `uid`, sans hash de mot de passe ni secret — test d'ownership `me.export.test.ts`) ; `DELETE /me/account` (droit à l'effacement) anonymise le profil, révoque les sessions et suspend les sites. Côté vitrine : pages publiques `/mentions-legales` et `/confidentialite`, registre des traitements `docs/rgpd/registre-traitements.md`.
 - **Vérification d'email** : token à usage unique 24h (`createEmailVerification`/`consumeEmailVerification`, `auth/service.ts`), envoyé à l'inscription et sur demande (`POST /auth/resend-verification`, authentifié). `REQUIRE_VERIFIED_EMAIL=1` en prod bloque `POST /orders` tant que non confirmé ; comptes Google vérifiés d'office.
 - **Tenant** : modèle repris tel quel de `marcel-nino-pajot` — un seul compte admin par tenant, email + hash bcrypt injectés en variables d'env (via Secret Manager en prod). Le `JWT_SECRET` (session back-office uniquement) tourne automatiquement tous les trimestres ; le mot de passe admin ne tourne jamais automatiquement (régénération manuelle uniquement, pour ne jamais couper l'accès de l'artiste sans le prévenir).
 - **`/internal/*`** (`internal.ts`) : `requireCloudTasksOidc` — seul un token OIDC signé par le SA `pfy-api` avec la bonne audience passe ; validé par test d'exploitation réel (sans token, avec un Bearer forgé) sur les 5 endpoints internes.
@@ -430,6 +432,7 @@ graph TB
     Cron2["Cron — lundi 07h UTC"] --> CodeQL["codeql.yml\nSAST javascript-typescript"]
     PR --> DepReview["dependency-review.yml\nnouvelles dépendances de la PR, fail-on high+"]
     WFChange["Push/PR sur .github/workflows/**"] --> Actionlint["actionlint.yml\nlint des workflows (+ shellcheck)"]
+    WebChange["Push/PR sur apps/web/**"] --> Lighthouse["lighthouse.yml\nbuild+serve vitrine, audit home +\n/templates/atelier (perf/a11y/SEO/bonnes pratiques)"]
 ```
 
 - **`ci.yml`** : pipeline unique validation → déploiement. Auth CI via **Workload Identity Federation** (aucune clé JSON). Le déploiement est sérialisé (`concurrency: deploy-platform, cancel-in-progress: false`) pour ne jamais interrompre une release en cours. Les jobs `templates-back`/`templates-front` sont conditionnés au job de filtre `changes` (`dorny/paths-filter`, pattern `needs`+`if`) : ils ne tournent que si `templates/**` ou `packages/template-back-core/**` a changé — sinon ils passent en statut `skipped`, traité comme réussi par les required checks de branch protection. Le job `deploy` scanne les images `api`/`web` avec Trivy (`CRITICAL,HIGH`, `exit-code: 1`) juste après le build/push et avant le `gcloud run deploy` correspondant, puis termine par un smoke test (`curl --fail` avec retries) sur `/api/v1/health` de l'API et la home de la vitrine.
@@ -438,6 +441,7 @@ graph TB
 - **`codeql.yml`** : analyse statique de sécurité (SAST) `javascript-typescript` via `github/codeql-action`, sur PR vers `main`, push `main` et cron hebdomadaire (lundi 07h UTC). Nécessite que le code scanning soit activé côté GitHub (Settings → Code security) pour que les résultats remontent dans l'onglet Security.
 - **`dependency-review.yml`** : `actions/dependency-review-action` sur chaque PR touchant un `package.json`/`pnpm-lock.yaml`, échoue sur une dépendance ajoutée de sévérité high+ et commente la PR.
 - **`actionlint.yml`** : lint des workflows (`.github/workflows/**`) avec `shellcheck` sur le shell inline, à chaque push/PR qui les modifie.
+- **`lighthouse.yml`** : audite la vitrine (`apps/web`) avec Lighthouse CI (`treosh/lighthouse-ci-action`, config `lighthouserc.json` à la racine) — build (`next build`) puis `next start` servi localement, audité sur la home (`/`) et une page riche en images (`/templates/atelier`), 3 runs par URL. Déclenché sur PR/push `main` limité aux chemins `apps/web/**`/`packages/shared/**`. Assertions perf/accessibilité/SEO/bonnes pratiques en **`warn`** (non bloquant) tant que les budgets ne sont pas calibrés sur une baseline réelle — à durcir en `error` une fois posée.
 - **Convention** : `[skip deploy]` dans le message de commit pour pousser sur `main` sans redéployer la plateforme (utilisé par exemple après un simple changement de dashboard/doc).
 
 ---
