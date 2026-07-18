@@ -7,6 +7,7 @@ import { ordersCol, sitesCol, stripeEventsCol } from '../lib/firebase.js';
 import { confirmPaidOrder } from '../orders/service.js';
 import { getStripe } from '../payments/stripe.js';
 import { config } from '../config.js';
+import { sendError } from '../lib/apiError.js';
 
 const router: Router = Router();
 
@@ -16,10 +17,10 @@ const router: Router = Router();
  */
 router.post('/stripe/webhook', raw({ type: 'application/json' }), async (req, res) => {
   if (config.PAYMENT_DRIVER !== 'stripe') {
-    return res.status(400).json({ error: 'Stripe non activé (PAYMENT_DRIVER=fake)' });
+    return sendError(res, 400, 'stripe_disabled', 'Stripe non activé (PAYMENT_DRIVER=fake)');
   }
   if (!config.STRIPE_WEBHOOK_SECRET) {
-    return res.status(500).json({ error: 'STRIPE_WEBHOOK_SECRET manquant' });
+    return sendError(res, 500, 'webhook_secret_missing', 'STRIPE_WEBHOOK_SECRET manquant');
   }
 
   let event;
@@ -27,7 +28,7 @@ router.post('/stripe/webhook', raw({ type: 'application/json' }), async (req, re
     const signature = req.headers['stripe-signature'] as string;
     event = getStripe().webhooks.constructEvent(req.body, signature, config.STRIPE_WEBHOOK_SECRET);
   } catch {
-    return res.status(400).json({ error: 'Signature invalide' });
+    return sendError(res, 400, 'invalid_signature', 'Signature invalide');
   }
 
   // Idempotence : chaque événement Stripe n'est traité qu'une fois. `.create()`
@@ -67,7 +68,7 @@ router.post('/stripe/webhook', raw({ type: 'application/json' }), async (req, re
     return res.json({ received: true });
   } catch (err) {
     console.error(`Webhook ${event.type} en erreur:`, err);
-    return res.status(500).json({ error: 'Traitement échoué' });
+    return sendError(res, 500, 'webhook_processing_failed', 'Traitement échoué');
   }
 });
 
@@ -85,11 +86,11 @@ router.post(
   validateBody(z.object({ orderId: z.string().min(1) })),
   async (req, res) => {
     if (config.PAYMENT_DRIVER !== 'fake') {
-      return res.status(403).json({ error: 'Paiement simulé désactivé' });
+      return sendError(res, 403, 'fake_payment_disabled', 'Paiement simulé désactivé');
     }
     const order = (await ordersCol().doc(req.body.orderId).get()).data();
     if (!order || order.uid !== req.user!.uid) {
-      return res.status(404).json({ error: 'Commande introuvable' });
+      return sendError(res, 404, 'order_not_found', 'Commande introuvable');
     }
     const { siteId } = await confirmPaidOrder(req.body.orderId);
     return res.json({ ok: true, siteId });

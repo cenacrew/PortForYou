@@ -6,6 +6,7 @@ import morgan from 'morgan';
 import rateLimit from 'express-rate-limit';
 import { config } from './config.js';
 import { requestId } from './middleware/requestId.js';
+import { sendError } from './lib/apiError.js';
 import publicRouter from './routes/public.js';
 import ordersRouter from './routes/orders.js';
 import paymentsRouter from './routes/payments.js';
@@ -34,27 +35,33 @@ app.use(express.json({ limit: '100kb' }));
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 20,
-  message: { error: 'Trop de tentatives, réessayez dans quelques minutes.' },
+  message: { code: 'rate_limited', error: 'Trop de tentatives, réessayez dans quelques minutes.' },
   standardHeaders: true,
   legacyHeaders: false,
 });
 
+const rateLimitedMessage = {
+  code: 'rate_limited',
+  error: 'Trop de requêtes, réessayez plus tard.',
+};
 const globalLimiter = rateLimit({
   windowMs: 60 * 1000,
   max: 100,
+  message: rateLimitedMessage,
   standardHeaders: true,
   legacyHeaders: false,
 });
 const slugCheckLimiter = rateLimit({
   windowMs: 60 * 1000,
   max: 30,
+  message: rateLimitedMessage,
   standardHeaders: true,
   legacyHeaders: false,
 });
 const contactLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 5,
-  message: { error: 'Trop de demandes, réessayez dans quelques minutes.' },
+  message: { code: 'rate_limited', error: 'Trop de demandes, réessayez dans quelques minutes.' },
   standardHeaders: true,
   legacyHeaders: false,
 });
@@ -79,7 +86,7 @@ app.use(internalRouter);
 app.use((err: Error, req: express.Request, res: express.Response, _next: express.NextFunction) => {
   console.error(`Unhandled error [${req.requestId ?? '-'}]:`, err);
   if (res.headersSent) return;
-  res.status(500).json({ error: 'Erreur interne', requestId: req.requestId });
+  sendError(res, 500, 'internal_error', 'Erreur interne', { requestId: req.requestId });
 });
 
 export default app;

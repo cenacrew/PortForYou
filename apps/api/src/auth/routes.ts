@@ -2,6 +2,9 @@ import { Router } from 'express';
 import { z } from 'zod';
 import { validateBody } from '../middleware/validate.js';
 import { requireAuth } from '../middleware/auth.js';
+import { sendError } from '../lib/apiError.js';
+import { parseDoc } from '../lib/parseDoc.js';
+import { storedUserSchema } from '@portforyou/shared';
 import { usersCol } from '../lib/firebase.js';
 import { sendMail, verificationEmail } from '../emails/mailer.js';
 import { config } from '../config.js';
@@ -69,11 +72,14 @@ router.post(
       if (err instanceof Error && err.message === 'EMAIL_TAKEN') {
         const existing = await findUserByEmail(req.body.email);
         const viaGoogle = existing != null && !existing.data.passwordHash;
-        return res.status(409).json({
-          error: viaGoogle
+        return sendError(
+          res,
+          409,
+          'email_taken',
+          viaGoogle
             ? 'Cet email est déjà associé à un compte Google. Connectez-vous avec Google.'
             : 'Un compte existe déjà avec cet email',
-        });
+        );
       }
       throw err;
     }
@@ -85,17 +91,20 @@ router.post('/auth/login', validateBody(credentialsSchema), async (req, res) => 
   // Compte créé via Google (aucun mot de passe) : message explicite plutôt que
   // « mot de passe incorrect » trompeur. On oriente vers le bon moyen.
   if (found && !found.data.passwordHash) {
-    return res.status(403).json({
-      error: 'Ce compte utilise la connexion Google. Cliquez sur « Continuer avec Google ».',
-      provider: 'google',
-    });
+    return sendError(
+      res,
+      403,
+      'account_uses_google',
+      'Ce compte utilise la connexion Google. Cliquez sur « Continuer avec Google ».',
+      { provider: 'google' },
+    );
   }
   // Réponse identique que l'email existe ou non (pas d'énumération).
   if (!found?.data.passwordHash) {
-    return res.status(401).json({ error: 'Email ou mot de passe incorrect' });
+    return sendError(res, 401, 'invalid_credentials', 'Email ou mot de passe incorrect');
   }
   const ok = await verifyPassword(req.body.password, found.data.passwordHash);
-  if (!ok) return res.status(401).json({ error: 'Email ou mot de passe incorrect' });
+  if (!ok) return sendError(res, 401, 'invalid_credentials', 'Email ou mot de passe incorrect');
 
   return res.json(await issueTokens(res, toPublicUser(found.uid, found.data)));
 });
@@ -104,20 +113,20 @@ router.post('/auth/login', validateBody(credentialsSchema), async (req, res) => 
 
 router.post('/auth/refresh', async (req, res) => {
   const token = req.cookies?.[REFRESH_COOKIE];
-  if (!token) return res.status(401).json({ error: 'Aucune session' });
+  if (!token) return sendError(res, 401, 'no_session', 'Aucune session');
 
   const rotated = await rotateSession(token);
   if (!rotated) {
     clearRefreshCookie(res);
-    return res.status(401).json({ error: 'Session expirée' });
+    return sendError(res, 401, 'session_expired', 'Session expirée');
   }
 
   const snap = await usersCol().doc(rotated.uid).get();
   if (!snap.exists) {
     clearRefreshCookie(res);
-    return res.status(401).json({ error: 'Compte introuvable' });
+    return sendError(res, 401, 'account_not_found', 'Compte introuvable');
   }
-  const user = toPublicUser(rotated.uid, snap.data()!);
+  const user = toPublicUser(rotated.uid, parseDoc(storedUserSchema, snap, 'users'));
   setRefreshCookie(res, rotated.newToken);
   return res.json({ accessToken: signAccessToken(user), user });
 });
@@ -158,7 +167,7 @@ router.post(
   validateBody(z.object({ token: z.string().min(10), password: z.string().min(8).max(200) })),
   async (req, res) => {
     const uid = await consumePasswordReset(req.body.token);
-    if (!uid) return res.status(400).json({ error: 'Lien invalide ou expiré' });
+    if (!uid) return sendError(res, 400, 'invalid_or_expired_token', 'Lien invalide ou expiré');
 
     await usersCol()
       .doc(uid)
@@ -175,7 +184,7 @@ router.post(
   validateBody(z.object({ token: z.string().min(10) })),
   async (req, res) => {
     const uid = await consumeEmailVerification(req.body.token);
-    if (!uid) return res.status(400).json({ error: 'Lien invalide ou expiré' });
+    if (!uid) return sendError(res, 400, 'invalid_or_expired_token', 'Lien invalide ou expiré');
     await usersCol().doc(uid).update({ emailVerified: true });
     return res.json({ ok: true });
   },

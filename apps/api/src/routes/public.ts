@@ -6,6 +6,7 @@ import { config } from '../config.js';
 import { contactRequestsCol, db } from '../lib/firebase.js';
 import { FieldValue } from 'firebase-admin/firestore';
 import { sendMail, quoteRequestEmail } from '../emails/mailer.js';
+import { sendError } from '../lib/apiError.js';
 
 const router: Router = Router();
 
@@ -102,8 +103,7 @@ router.post('/contact', async (req, res) => {
     })
     .safeParse(req.body);
   if (!parsed.success) {
-    return res.status(400).json({
-      error: 'Formulaire invalide',
+    return sendError(res, 400, 'validation_failed', 'Formulaire invalide', {
       details: parsed.error.issues.map((i) => ({ path: i.path.join('.'), message: i.message })),
     });
   }

@@ -5,6 +5,7 @@ import { validateBody } from '../middleware/validate.js';
 import { runProvisioning } from '../provisioning/pipeline.js';
 import { getProvisionerDriver } from '../provisioning/index.js';
 import { config } from '../config.js';
+import { sendError } from '../lib/apiError.js';
 
 const router: Router = Router();
 const oidcClient = new OAuth2Client();
@@ -22,11 +23,11 @@ async function requireCloudTasksOidc(req: Request, res: Response, next: NextFunc
     });
     const email = ticket.getPayload()?.email;
     if (!email || email !== config.TASKS_SERVICE_ACCOUNT) {
-      return res.status(403).json({ error: 'Service account non autorisé' });
+      return sendError(res, 403, 'oidc_service_account_forbidden', 'Service account non autorisé');
     }
     next();
   } catch {
-    return res.status(401).json({ error: 'Token OIDC invalide' });
+    return sendError(res, 401, 'oidc_invalid', 'Token OIDC invalide');
   }
 }
 
