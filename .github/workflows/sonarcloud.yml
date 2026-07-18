@@ -57,6 +57,9 @@ jobs:
       - name: Couverture — packages/template-back-core
         run: pnpm --filter @portforyou/template-back-core test:coverage
 
+      - name: Couverture — packages/template-front-core
+        run: pnpm --filter @portforyou/template-front-core test:coverage
+
       - name: Analyse SonarCloud
         # Tant que le secret SONAR_TOKEN n'est pas configuré (action manuelle du
         # mainteneur), l'étape est ignorée au lieu d'échouer — le check reste vert.
