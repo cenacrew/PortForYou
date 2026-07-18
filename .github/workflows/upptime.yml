@@ -1,0 +1,68 @@
+# Page de statut publique Upptime (https://upptime.js.org) — voir .upptimerc.yml pour
+# la liste des sites surveillés et docs/RUNBOOK.md pour les actions manuelles requises
+# (GitHub Pages activé sur la branche gh-pages, secret de repo GH_PAT). Workflow séparé
+# de ci.yml, ne touche à aucun job de build/déploiement de la plateforme.
+name: Upptime
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.upptimerc.yml'
+      - '.github/workflows/upptime.yml'
+  schedule:
+    - cron: '*/5 * * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: upptime
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Vérifie l'uptime et met à jour l'historique
+        uses: upptime/uptime-monitor@master
+        with:
+          command: 'update'
+        env:
+          GH_PAT: ${{ secrets.GH_PAT }}
+
+      - name: Génère les graphiques de temps de réponse
+        uses: upptime/uptime-monitor@master
+        with:
+          command: 'graphs'
+        env:
+          GH_PAT: ${{ secrets.GH_PAT }}
+
+      - name: Commit l'historique et les graphiques mis à jour
+        run: |
+          git add -A --force api README.md graphs
+          if git diff --quiet && git diff --staged --quiet; then
+            echo "Aucun changement de statut."
+          else
+            git config --global user.name 'github-actions[bot]'
+            git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+            git commit -m "chore(infra): mise à jour du statut Upptime"
+            git push
+          fi
+
+      - name: Génère la page de statut statique
+        uses: upptime/uptime-monitor@master
+        with:
+          command: 'site'
+        env:
+          GH_PAT: ${{ secrets.GH_PAT }}
+
+      - name: Déploie la page de statut sur GitHub Pages (branche gh-pages)
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GH_PAT }}
+          publish_dir: ./site
+          publish_branch: gh-pages

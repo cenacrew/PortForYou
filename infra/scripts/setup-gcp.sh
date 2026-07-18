@@ -8,6 +8,9 @@ PROJECT="${1:-portforyou-vsp}"
 REGION="europe-west1"
 GITHUB_REPO="${GITHUB_REPO:-cenacrew/PortForYou}" # owner/repo pour la CI (WIF)
 ALERT_EMAIL="${ALERT_EMAIL:-valetnina.sp@gmail.com}" # destinataire des alertes 5xx
+MONTHLY_BUDGET_EUR="${MONTHLY_BUDGET_EUR:-20}" # montant mensuel du budget Cloud Billing (seuils 50/90/100 %)
+AR_KEEP_VERSIONS="${AR_KEEP_VERSIONS:-10}" # nb de versions les plus récentes conservées par package Artifact Registry
+AR_MAX_AGE_DAYS="${AR_MAX_AGE_DAYS:-90}" # purge des images taguées SHA plus vieilles que ça
 
 echo "▶ Projet: $PROJECT — Région: $REGION"
 gcloud config set project "$PROJECT" >/dev/null
@@ -30,6 +33,30 @@ gcloud artifacts repositories describe pfy --location="$REGION" >/dev/null 2>&1 
   gcloud artifacts repositories create pfy \
     --repository-format=docker --location="$REGION" \
     --description="Images Port'ForYou"
+
+echo "▶ Cleanup policy Artifact Registry (garde ${AR_KEEP_VERSIONS} versions, purge > ${AR_MAX_AGE_DAYS}j)…"
+# Chaque déploiement pousse une image taguée par SHA sans jamais rien purger —
+# cette policy évite l'accumulation de stockage payant. set-cleanup-policies
+# remplace l'intégralité des policies du repo à chaque appel : idempotent par
+# nature (même résultat à chaque exécution).
+AR_CLEANUP_FILE=$(mktemp)
+cat > "$AR_CLEANUP_FILE" <<EOF
+[
+  {
+    "name": "keep-minimum-versions",
+    "action": { "type": "Keep" },
+    "mostRecentVersions": { "keepCount": ${AR_KEEP_VERSIONS} }
+  },
+  {
+    "name": "delete-old-versions",
+    "action": { "type": "Delete" },
+    "condition": { "olderThan": "${AR_MAX_AGE_DAYS}d" }
+  }
+]
+EOF
+gcloud artifacts repositories set-cleanup-policies pfy --location="$REGION" \
+  --policy="$AR_CLEANUP_FILE" --no-dry-run >/dev/null
+rm -f "$AR_CLEANUP_FILE"
 
 echo "▶ Buckets GCS…"
 for BUCKET in "portforyou-template-builds" "portforyou-uploads"; do
@@ -241,12 +268,27 @@ else
 fi
 rm -f "$POLICY_FILE"
 
-echo "▶ Budget avec alertes (5/10/20 €)…"
-if [ -n "${BILLING_ACCOUNT:-}" ]; then
-  gcloud billing budgets list --billing-account="$BILLING_ACCOUNT"     --filter="displayName:portforyou-budget" --format='value(name)' | grep -q . ||
-    gcloud billing budgets create --billing-account="$BILLING_ACCOUNT"       --display-name="portforyou-budget"       --budget-amount=20EUR       --threshold-rule=percent=0.25 --threshold-rule=percent=0.5 --threshold-rule=percent=1.0       --filter-projects="projects/$PROJECT"
+echo "▶ Budget avec alertes (${MONTHLY_BUDGET_EUR} €, seuils 50/90/100 %)…"
+# Nécessite le BILLING_ACCOUNT_ID du compte de facturation lié au projet — action
+# manuelle (non scriptable) : console.cloud.google.com/billing → repérer l'ID au
+# format XXXXXX-XXXXXX-XXXXXX, ou `gcloud billing accounts list`.
+if [ -n "${BILLING_ACCOUNT_ID:-}" ]; then
+  EXISTING_BUDGET=$(gcloud billing budgets list --billing-account="$BILLING_ACCOUNT_ID" \
+    --filter="displayName:portforyou-budget" --format='value(name)' 2>/dev/null | head -n1)
+  if [ -n "$EXISTING_BUDGET" ]; then
+    gcloud billing budgets update "$EXISTING_BUDGET" --billing-account="$BILLING_ACCOUNT_ID" \
+      --budget-amount="${MONTHLY_BUDGET_EUR}EUR" \
+      --threshold-rule=percent=0.5 --threshold-rule=percent=0.9 --threshold-rule=percent=1.0 \
+      --filter-projects="projects/$PROJECT" >/dev/null
+  else
+    gcloud billing budgets create --billing-account="$BILLING_ACCOUNT_ID" \
+      --display-name="portforyou-budget" \
+      --budget-amount="${MONTHLY_BUDGET_EUR}EUR" \
+      --threshold-rule=percent=0.5 --threshold-rule=percent=0.9 --threshold-rule=percent=1.0 \
+      --filter-projects="projects/$PROJECT" >/dev/null
+  fi
 else
-  echo "  ⚠️  BILLING_ACCOUNT non défini — créer le budget manuellement ou relancer avec BILLING_ACCOUNT=XXXXXX-XXXXXX-XXXXXX"
+  echo "  ⚠️  BILLING_ACCOUNT_ID non défini — créer le budget manuellement ou relancer avec BILLING_ACCOUNT_ID=XXXXXX-XXXXXX-XXXXXX"
 fi
 
 echo ""

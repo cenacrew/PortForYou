@@ -1,0 +1,24 @@
+# Config gitleaks — ceinture-et-bretelles local en complément du secret
+# scanning + push protection GitHub (déjà actifs côté serveur, voir
+# docs/SECURITY.md). Repris tel quel du jeu de règles par défaut de gitleaks ;
+# on ajoute uniquement les allowlists nécessaires pour ne pas bloquer sur les
+# placeholders volontaires du dépôt.
+title = "Port'ForYou gitleaks config"
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Faux positifs connus : placeholders et secrets de dev fictifs"
+regexes = [
+  # apps/api/.env.example : secret JWT de dev explicitement marqué comme tel.
+  '''dev_secret_change_me''',
+  # Placeholders génériques poussés par setup-gcp.sh en attendant les vraies valeurs.
+  '''PLACEHOLDER''',
+]
+paths = [
+  # Tous les .env.example / .env.production du repo ne contiennent que des
+  # placeholders vides ou des valeurs de dev fictives (vérifié manuellement).
+  '''\.env\.example$''',
+  '''\.env\.production$''',
+]
