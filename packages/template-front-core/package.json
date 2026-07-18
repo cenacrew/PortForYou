@@ -15,6 +15,7 @@
   },
   "scripts": {
     "test": "vitest run",
+    "test:coverage": "vitest run --coverage",
     "test:ui": "vitest --ui"
   },
   "peerDependencies": {
@@ -29,6 +30,7 @@
     "react-router-dom": "^7"
   },
   "devDependencies": {
+    "@vitest/coverage-v8": "^4.1.10",
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.1",
     "@mui/icons-material": "^7.3.11",
