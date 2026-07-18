@@ -1,0 +1,66 @@
+{
+  "name": "Port'ForYou",
+
+  // Image de base minimale (Debian) : tout le reste (Node, Java, Docker)
+  // vient de features officielles ghcr.io/devcontainers/features/*.
+  "image": "mcr.microsoft.com/devcontainers/base:bookworm",
+
+  "features": {
+    // Version alignée sur .nvmrc / "engines.node" du package.json racine.
+    "ghcr.io/devcontainers/features/node:1": {
+      "version": "24.18.0"
+    },
+    // JRE requis par les émulateurs Firebase (infra/docker/emulators.Dockerfile
+    // installe "default-jre-headless" dans l'image des émulateurs ; ici c'est
+    // pour la voie alternative "pnpm --filter @portforyou/api test:emu", qui
+    // lance firebase-tools directement sur l'hôte plutôt qu'en conteneur).
+    "ghcr.io/devcontainers/features/java:1": {
+      "version": "17",
+      "jdkDistro": "tem",
+      "installMaven": false,
+      "installGradle": false
+    },
+    // docker-outside-of-docker plutôt que docker-in-docker : le repo pilote
+    // les émulateurs via `docker compose up emulators` (voir docker-compose.yml
+    // et package.json → "emulators:docker"), il n'a jamais besoin de construire
+    // des images imbriquées ni d'un démon Docker isolé. "Outside-of-docker"
+    // monte simplement le socket Docker de l'hôte (ou de Codespaces, qui en
+    // fournit un nativement) dans le conteneur : démarrage plus rapide, pas de
+    // dockerd additionnel à faire tourner, et les conteneurs lancés par
+    // docker-compose restent visibles/gérables depuis l'hôte.
+    "ghcr.io/devcontainers/features/docker-outside-of-docker:1": {}
+  },
+
+  // pnpm 11.10.0 est déclaré en "packageManager" dans package.json ;
+  // corepack (fourni par la feature Node) suffit à obtenir exactement cette
+  // version. On construit ensuite @portforyou/shared (dépendance de build de
+  // l'api, du web et des templates) pour que le repo soit prêt pour `pnpm dev`.
+  "postCreateCommand": "corepack enable && corepack prepare pnpm@11.10.0 --activate && pnpm install --frozen-lockfile && pnpm --filter @portforyou/shared build",
+
+  "forwardPorts": [3000, 8081, 8090, 9199, 4000],
+  "portsAttributes": {
+    "3000": { "label": "Web (Next.js)", "onAutoForward": "notify" },
+    "8081": { "label": "API", "onAutoForward": "notify" },
+    "8090": { "label": "Émulateur Firestore", "onAutoForward": "silent" },
+    "9199": { "label": "Émulateur Storage", "onAutoForward": "silent" },
+    "4000": { "label": "UI émulateurs Firebase", "onAutoForward": "notify" }
+  },
+
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "dbaeumer.vscode-eslint",
+        "esbenp.prettier-vscode",
+        "ms-playwright.playwright",
+        "editorconfig.editorconfig",
+        "redhat.vscode-yaml"
+      ],
+      "settings": {
+        "editor.defaultFormatter": "esbenp.prettier-vscode",
+        "editor.formatOnSave": true
+      }
+    }
+  },
+
+  "remoteUser": "vscode"
+}
