@@ -244,6 +244,63 @@ router.get('/me/billing/portal', async (req, res) => {
 });
 
 /**
+ * GET /api/v1/me/account/export — portabilité RGPD (art. 20) : renvoie en JSON
+ * téléchargeable l'intégralité des données personnelles du user authentifié
+ * (profil + ses sites + ses commandes). N'expose QUE les données dont le token
+ * est propriétaire (filtrées par `uid`) ; aucun secret n'est inclus — ni le
+ * hash de mot de passe (`passwordHash`), ni les secrets tenant (Secret Manager).
+ */
+router.get('/me/account/export', async (req, res) => {
+  const uid = req.user!.uid;
+  const { usersCol, ordersCol } = await import('../lib/firebase.js');
+
+  const [userSnap, sitesSnap, ordersSnap] = await Promise.all([
+    usersCol().doc(uid).get(),
+    sitesCol().where('uid', '==', uid).get(),
+    ordersCol().where('uid', '==', uid).get(),
+  ]);
+
+  const u = userSnap.data() ?? {};
+  const profile = {
+    uid,
+    email: u.email ?? req.user!.email,
+    displayName: u.displayName ?? null,
+    provider: u.provider ?? null,
+    role: u.role ?? 'user',
+    emailVerified: u.emailVerified ?? null,
+    stripeCustomerId: u.stripeCustomerId ?? null,
+    createdAt: u.createdAt?.toDate?.()?.toISOString() ?? null,
+  };
+
+  const sites = sitesSnap.docs.map((doc) => serializeSite(doc.id, doc.data()));
+
+  const orders = ordersSnap.docs.map((doc) => {
+    const o = doc.data();
+    return {
+      id: doc.id,
+      templateSlug: o.templateSlug ?? null,
+      siteSlug: o.siteSlug ?? null,
+      artistName: o.artistName ?? null,
+      contactEmail: o.contactEmail ?? null,
+      status: o.status ?? null,
+      createdAt: o.createdAt?.toDate?.()?.toISOString() ?? null,
+    };
+  });
+
+  const payload = {
+    exportedAt: new Date().toISOString(),
+    format: 'portforyou-account-export-v1',
+    profile,
+    sites,
+    orders,
+  };
+
+  res.setHeader('Content-Type', 'application/json; charset=utf-8');
+  res.setHeader('Content-Disposition', `attachment; filename="portforyou-donnees-${uid}.json"`);
+  return res.status(200).send(JSON.stringify(payload, null, 2));
+});
+
+/**
  * DELETE /api/v1/me/account — suppression RGPD : révoque toutes les sessions,
  * suspend les sites (purge définitive par l'admin), anonymise le profil.
  * Les données de facturation restent chez Stripe (obligations légales).
