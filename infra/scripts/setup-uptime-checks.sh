@@ -25,11 +25,12 @@ fi
 API_HOST="${API_URL#https://}"
 
 # name=host:path — un check HTTPS par entrée, période 5 min (défaut).
-# NB : ajouter ici une entrée par tenant de démo une fois celui-ci réellement
-# déployé (seed-demos avec PROVISIONER_DRIVER=gcp) — sinon le check alerte sur
-# un site inexistant.
+# Les 3 tenants de démo sont déployés (seed-demos avec PROVISIONER_DRIVER=gcp).
 CHECKS=(
   "pfy-api — health:$API_HOST:/api/v1/health"
+  "pfy-demo-atelier — health:pfy-demo-atelier.web.app:/api/v1/health"
+  "pfy-demo-monolith — health:pfy-demo-monolith.web.app:/api/v1/health"
+  "pfy-demo-papier — health:pfy-demo-papier.web.app:/api/v1/health"
 )
 
 echo "▶ Uptime checks…"

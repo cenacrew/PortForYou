@@ -32,7 +32,7 @@ export const TEMPLATES: TemplateMeta[] = [
     ],
     image: '/templates/atelier.svg',
     available: true,
-    demoUrl: null,
+    demoUrl: 'https://pfy-demo-atelier.web.app',
   },
   {
     slug: 'monolith',
@@ -50,7 +50,7 @@ export const TEMPLATES: TemplateMeta[] = [
     ],
     image: '/templates/monolith.svg',
     available: true,
-    demoUrl: null,
+    demoUrl: 'https://pfy-demo-monolith.web.app',
   },
   {
     slug: 'papier',
@@ -68,7 +68,7 @@ export const TEMPLATES: TemplateMeta[] = [
     ],
     image: '/templates/papier.svg',
     available: true,
-    demoUrl: null,
+    demoUrl: 'https://pfy-demo-papier.web.app',
   },
 ];
 

@@ -42,7 +42,7 @@ const TEMPLATE_CATALOG = [
     description:
       "La template originelle de Port'ForYou, éprouvée en production. Galerie par technique, " +
       'biographie, presse, actualités et back-office complet.',
-    demoUrl: null,
+    demoUrl: 'https://pfy-demo-atelier.web.app',
     available: true,
   },
   {
@@ -52,7 +52,7 @@ const TEMPLATE_CATALOG = [
     description:
       'Typographie massive, œuvres plein écran, navigation immersive. Pour les univers ' +
       'graphiques affirmés.',
-    demoUrl: null,
+    demoUrl: 'https://pfy-demo-monolith.web.app',
     available: true,
   },
   {
@@ -62,7 +62,7 @@ const TEMPLATE_CATALOG = [
     description:
       'Grille masonry, cartels de musée, ambiance papier. Pour les aquarellistes et ' +
       'dessinateurs.',
-    demoUrl: null,
+    demoUrl: 'https://pfy-demo-papier.web.app',
     available: true,
   },
 ];
