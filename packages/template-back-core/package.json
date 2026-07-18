@@ -25,6 +25,7 @@
   "license": "ISC",
   "description": "Back Express commun aux 3 templates artistes (routes, auth, back-office, provisioning multi-tenant TENANT_ID). Chaque template l'importe en dépendance workspace et garde son propre Dockerfile/déploiement.",
   "dependencies": {
+    "@sentry/node": "^10.66.0",
     "bcryptjs": "^3.0.3",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.6",

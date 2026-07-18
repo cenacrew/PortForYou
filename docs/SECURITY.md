@@ -70,6 +70,12 @@ Mesures appliquées, par couche. Référence : PortForYou.md §9.
 - **Alertes 5xx** (`infra/monitoring/alert-5xx.json`, policy Cloud Monitoring déployée par
   `setup-gcp.sh`) : notifie par email dès qu'un taux de 5xx soutenu (5 min) est détecté sur
   `pfy-api`/`pfy-web` ou sur un ou plusieurs `tenant-*`.
+- **Error tracking (Sentry/GlitchTip)** : capture des stack traces agrégées sur `pfy-api`, la
+  vitrine et les backs templates. No-op sans DSN (aucun envoi en dev/CI). `beforeSend` scrube
+  systématiquement avant envoi : en-têtes d'auth (`Authorization`, `Cookie`, `X-Api-Key`…),
+  cookies parsés, et toute clé de query/corps matchant `pass|password|token|secret|jwt|api_key`
+  → `[redacted]`. `sendDefaultPii: false` (pas d'IP ni de cookies attachés d'office). DSN et
+  `SENTRY_AUTH_TOKEN` via Secret Manager en prod, jamais commités.
 
 ## Dépendances & CI
 
