@@ -1,6 +1,6 @@
 # Construit depuis la RACINE du monorepo :
 #   docker build -f apps/web/Dockerfile -t pfy-web .
-FROM node:24-slim AS build
+FROM node:24-slim@sha256:6f7b03f7c2c8e2e784dcf9295400527b9b1270fd37b7e9a7285cf83b6951452d AS build
 RUN corepack enable
 WORKDIR /repo
 COPY pnpm-workspace.yaml package.json pnpm-lock.yaml tsconfig.base.json ./
@@ -18,7 +18,7 @@ ARG NEXT_PUBLIC_SENTRY_DSN
 ENV NEXT_PUBLIC_SENTRY_DSN=$NEXT_PUBLIC_SENTRY_DSN
 RUN pnpm --filter @portforyou/shared build && pnpm --filter @portforyou/web build
 
-FROM node:24-slim
+FROM node:24-slim@sha256:6f7b03f7c2c8e2e784dcf9295400527b9b1270fd37b7e9a7285cf83b6951452d
 ENV NODE_ENV=production
 WORKDIR /app
 COPY --from=build /repo/apps/web/.next/standalone ./
