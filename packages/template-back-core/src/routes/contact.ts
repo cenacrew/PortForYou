@@ -22,8 +22,8 @@ router.post('/contact', async (req, res) => {
       !name.trim() ||
       name.length > 120 ||
       typeof email !== 'string' ||
-      !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) ||
       email.length > 200 ||
+      !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) ||
       typeof message !== 'string' ||
       !message.trim() ||
       message.length > 5000

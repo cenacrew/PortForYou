@@ -72,7 +72,17 @@ const contactLimiter = rateLimit({
   legacyHeaders: false,
 });
 
+// Borne les écritures admin (artworks, site-config…) en plus du cas upload.
+const adminLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 60,
+  message: { error: 'Trop de requêtes, veuillez ralentir.' },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
 app.use('/api/v1/auth/login', loginLimiter);
+app.use('/api/v1/admin', adminLimiter);
 app.use('/api/v1/admin/uploads', uploadLimiter);
 app.use('/api/v1/track', trackLimiter);
 app.use('/api/v1/contact', contactLimiter);
