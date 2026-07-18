@@ -61,7 +61,10 @@ export default tseslint.config(
   {
     // Accessibilité statique des templates (vitrines publiques d'artistes) :
     // jsx-a11y sur le front seulement, en respectant les tolérances héritées.
-    files: ['templates/*/front/src/**/*.{js,jsx}'],
+    files: [
+      'templates/*/front/src/**/*.{js,jsx}',
+      'packages/template-front-core/src/**/*.{js,jsx}',
+    ],
     plugins: { 'jsx-a11y': jsxA11y },
     languageOptions: {
       ...jsxA11y.flatConfigs.recommended.languageOptions,
