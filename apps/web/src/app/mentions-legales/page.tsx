@@ -13,27 +13,20 @@ export default function MentionsLegales() {
             <p>
               Port’ForYou, plateforme de création de portfolios pour artistes visuels.
               <br />
-              [À COMPLÉTER : raison sociale / forme juridique (ex. SAS, EI)]
+              Projet étudiant réalisé dans le cadre d’une formation (Ynov) — aucune entité juridique
+              commerciale : le service n’est pas exploité à des fins commerciales.
               <br />
-              [À COMPLÉTER : adresse du siège social]
+              Immatriculation (SIREN / SIRET) : non applicable (projet étudiant non immatriculé).
               <br />
-              [À COMPLÉTER : numéro SIREN / SIRET]
+              TVA intracommunautaire : non applicable.
               <br />
-              [À COMPLÉTER : numéro de TVA intracommunautaire, le cas échéant]
-              <br />
-              [À COMPLÉTER : capital social, le cas échéant]
-              <br />
-              Directeur de la publication : [À COMPLÉTER : nom du responsable de la publication]
+              Directeur de la publication : le mainteneur du projet (voir contact ci-dessous).
             </p>
           </div>
 
           <div>
             <h2 style={{ fontSize: '1.2rem', marginBottom: '0.4rem' }}>Contact</h2>
-            <p>
-              Email : [À COMPLÉTER : email de contact, ex. contact@votredomaine.fr]
-              <br />
-              Téléphone : [À COMPLÉTER : numéro de téléphone, facultatif]
-            </p>
+            <p>Email : valetnina.sp@gmail.com</p>
           </div>
 
           <div>

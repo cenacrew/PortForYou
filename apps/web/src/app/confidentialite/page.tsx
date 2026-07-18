@@ -19,10 +19,10 @@ export default function Confidentialite() {
               Responsable de traitement
             </h2>
             <p>
-              [À COMPLÉTER : raison sociale et adresse — voir mentions légales]
+              Port’ForYou — projet étudiant (Ynov), non exploité commercialement (voir mentions
+              légales).
               <br />
-              Contact pour toute question relative à vos données : [À COMPLÉTER : email de contact /
-              du référent RGPD ou DPO]
+              Contact pour toute question relative à vos données : valetnina.sp@gmail.com
             </p>
           </div>
 
@@ -116,7 +116,7 @@ export default function Confidentialite() {
                 Données de facturation : conservées 10 ans conformément aux obligations comptables
                 et fiscales (y compris chez Stripe pour ce qui le concerne).
               </li>
-              <li>Journaux techniques : conservés [À COMPLÉTER : durée retenue, ex. 12 mois].</li>
+              <li>Journaux techniques : conservés 12 mois.</li>
             </ul>
           </div>
 
@@ -148,8 +148,8 @@ export default function Confidentialite() {
                 votre espace, page Profil.
               </li>
               <li>
-                Pour les autres droits, ou pour toute réclamation, contactez-nous à [À COMPLÉTER :
-                email de contact].
+                Pour les autres droits, ou pour toute réclamation, contactez-nous à
+                valetnina.sp@gmail.com.
               </li>
             </ul>
             <p>
