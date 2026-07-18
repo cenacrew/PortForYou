@@ -2,10 +2,10 @@ import express from 'express';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import helmet from 'helmet';
-import morgan from 'morgan';
 import rateLimit from 'express-rate-limit';
 import { config } from './config.js';
 import { requestId } from './middleware/requestId.js';
+import { httpLogger } from './observability/logger.js';
 import { sendError } from './lib/apiError.js';
 import { captureRequestException } from './observability/sentry.js';
 import publicRouter from './routes/public.js';
@@ -26,8 +26,8 @@ app.use(helmet());
 app.use(cors({ origin: config.WEB_ORIGIN, credentials: true }));
 app.use(cookieParser());
 app.use(requestId);
-morgan.token('id', (req: express.Request) => req.requestId ?? '-');
-app.use(morgan(':id :method :url :status :res[content-length] - :response-time ms'));
+// Logs HTTP structurés (pino) : request-id AVANT le logger pour la corrélation.
+app.use(httpLogger);
 
 // Le webhook Stripe DOIT recevoir le raw body : monté avant express.json().
 app.use('/api/v1', paymentsRouter);
