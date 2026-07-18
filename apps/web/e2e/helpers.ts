@@ -1,8 +1,9 @@
+import { randomInt } from 'node:crypto';
 import type { Page } from '@playwright/test';
 
 /** Identifiants uniques par run pour ne pas dépendre de l'état de l'émulateur. */
 export function uniqueUser() {
-  const stamp = `${Date.now()}${Math.floor(Math.random() * 1000)}`;
+  const stamp = `${Date.now()}${randomInt(1000)}`;
   return {
     name: 'Alice Testeuse',
     email: `alice-${stamp}@e2e.test`,
