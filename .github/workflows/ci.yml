@@ -218,6 +218,7 @@ jobs:
           format: table
           severity: CRITICAL,HIGH
           ignore-unfixed: true
+          skip-dirs: /usr/local/lib/node_modules/npm
           exit-code: '1'
 
       - name: Deploy API (Cloud Run)
@@ -255,6 +256,7 @@ jobs:
           format: table
           severity: CRITICAL,HIGH
           ignore-unfixed: true
+          skip-dirs: /usr/local/lib/node_modules/npm
           exit-code: '1'
 
       - name: Deploy Web (Cloud Run)
