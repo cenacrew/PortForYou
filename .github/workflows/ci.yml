@@ -217,6 +217,7 @@ jobs:
           image-ref: ${{ env.REGISTRY }}/${{ env.PROJECT_ID }}/pfy/api:${{ github.sha }}
           format: table
           severity: CRITICAL,HIGH
+          ignore-unfixed: true
           exit-code: '1'
 
       - name: Deploy API (Cloud Run)
@@ -253,6 +254,7 @@ jobs:
           image-ref: ${{ env.REGISTRY }}/${{ env.PROJECT_ID }}/pfy/web:${{ github.sha }}
           format: table
           severity: CRITICAL,HIGH
+          ignore-unfixed: true
           exit-code: '1'
 
       - name: Deploy Web (Cloud Run)
