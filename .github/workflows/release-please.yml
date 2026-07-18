@@ -1,0 +1,27 @@
+name: Release Please
+
+# Maintient une PR de release à jour (CHANGELOG.md + bump de version du
+# package racine) à partir des Conventional Commits déjà enforcés par
+# commitlint. Merger cette PR crée le tag Git de la release — un point de
+# repère propre pour un rollback, sans effort de versioning manuel.
+#
+# Un seul package versionné (racine, "portforyou") : les templates/apps ne
+# sont pas publiés indépendamment (déploiement continu via ci.yml /
+# release-templates.yml), donc un mode "manifest" multi-package n'apporterait
+# rien ici — voir release-please-config.json.
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  release-please:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: googleapis/release-please-action@v4
+        with:
+          config-file: release-please-config.json
+          manifest-file: .release-please-manifest.json

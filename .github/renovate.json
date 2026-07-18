@@ -28,7 +28,8 @@
     {
       "matchDepTypes": ["devDependencies"],
       "matchUpdateTypes": ["minor", "patch"],
-      "groupName": "devDependencies (non majeures)"
+      "groupName": "devDependencies (non majeures)",
+      "automerge": true
     }
   ],
   "vulnerabilityAlerts": {

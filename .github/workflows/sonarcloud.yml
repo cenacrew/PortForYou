@@ -1,0 +1,66 @@
+name: SonarCloud
+
+# Analyse statique de qualité (bugs probables, code smells, duplication,
+# dette technique) + quality gate sur chaque PR. Complémentaire d'ESLint
+# (règles ciblées) et de CodeQL (SAST sécurité) : Sonar couvre la
+# maintenabilité et agrège la couverture de tests au même endroit.
+#
+# Branche la couverture Vitest (lcov) des packages qui l'exposent
+# aujourd'hui (apps/api, packages/template-back-core) — voir
+# `sonar-project.properties` (sonar.javascript.lcov.reportPaths).
+#
+# Nécessite une action manuelle du mainteneur : créer le projet sur
+# sonarcloud.io (import du repo GitHub) et poser le secret `SONAR_TOKEN`
+# dans les secrets du dépôt. Sans ce secret, le job échoue à l'étape
+# d'analyse (documenté dans la PR qui introduit ce workflow).
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+  pull_request:
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  sonarcloud:
+    runs-on: ubuntu-latest
+    # Le token est exposé en env du job pour pouvoir garder l'étape d'analyse
+    # (les secrets ne sont pas lisibles dans un `if` de niveau job).
+    env:
+      SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          # Sonar veut l'historique complet pour le blame / les nouvelles lignes.
+          fetch-depth: 0
+
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+
+      - name: Build du package partagé (importé par l'API)
+        run: pnpm --filter @portforyou/shared build
+
+      - name: Couverture — apps/api
+        run: pnpm --filter @portforyou/api test:coverage
+
+      - name: Couverture — packages/template-back-core
+        run: pnpm --filter @portforyou/template-back-core test:coverage
+
+      - name: Analyse SonarCloud
+        # Tant que le secret SONAR_TOKEN n'est pas configuré (action manuelle du
+        # mainteneur), l'étape est ignorée au lieu d'échouer — le check reste vert.
+        if: ${{ env.SONAR_TOKEN != '' }}
+        uses: SonarSource/sonarqube-scan-action@v6
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

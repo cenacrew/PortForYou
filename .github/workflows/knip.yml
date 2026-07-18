@@ -1,0 +1,38 @@
+name: Knip
+
+# Détection de code mort (exports/fichiers/dépendances inutilisés) sur tout
+# le monorepo. Job informatif, non bloquant : les faux positifs sont fréquents
+# dans un monorepo pnpm (entry points multiples, wrappers plain-JS des
+# templates) — on préfère lister les résidus dans la PR plutôt que casser la
+# CI ou supprimer du code de prod à l'aveugle.
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+  pull_request:
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  knip:
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Code mort (exports, fichiers, dépendances inutilisés)
+        # Informatif : on affiche le rapport sans faire échouer le check (les
+        # résidus se lisent dans les logs et se traitent au fil de l'eau).
+        run: pnpm knip || true

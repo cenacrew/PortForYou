@@ -1,0 +1,58 @@
+name: OSSF Scorecard
+
+# Note les pratiques de sécurité du dépôt (branch protection, pinning des
+# actions, réponse aux vulnérabilités, etc.) et publie le résultat en SARIF
+# dans l'onglet Security (Code scanning). Gratuit pour les dépôts publics.
+# Nécessite GitHub Advanced Security pour l'upload SARIF sur un dépôt privé
+# — même garde par visibilité que codeql.yml / dependency-review.yml.
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+  schedule:
+    - cron: '0 8 * * 1' # lundi 08:00 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  check-visibility:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    outputs:
+      private: ${{ steps.repo.outputs.private }}
+    steps:
+      - name: Visibilité du dépôt
+        id: repo
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: echo "private=$(gh api "repos/${{ github.repository }}" --jq .private)" >> "$GITHUB_OUTPUT"
+
+  analyze:
+    needs: [check-visibility]
+    if: needs.check-visibility.outputs.private != 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+      id-token: write # publication du résultat sur le registre public OSSF
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Scorecard analysis
+        uses: ossf/scorecard-action@v2
+        with:
+          results_file: results.sarif
+          results_format: sarif
+          publish_results: true
+
+      - name: Upload SARIF
+        uses: github/codeql-action/upload-sarif@v4
+        with:
+          sarif_file: results.sarif
