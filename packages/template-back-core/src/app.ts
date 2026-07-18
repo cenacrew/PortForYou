@@ -15,8 +15,12 @@ import logger from './middleware/logger.js';
 import { requestId } from './middleware/requestId.js';
 import { installGracefulShutdown } from './lib/shutdown.js';
 import { TENANT_ID, DEMO_MODE } from './lib/tenant.js';
+import { initSentry, captureRequestException } from './lib/sentry.js';
 
 dotenv.config();
+
+// Error tracking : no-op si SENTRY_DSN absent (dev/CI), avant tout le reste.
+initSentry();
 
 const app: Express = express();
 
@@ -88,6 +92,7 @@ app.use('/api/v1', publicRouter);
 
 app.use((err: unknown, req: Request, res: Response, _next: NextFunction) => {
   console.error(`Unhandled error [${req.requestId ?? '-'}]:`, err);
+  captureRequestException(err, req);
   if (res.headersSent) return;
   res.status(500).json({ error: 'Internal server error', requestId: req.requestId });
 });

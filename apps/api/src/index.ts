@@ -1,3 +1,4 @@
+import './instrument.js';
 import app from './app.js';
 import { config } from './config.js';
 import { installGracefulShutdown } from './lib/shutdown.js';

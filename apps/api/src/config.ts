@@ -48,6 +48,12 @@ const envSchema = z.object({
   /** OAuth Google fait main — vides = bouton Google inactif. */
   GOOGLE_OAUTH_CLIENT_ID: z.string().optional(),
   GOOGLE_OAUTH_CLIENT_SECRET: z.string().optional(),
+  /** Error tracking Sentry/GlitchTip — vide = no-op (aucun envoi réseau). */
+  SENTRY_DSN: z.string().optional(),
+  /** Environnement rapporté à Sentry (défaut : NODE_ENV). */
+  SENTRY_ENVIRONMENT: z.string().optional(),
+  /** Taux d'échantillonnage des traces de perf (0 = aucune, défaut). */
+  SENTRY_TRACES_SAMPLE_RATE: z.coerce.number().min(0).max(1).default(0),
 });
 
 export const config = envSchema.parse(process.env);

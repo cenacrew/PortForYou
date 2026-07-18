@@ -7,6 +7,7 @@ import rateLimit from 'express-rate-limit';
 import { config } from './config.js';
 import { requestId } from './middleware/requestId.js';
 import { sendError } from './lib/apiError.js';
+import { captureRequestException } from './observability/sentry.js';
 import publicRouter from './routes/public.js';
 import ordersRouter from './routes/orders.js';
 import paymentsRouter from './routes/payments.js';
@@ -85,6 +86,7 @@ app.use(internalRouter);
 
 app.use((err: Error, req: express.Request, res: express.Response, _next: express.NextFunction) => {
   console.error(`Unhandled error [${req.requestId ?? '-'}]:`, err);
+  captureRequestException(err, req);
   if (res.headersSent) return;
   sendError(res, 500, 'internal_error', 'Erreur interne', { requestId: req.requestId });
 });
