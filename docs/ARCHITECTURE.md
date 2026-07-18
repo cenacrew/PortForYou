@@ -118,7 +118,8 @@ portforyou/
 │   └── docker/emulators.Dockerfile
 ├── docs/                        RUNBOOK.md, SECURITY.md, ARCHITECTURE.md (ce document)
 ├── .github/workflows/           ci.yml, release-templates.yml, security.yml,
-│                                 codeql.yml, dependency-review.yml, actionlint.yml
+│                                 codeql.yml, dependency-review.yml, actionlint.yml,
+│                                 lighthouse.yml
 ├── docker-compose.yml           Dev local conteneurisé (alternative à `pnpm dev`)
 ├── firestore.rules / storage.rules / firestore.indexes.json
 └── pnpm-workspace.yaml          apps/*, packages/*, templates/*/back, templates/*/front
@@ -430,6 +431,7 @@ graph TB
     Cron2["Cron — lundi 07h UTC"] --> CodeQL["codeql.yml\nSAST javascript-typescript"]
     PR --> DepReview["dependency-review.yml\nnouvelles dépendances de la PR, fail-on high+"]
     WFChange["Push/PR sur .github/workflows/**"] --> Actionlint["actionlint.yml\nlint des workflows (+ shellcheck)"]
+    WebChange["Push/PR sur apps/web/**"] --> Lighthouse["lighthouse.yml\nbuild+serve vitrine, audit home +\n/templates/atelier (perf/a11y/SEO/bonnes pratiques)"]
 ```
 
 - **`ci.yml`** : pipeline unique validation → déploiement. Auth CI via **Workload Identity Federation** (aucune clé JSON). Le déploiement est sérialisé (`concurrency: deploy-platform, cancel-in-progress: false`) pour ne jamais interrompre une release en cours. Les jobs `templates-back`/`templates-front` sont conditionnés au job de filtre `changes` (`dorny/paths-filter`, pattern `needs`+`if`) : ils ne tournent que si `templates/**` ou `packages/template-back-core/**` a changé — sinon ils passent en statut `skipped`, traité comme réussi par les required checks de branch protection. Le job `deploy` scanne les images `api`/`web` avec Trivy (`CRITICAL,HIGH`, `exit-code: 1`) juste après le build/push et avant le `gcloud run deploy` correspondant, puis termine par un smoke test (`curl --fail` avec retries) sur `/api/v1/health` de l'API et la home de la vitrine.
@@ -438,6 +440,7 @@ graph TB
 - **`codeql.yml`** : analyse statique de sécurité (SAST) `javascript-typescript` via `github/codeql-action`, sur PR vers `main`, push `main` et cron hebdomadaire (lundi 07h UTC). Nécessite que le code scanning soit activé côté GitHub (Settings → Code security) pour que les résultats remontent dans l'onglet Security.
 - **`dependency-review.yml`** : `actions/dependency-review-action` sur chaque PR touchant un `package.json`/`pnpm-lock.yaml`, échoue sur une dépendance ajoutée de sévérité high+ et commente la PR.
 - **`actionlint.yml`** : lint des workflows (`.github/workflows/**`) avec `shellcheck` sur le shell inline, à chaque push/PR qui les modifie.
+- **`lighthouse.yml`** : audite la vitrine (`apps/web`) avec Lighthouse CI (`treosh/lighthouse-ci-action`, config `lighthouserc.json` à la racine) — build (`next build`) puis `next start` servi localement, audité sur la home (`/`) et une page riche en images (`/templates/atelier`), 3 runs par URL. Déclenché sur PR/push `main` limité aux chemins `apps/web/**`/`packages/shared/**`. Assertions perf/accessibilité/SEO/bonnes pratiques en **`warn`** (non bloquant) tant que les budgets ne sont pas calibrés sur une baseline réelle — à durcir en `error` une fois posée.
 - **Convention** : `[skip deploy]` dans le message de commit pour pousser sur `main` sans redéployer la plateforme (utilisé par exemple après un simple changement de dashboard/doc).
 
 ---

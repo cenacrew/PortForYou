@@ -1,0 +1,53 @@
+name: Lighthouse CI
+
+# Audite perf/a11y/SEO/bonnes pratiques de la vitrine (apps/web) à chaque PR
+# qui la touche. Portfolios d'artistes = pages riches en images par nature :
+# ce workflow sert de garde-fou continu sur le poids/temps de chargement.
+#
+# Budgets en `warn` (voir lighthouserc.json) tant qu'ils ne sont pas calibrés
+# sur des mesures réelles — non bloquant pour l'instant, à durcir en `error`
+# une fois une baseline établie.
+on:
+  pull_request:
+    paths:
+      - 'apps/web/**'
+      - 'packages/shared/**'
+      - 'lighthouserc.json'
+      - '.github/workflows/lighthouse.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'apps/web/**'
+      - 'packages/shared/**'
+      - 'lighthouserc.json'
+      - '.github/workflows/lighthouse.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lighthouse:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Build du package partagé (importé par la vitrine)
+        run: pnpm --filter @portforyou/shared build
+      - name: Build de la vitrine
+        run: pnpm --filter @portforyou/web build
+      - name: Audit Lighthouse (home + page template)
+        uses: treosh/lighthouse-ci-action@v12
+        with:
+          configPath: ./lighthouserc.json
+          uploadArtifacts: true
+          temporaryPublicStorage: true
