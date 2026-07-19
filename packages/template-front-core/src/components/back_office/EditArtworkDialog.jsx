@@ -319,15 +319,13 @@ export default function EditArtworkDialog({ artwork, onClose, onSaved, onDeleted
           </Button>
           <Stack direction="row" spacing={1}>
             {confirmDelete && (
-              <Button onClick={() => setConfirmDelete(false)}>
-                {t('editArtworkDialog.cancel')}
-              </Button>
+              <Button onClick={() => setConfirmDelete(false)}>{t('common.cancel')}</Button>
             )}
             {!confirmDelete && (
               <>
-                <Button onClick={handleClose}>{t('editArtworkDialog.cancel')}</Button>
+                <Button onClick={handleClose}>{t('common.cancel')}</Button>
                 <Button type="submit" variant="contained" disabled={submitting}>
-                  {submitting ? t('editArtworkDialog.saving') : t('editArtworkDialog.save')}
+                  {submitting ? t('common.saving') : t('common.save')}
                 </Button>
               </>
             )}

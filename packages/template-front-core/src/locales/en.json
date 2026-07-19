@@ -1,4 +1,9 @@
 {
+  "common": {
+    "save": "Save",
+    "saving": "Saving...",
+    "cancel": "Cancel"
+  },
   "nav": {
     "home": "Home",
     "biography": "Biography",
@@ -120,9 +125,6 @@
     "widthLabel": "Width (cm)",
     "yearLabel": "Year",
     "commentLabel": "Comment (optional)",
-    "cancel": "Cancel",
-    "saving": "Saving...",
-    "save": "Save",
     "errRequiredTitleTechnique": "Title and technique are required.",
     "errRequiredImage": "An image is required.",
     "errCreate": "Error while creating",
@@ -140,9 +142,6 @@
     "yearLabel": "Year",
     "commentLabel": "Comment (optional)",
     "extraImages": "Additional images",
-    "cancel": "Cancel",
-    "saving": "Saving...",
-    "save": "Save",
     "deleting": "Deleting...",
     "confirmDelete": "Confirm deletion",
     "delete": "Delete",
@@ -158,7 +157,6 @@
   "cropDialog": {
     "defaultTitle": "Crop the image",
     "zoomLabel": "Zoom",
-    "cancel": "Cancel",
     "confirm": "Confirm crop"
   },
   "imageUploadField": {
@@ -181,8 +179,6 @@
     "imageHelper": "Image (optional, 16:9)",
     "chooseImage": "Choose an image",
     "cropTitle": "Crop the image (16:9)",
-    "save": "Save",
-    "saving": "Saving...",
     "saveSuccess": "Saved successfully"
   },
   "siteConfigPanel": {
@@ -195,8 +191,6 @@
       "descriptionPlaceholder": "Visual artist portfolio — artworks, biography, press…",
       "descriptionHelper": "Summary shown in search results (≈ 160 characters)."
     },
-    "save": "Save",
-    "saving": "Saving...",
     "hero": {
       "heading": "Homepage image (Hero)",
       "chooseImage": "Choose the hero image",

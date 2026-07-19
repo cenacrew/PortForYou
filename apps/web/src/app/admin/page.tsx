@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
-import { useTranslations } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import { RequireAuth } from '@/components/RequireAuth';
 import { api } from '@/lib/api';
 import styles from '../dashboard/dashboard.module.css';
@@ -35,6 +35,7 @@ interface AdminDeployment {
 
 function AdminView() {
   const t = useTranslations('Admin');
+  const locale = useLocale();
   const [overview, setOverview] = useState<Overview | null>(null);
   const [sites, setSites] = useState<AdminSite[]>([]);
   const [deployments, setDeployments] = useState<AdminDeployment[]>([]);
@@ -190,7 +191,7 @@ function AdminView() {
                 <tr key={deployment.id}>
                   <td className={styles.mono}>
                     {deployment.createdAt
-                      ? new Date(deployment.createdAt).toLocaleString('fr-FR')
+                      ? new Date(deployment.createdAt).toLocaleString(locale)
                       : '—'}
                   </td>
                   <td className={styles.mono}>{deployment.siteId.slice(0, 8)}…</td>

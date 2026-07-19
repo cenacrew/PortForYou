@@ -1,17 +1,19 @@
 import { ImageResponse } from 'next/og';
-import { getTranslations } from 'next-intl/server';
 import { SITE_NAME } from '@/lib/site';
 
 // Image Open Graph par défaut de la vitrine (1200×630), générée à la build.
 // Convention Next : appliquée automatiquement à og:image et twitter:image de
-// toutes les pages, sauf celles qui définissent leur propre image.
+// toutes les pages, sauf celles qui définissent leur propre image. Texte fixe
+// en français (pas de useTranslations/getTranslations ici) : les crawlers de
+// réseaux sociaux qui récupèrent cette image n'envoient jamais le cookie de
+// langue de l'utilisateur, un texte dynamique par locale n'aurait donc aucun
+// effet sur eux — seulement le coût de perdre le pré-rendu statique de Next.
 export const runtime = 'nodejs';
 export const alt = "Port'ForYou — Portfolios pour artistes visuels";
 export const size = { width: 1200, height: 630 };
 export const contentType = 'image/png';
 
-export default async function OpengraphImage() {
-  const t = await getTranslations('OpengraphImage');
+export default function OpengraphImage() {
   return new ImageResponse(
     <div
       style={{
@@ -39,11 +41,11 @@ export default async function OpengraphImage() {
           marginTop: 24,
         }}
       >
-        <span>{t('titleLine1')}</span>
-        <span>{t('titleLine2')}</span>
+        <span>Portfolios pour</span>
+        <span>artistes visuels</span>
       </div>
       <div style={{ fontSize: 32, opacity: 0.8, marginTop: 36, maxWidth: 900 }}>
-        {t('description')}
+        Une template, un nom de site — votre portfolio en ligne en quelques minutes.
       </div>
     </div>,
     size,

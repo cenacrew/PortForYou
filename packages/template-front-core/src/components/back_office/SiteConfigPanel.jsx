@@ -228,7 +228,7 @@ export default function SiteConfigPanel() {
               onClick={saveSeo}
               disabled={saving.seo}
             >
-              {saving.seo ? t('siteConfigPanel.saving') : t('siteConfigPanel.save')}
+              {saving.seo ? t('common.saving') : t('common.save')}
             </Button>
           </Stack>
         </AccordionDetails>
@@ -254,7 +254,7 @@ export default function SiteConfigPanel() {
               </Typography>
             )}
             <Button variant="contained" sx={{ mt: 2 }} onClick={saveHero} disabled={saving.hero}>
-              {saving.hero ? t('siteConfigPanel.saving') : t('siteConfigPanel.save')}
+              {saving.hero ? t('common.saving') : t('common.save')}
             </Button>
           </Box>
         </AccordionDetails>
@@ -302,9 +302,7 @@ export default function SiteConfigPanel() {
             onClick={saveTechniques}
             disabled={saving.techniques}
           >
-            {saving.techniques
-              ? t('siteConfigPanel.saving')
-              : t('siteConfigPanel.techniquesSection.save')}
+            {saving.techniques ? t('common.saving') : t('siteConfigPanel.techniquesSection.save')}
           </Button>
         </AccordionDetails>
       </Accordion>
@@ -347,7 +345,7 @@ export default function SiteConfigPanel() {
               onClick={saveBio}
               disabled={saving.bio}
             >
-              {saving.bio ? t('siteConfigPanel.saving') : t('siteConfigPanel.save')}
+              {saving.bio ? t('common.saving') : t('common.save')}
             </Button>
           </Stack>
         </AccordionDetails>
@@ -451,7 +449,7 @@ export default function SiteConfigPanel() {
               onClick={savePress}
               disabled={saving.press}
             >
-              {saving.press ? t('siteConfigPanel.saving') : t('siteConfigPanel.pressSection.save')}
+              {saving.press ? t('common.saving') : t('siteConfigPanel.pressSection.save')}
             </Button>
           </Stack>
         </AccordionDetails>
@@ -500,7 +498,7 @@ export default function SiteConfigPanel() {
               onClick={saveContact}
               disabled={saving.contact}
             >
-              {saving.contact ? t('siteConfigPanel.saving') : t('siteConfigPanel.save')}
+              {saving.contact ? t('common.saving') : t('common.save')}
             </Button>
           </Stack>
         </AccordionDetails>
@@ -536,7 +534,7 @@ export default function SiteConfigPanel() {
               onClick={saveColors}
               disabled={saving.colors}
             >
-              {saving.colors ? t('siteConfigPanel.saving') : t('siteConfigPanel.save')}
+              {saving.colors ? t('common.saving') : t('common.save')}
             </Button>
           </Stack>
         </AccordionDetails>

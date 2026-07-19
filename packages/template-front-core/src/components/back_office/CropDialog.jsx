@@ -80,7 +80,7 @@ export default function CropDialog({ open, imageSrc, aspect, title, onCrop, onCl
         </Box>
       </DialogContent>
       <DialogActions>
-        <Button onClick={onClose}>{t('cropDialog.cancel')}</Button>
+        <Button onClick={onClose}>{t('common.cancel')}</Button>
         <Button variant="contained" onClick={handleConfirm}>
           {t('cropDialog.confirm')}
         </Button>

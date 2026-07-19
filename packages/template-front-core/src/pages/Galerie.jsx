@@ -40,7 +40,11 @@ export default function Galerie() {
       if (!res.ok) throw new Error(data?.error || t('gallery.loadError'));
       return data;
     },
-    [techniqueFilter, t],
+    // `t` volontairement exclu : un changement de langue ne doit pas re-fetch
+    // la galerie (les œuvres ne dépendent pas de la locale), seul le message
+    // d'erreur ponctuel s'en sert.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [techniqueFilter],
   );
 
   useEffect(() => {

@@ -32,7 +32,12 @@ async function ensureHostingSite(siteId: string) {
     body: {},
   });
   if ([200, 409].includes(site.status)) return;
-  if (site.status === 400 && JSON.stringify(site.json).includes('reserved by another project')) {
+  const errorBody = site.json.error as { status?: string; message?: string } | undefined;
+  if (
+    site.status === 400 &&
+    errorBody?.status === 'FAILED_PRECONDITION' &&
+    errorBody.message?.includes('reserved by another project')
+  ) {
     throw new ProvisioningUserError(
       `Le nom de site "${siteId}" est déjà utilisé sur Firebase Hosting (par un autre projet, ` +
         `indépendant de PortForYou). Choisissez un autre identifiant pour ce site.`,

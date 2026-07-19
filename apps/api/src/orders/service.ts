@@ -10,16 +10,34 @@ import { parseDoc } from '../lib/parseDoc.js';
 const SLUG_RESERVATION_TTL_MS = 30 * 60 * 1000;
 
 /**
- * Réserve un slug de façon atomique, puis vérifie que le nom de site Firebase
- * Hosting `pfy-<slug>` correspondant est bien disponible. Les ID de site
- * Hosting sont uniques sur tout Firebase (pas seulement notre projet) : un
- * slug jamais utilisé côté PortForYou peut donc déjà être pris par un projet
- * tiers. Sans cette vérification, la commande serait payée puis le
+ * Réserve un slug de façon atomique, après avoir vérifié que le nom de site
+ * Firebase Hosting `pfy-<slug>` correspondant est bien disponible. Les ID de
+ * site Hosting sont uniques sur tout Firebase (pas seulement notre projet) :
+ * un slug jamais utilisé côté PortForYou peut donc déjà être pris par un
+ * projet tiers. Sans cette vérification, la commande serait payée puis le
  * provisioning échouerait irrémédiablement à l'étape "frontend" (même
- * problème rencontré en prod sur le tenant test2). Jette si le slug est déjà
- * pris côté PortForYou, ou si le nom est indisponible sur Hosting.
+ * problème rencontré en prod sur le tenant test2).
+ *
+ * La vérification Hosting a lieu AVANT la transaction Firestore (et après un
+ * simple rejet rapide si le slug est déjà pris côté PortForYou) : ça évite
+ * une fenêtre où la réservation serait visible aux autres utilisateurs avant
+ * d'être annulée, et ça élimine tout besoin de rollback compensatoire — si
+ * l'appel réseau échoue pour une raison quelconque (nom pris ailleurs, ou
+ * erreur transitoire GCP), rien n'a encore été écrit dans Firestore. Jette si
+ * le slug est déjà pris côté PortForYou, ou si le nom est indisponible sur
+ * Hosting.
  */
 export async function reserveSlug(slug: string, uid: string, orderId: string) {
+  if (!(await isSlugAvailable(slug))) {
+    throw new Error('SLUG_TAKEN');
+  }
+
+  const driver = await getProvisionerDriver();
+  const hosting = await driver.checkHostingNameAvailable(slug);
+  if (!hosting.available) {
+    throw new Error(`SLUG_HOSTING_NAME_UNAVAILABLE: ${hosting.reason ?? ''}`);
+  }
+
   await db.runTransaction(async (tx) => {
     const ref = slugsCol().doc(slug);
     const snap = await tx.get(ref);
@@ -40,15 +58,6 @@ export async function reserveSlug(slug: string, uid: string, orderId: string) {
       reservedAt: FieldValue.serverTimestamp(),
     });
   });
-
-  const driver = await getProvisionerDriver();
-  const hosting = await driver.checkHostingNameAvailable(slug);
-  if (!hosting.available) {
-    // Libère la réservation Firestore : ce slug ne pourra jamais aboutir tel
-    // quel, inutile de le bloquer pour d'autres utilisateurs pendant 30 min.
-    await slugsCol().doc(slug).delete();
-    throw new Error('SLUG_HOSTING_NAME_UNAVAILABLE');
-  }
 }
 
 export async function isSlugAvailable(slug: string): Promise<boolean> {

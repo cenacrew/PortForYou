@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { useTranslations } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import { RequireAuth } from '@/components/RequireAuth';
 import { api } from '@/lib/api';
 import { useAuth, useAuthActions } from '@/lib/auth';
@@ -22,6 +22,7 @@ interface Site {
 
 function Dashboard() {
   const t = useTranslations('Dashboard');
+  const locale = useLocale();
   const STATUS_LABELS: Record<string, string> = {
     live: t('statusLive'),
     provisioning: t('statusProvisioning'),
@@ -136,7 +137,7 @@ function Dashboard() {
                   {t('templateMeta', {
                     template: site.templateSlug,
                     date: site.createdAt
-                      ? new Date(site.createdAt).toLocaleDateString('fr-FR')
+                      ? new Date(site.createdAt).toLocaleDateString(locale)
                       : '—',
                   })}
                 </p>

@@ -171,9 +171,9 @@ export default function AddArtworkDialog({ open, onClose, onSaved }) {
           </Stack>
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleClose}>{t('addArtworkDialog.cancel')}</Button>
+          <Button onClick={handleClose}>{t('common.cancel')}</Button>
           <Button type="submit" variant="contained" disabled={submitting}>
-            {submitting ? t('addArtworkDialog.saving') : t('addArtworkDialog.save')}
+            {submitting ? t('common.saving') : t('common.save')}
           </Button>
         </DialogActions>
       </Box>

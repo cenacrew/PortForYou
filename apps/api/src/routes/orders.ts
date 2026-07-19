@@ -43,12 +43,14 @@ router.post('/orders', requireAuth, validateBody(orderCreateSchema), async (req,
     if (err instanceof Error && err.message === 'SLUG_TAKEN') {
       return sendError(res, 409, 'slug_taken', 'Ce nom de site est déjà pris');
     }
-    if (err instanceof Error && err.message === 'SLUG_HOSTING_NAME_UNAVAILABLE') {
+    if (err instanceof Error && err.message.startsWith('SLUG_HOSTING_NAME_UNAVAILABLE')) {
+      const reason = err.message.slice('SLUG_HOSTING_NAME_UNAVAILABLE:'.length).trim();
       return sendError(
         res,
         409,
         'slug_hosting_unavailable',
-        "Ce nom de site est indisponible sur l'hébergement (déjà utilisé ailleurs). Merci d'en choisir un autre.",
+        reason ||
+          "Ce nom de site est indisponible sur l'hébergement (déjà utilisé ailleurs). Merci d'en choisir un autre.",
       );
     }
     throw err;

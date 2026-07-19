@@ -1,4 +1,9 @@
 {
+  "common": {
+    "save": "Sauvegarder",
+    "saving": "Sauvegarde...",
+    "cancel": "Annuler"
+  },
   "nav": {
     "home": "Accueil",
     "biography": "Biographie",
@@ -120,9 +125,6 @@
     "widthLabel": "Largeur (cm)",
     "yearLabel": "Annee",
     "commentLabel": "Commentaire (optionnel)",
-    "cancel": "Annuler",
-    "saving": "Sauvegarde...",
-    "save": "Sauvegarder",
     "errRequiredTitleTechnique": "Titre et technique sont requis.",
     "errRequiredImage": "Une image est requise.",
     "errCreate": "Erreur lors de la creation",
@@ -140,9 +142,6 @@
     "yearLabel": "Annee",
     "commentLabel": "Commentaire (optionnel)",
     "extraImages": "Images supplementaires",
-    "cancel": "Annuler",
-    "saving": "Sauvegarde...",
-    "save": "Sauvegarder",
     "deleting": "Suppression...",
     "confirmDelete": "Confirmer la suppression",
     "delete": "Supprimer",
@@ -158,7 +157,6 @@
   "cropDialog": {
     "defaultTitle": "Recadrer l'image",
     "zoomLabel": "Zoom",
-    "cancel": "Annuler",
     "confirm": "Confirmer le recadrage"
   },
   "imageUploadField": {
@@ -181,8 +179,6 @@
     "imageHelper": "Image (optionnel, 16:9)",
     "chooseImage": "Choisir une image",
     "cropTitle": "Recadrer l image (16:9)",
-    "save": "Sauvegarder",
-    "saving": "Sauvegarde...",
     "saveSuccess": "Sauvegarde avec succes"
   },
   "siteConfigPanel": {
@@ -195,8 +191,6 @@
       "descriptionPlaceholder": "Portfolio d'artiste visuel — œuvres, biographie, presse…",
       "descriptionHelper": "Résumé affiché dans les résultats de recherche (≈ 160 caractères)."
     },
-    "save": "Sauvegarder",
-    "saving": "Sauvegarde...",
     "hero": {
       "heading": "Image de la page d'accueil (Hero)",
       "chooseImage": "Choisir l'image hero",

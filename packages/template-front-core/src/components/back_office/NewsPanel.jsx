@@ -244,7 +244,7 @@ export default function NewsPanel() {
           disabled={saving || items.length === 0}
           sx={{ textTransform: 'none', borderRadius: 1, fontWeight: 600, px: 3 }}
         >
-          {saving ? t('newsPanel.saving') : t('newsPanel.save')}
+          {saving ? t('common.saving') : t('common.save')}
         </Button>
         {error && (
           <Typography color="error" variant="caption">
