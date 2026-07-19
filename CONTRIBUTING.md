@@ -6,7 +6,7 @@ pour poser une contribution : installation, conventions, et process de PR.
 ## Stack à installer
 
 - **Node** `>= 24.18.0` (voir `.nvmrc` — `nvm use` si vous utilisez nvm)
-- **pnpm** `11.10.0` (déclaré en `packageManager` dans `package.json` ;
+- **pnpm** `11.15.0` (déclaré en `packageManager` dans `package.json` ;
   `corepack enable` suffit à obtenir la bonne version automatiquement)
 - **Docker Desktop** démarré — les émulateurs Firebase (Firestore/Storage)
   tournent en conteneur (`infra/docker/emulators.Dockerfile`)

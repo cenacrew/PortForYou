@@ -3,7 +3,7 @@
 
   // Image de base minimale (Debian) : tout le reste (Node, Java, Docker)
   // vient de features officielles ghcr.io/devcontainers/features/*.
-  "image": "mcr.microsoft.com/devcontainers/base:bookworm",
+  "image": "mcr.microsoft.com/devcontainers/base:bookworm@sha256:bb7b81b6e5be17b5267f92f4ffda534fea37dab1df97b5e86c1f9b91da5c0b5d",
 
   "features": {
     // Version alignée sur .nvmrc / "engines.node" du package.json racine.
@@ -31,11 +31,11 @@
     "ghcr.io/devcontainers/features/docker-outside-of-docker:1": {}
   },
 
-  // pnpm 11.10.0 est déclaré en "packageManager" dans package.json ;
+  // pnpm 11.15.0 est déclaré en "packageManager" dans package.json ;
   // corepack (fourni par la feature Node) suffit à obtenir exactement cette
   // version. On construit ensuite @portforyou/shared (dépendance de build de
   // l'api, du web et des templates) pour que le repo soit prêt pour `pnpm dev`.
-  "postCreateCommand": "corepack enable && corepack prepare pnpm@11.10.0 --activate && pnpm install --frozen-lockfile && pnpm --filter @portforyou/shared build",
+  "postCreateCommand": "corepack enable && corepack prepare pnpm@11.15.0 --activate && pnpm install --frozen-lockfile && pnpm --filter @portforyou/shared build",
 
   "forwardPorts": [3000, 8081, 8090, 9199, 4000],
   "portsAttributes": {
