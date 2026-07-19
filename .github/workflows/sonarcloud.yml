@@ -5,9 +5,12 @@ name: SonarCloud
 # (règles ciblées) et de CodeQL (SAST sécurité) : Sonar couvre la
 # maintenabilité et agrège la couverture de tests au même endroit.
 #
-# Branche la couverture Vitest (lcov) des packages qui l'exposent
-# aujourd'hui (apps/api, packages/template-back-core) — voir
-# `sonar-project.properties` (sonar.javascript.lcov.reportPaths).
+# Branche la couverture Vitest (lcov) de tous les packages qui l'exposent
+# (apps/api, apps/web, packages/template-back-core, packages/template-front-core)
+# — voir `sonar-project.properties` (sonar.javascript.lcov.reportPaths).
+# apps/api utilise `test:coverage:emu` (émulateur Firestore, comme le job
+# `test` de ci.yml) : sans lui, les tests d'intégration s'auto-skippent et
+# la couverture mesurée est artificiellement basse.
 #
 # Nécessite une action manuelle du mainteneur : créer le projet sur
 # sonarcloud.io (import du repo GitHub) et poser le secret `SONAR_TOKEN`
@@ -45,13 +48,21 @@ jobs:
         with:
           node-version-file: .nvmrc
           cache: pnpm
+      # L'émulateur Firestore (test:coverage:emu) tourne sur la JVM.
+      - uses: actions/setup-java@03ad4de0992f5dab5e18fcb136590ce7c4a0ac95 # v5
+        with:
+          distribution: temurin
+          java-version: 21
       - run: pnpm install --frozen-lockfile
 
-      - name: Build du package partagé (importé par l'API)
+      - name: Build du package partagé (importé par l'API et la vitrine)
         run: pnpm --filter @portforyou/shared build
 
-      - name: Couverture — apps/api
-        run: pnpm --filter @portforyou/api test:coverage
+      - name: Couverture — apps/api (avec émulateur Firestore)
+        run: pnpm --filter @portforyou/api test:coverage:emu
+
+      - name: Couverture — apps/web
+        run: pnpm --filter @portforyou/web test:coverage
 
       - name: Couverture — packages/template-back-core
         run: pnpm --filter @portforyou/template-back-core test:coverage

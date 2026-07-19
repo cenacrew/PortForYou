@@ -7,6 +7,7 @@
     "build": "next build",
     "start": "next start -p 3000",
     "test": "vitest run",
+    "test:coverage": "vitest run --coverage",
     "test:e2e": "playwright test"
   },
   "dependencies": {
@@ -31,6 +32,7 @@
     "@types/react": "^19.2.17",
     "@types/three": "^0.185.1",
     "@vitejs/plugin-react": "^6.0.3",
+    "@vitest/coverage-v8": "^4.1.10",
     "jsdom": "^29.1.1",
     "typescript": "^6.0.3",
     "vite": "^8.1.5",

@@ -83,6 +83,39 @@ Exemple : `feat(auth): session refresh rotative + OAuth Google`
 
 ## Signaler un bug ou une faille de sécurité
 
-- Bug fonctionnel : ouvrez une issue GitHub avec les étapes de reproduction.
 - Faille de sécurité : **ne pas** ouvrir d'issue publique — voir
   `SECURITY.md` à la racine pour la procédure de signalement responsable.
+- Bug fonctionnel : ouvrez une [issue GitHub](https://github.com/cenacrew/PortForYou/issues/new)
+  avec le label `bug` et, autant que possible :
+  - les étapes de reproduction (fiche de consignation minimale) ;
+  - le comportement attendu vs observé ;
+  - l'environnement (navigateur, tenant/template concerné, driver
+    fake/réel) ;
+  - une capture d'écran ou un extrait de log si pertinent.
+
+### Cycle de vie d'un bug
+
+1. **Signalement** — issue ouverte avec le label `bug` + `status: à
+qualifier`.
+2. **Qualification** — reproduction confirmée, cause identifiée, et un label
+   de sévérité posé selon l'impact réel :
+   - `severity: critical` — perte de données, faille de sécurité, service
+     indisponible ;
+   - `severity: high` — fonctionnalité clé impactée, pas de contournement
+     simple ;
+   - `severity: medium` — gênant mais contournable, périmètre limité ;
+   - `severity: low` — cosmétique ou edge case rare.
+     Si l'issue n'est pas reproductible ou n'est pas un bug, elle est
+     labellisée `invalid` et fermée avec l'explication.
+3. **Traitement** — passage en `status: en cours` ; le correctif se fait sur
+   une branche dédiée, dans une PR qui référence l'issue (`Fixes #123`) et
+   ajoute un test de non-régression couvrant le cas signalé.
+4. **Vérification** — passage en `status: à vérifier` une fois la PR mergée :
+   le comportement corrigé est reconfirmé (manuellement ou via le test
+   ajouté) avant fermeture de l'issue.
+5. **Clôture** — l'issue est fermée par le merge de la PR qui la référence
+   (fermeture automatique GitHub) ou manuellement une fois la vérification
+   faite.
+
+Exemple réel de ce cycle appliqué à une faille de sécurité (race condition
+sur la confirmation de commande) : voir `docs/SECURITY.md`, section pentest.

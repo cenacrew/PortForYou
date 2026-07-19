@@ -7,16 +7,17 @@ export default defineConfig({
       reporter: ['text', 'lcov'],
       include: ['src/**/*.ts'],
       exclude: ['src/__tests__/**', 'src/index.ts'],
-      // Seuils calés ~2-3 points sous la couverture réelle constatée en local
-      // sans émulateur (les tests *.int.test.ts s'auto-skippent sans Firestore
-      // émulé, d'où des chiffres bas) : Stmts 5.19 / Branch 5.91 / Funcs 3.17 /
-      // Lines 5.61 le 2026-07-17. Objectif : empêcher toute régression sans
-      // casser la CI actuelle. À relever une fois l'émulateur intégré à la CI.
+      // Seuils calés ~2-3 points sous la couverture réelle constatée avec
+      // l'émulateur Firestore connecté (`test:coverage:emu`, seule mesure
+      // représentative — sans émulateur les tests *.int.test.ts s'auto-
+      // skippent et le chiffre est artificiellement bas) : Stmts 51.26 /
+      // Branch 42.22 / Funcs 50.86 / Lines 52.16 le 2026-07-19. Objectif :
+      // empêcher toute régression sans casser la CI actuelle.
       thresholds: {
-        statements: 5,
-        branches: 5,
-        functions: 3,
-        lines: 5,
+        statements: 48,
+        branches: 39,
+        functions: 47,
+        lines: 49,
       },
     },
   },
