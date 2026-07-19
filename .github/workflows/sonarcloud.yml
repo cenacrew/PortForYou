@@ -41,7 +41,7 @@ jobs:
           fetch-depth: 0
 
       - uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271 # v6
-      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
         with:
           node-version-file: .nvmrc
           cache: pnpm
@@ -63,6 +63,6 @@ jobs:
         # Tant que le secret SONAR_TOKEN n'est pas configuré (action manuelle du
         # mainteneur), l'étape est ignorée au lieu d'échouer — le check reste vert.
         if: ${{ env.SONAR_TOKEN != '' }}
-        uses: SonarSource/sonarqube-scan-action@fd88b7d7ccbaefd23d8f36f73b59db7a3d246602 # v6
+        uses: SonarSource/sonarqube-scan-action@22918119ff8e1ca75a623e15c8296b6ea4fbe28f # v8
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
