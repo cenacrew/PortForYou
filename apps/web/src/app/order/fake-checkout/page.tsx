@@ -2,6 +2,7 @@
 
 import { useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { api } from '@/lib/api';
 import styles from '../order.module.css';
 
@@ -10,6 +11,7 @@ import styles from '../order.module.css';
  * Joue le rôle du Stripe Checkout : confirme la commande côté API.
  */
 function FakeCheckout() {
+  const t = useTranslations('OrderFakeCheckout');
   const params = useSearchParams();
   const router = useRouter();
   const orderId = params.get('orderId') ?? '';
@@ -33,25 +35,25 @@ function FakeCheckout() {
 
   return (
     <div className={`container ${styles.wrap}`}>
-      <p className="cartel">Paiement de démonstration — aucun débit réel</p>
-      <h1 className={styles.title}>Simuler le paiement</h1>
+      <p className="cartel">{t('demoNotice')}</p>
+      <h1 className={styles.title}>{t('title')}</h1>
       <dl className={styles.summary}>
         <div className={styles.summaryRow}>
-          <dt>Commande</dt>
+          <dt>{t('orderLabel')}</dt>
           <dd style={{ fontFamily: 'var(--font-cartel)' }}>{orderId || '—'}</dd>
         </div>
         <div className={styles.summaryRow}>
-          <dt>Montant</dt>
-          <dd>6,60 € / mois + consommation (test)</dd>
+          <dt>{t('amountLabel')}</dt>
+          <dd>{t('amountValue')}</dd>
         </div>
       </dl>
       {error && <p className="error-text">{error}</p>}
       <div className={styles.nav}>
         <button className="btn" onClick={() => router.push('/order')}>
-          Annuler
+          {t('cancel')}
         </button>
         <button className="btn btn-primary" disabled={busy || !orderId} onClick={confirm}>
-          {busy ? 'Paiement…' : 'Payer 6,60 €'}
+          {busy ? t('payBusy') : t('pay')}
         </button>
       </div>
     </div>

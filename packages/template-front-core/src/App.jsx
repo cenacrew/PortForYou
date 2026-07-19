@@ -1,4 +1,5 @@
 ﻿import React, { Suspense, lazy } from 'react';
+import './i18n';
 import './App.css';
 import Header from './components/Header';
 import Footer from './components/Footer';

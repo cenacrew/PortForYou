@@ -14,9 +14,11 @@ import {
   MenuItem,
   Box,
 } from '@mui/material';
+import { useTranslation } from 'react-i18next';
 import { techniques, uploadImage, authFetch, apiUrl } from '../../utils';
 
 export default function AddArtworkDialog({ open, onClose, onSaved }) {
+  const { t } = useTranslation();
   const [form, setForm] = useState({
     image: null,
     title: '',
@@ -50,11 +52,11 @@ export default function AddArtworkDialog({ open, onClose, onSaved }) {
     e.preventDefault();
     setError('');
     if (!form.title || !form.technique) {
-      setError('Titre et technique sont requis.');
+      setError(t('addArtworkDialog.errRequiredTitleTechnique'));
       return;
     }
     if (!form.image) {
-      setError('Une image est requise.');
+      setError(t('addArtworkDialog.errRequiredImage'));
       return;
     }
 
@@ -75,11 +77,11 @@ export default function AddArtworkDialog({ open, onClose, onSaved }) {
         }),
       });
       const data = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(data?.error || 'Erreur lors de la creation');
+      if (!res.ok) throw new Error(data?.error || t('addArtworkDialog.errCreate'));
       onSaved?.(data);
       handleClose();
     } catch (err) {
-      setError(err.message || 'Une erreur est survenue');
+      setError(err.message || t('addArtworkDialog.errGeneric'));
     } finally {
       setSubmitting(false);
     }
@@ -87,21 +89,21 @@ export default function AddArtworkDialog({ open, onClose, onSaved }) {
 
   return (
     <Dialog open={open} onClose={handleClose} fullWidth maxWidth="sm">
-      <DialogTitle>Ajouter une oeuvre</DialogTitle>
+      <DialogTitle>{t('addArtworkDialog.title')}</DialogTitle>
       <Box component="form" onSubmit={handleSubmit} noValidate>
         <DialogContent dividers>
           <Stack spacing={2}>
             <Button variant="outlined" component="label">
-              Importer une image
+              {t('addArtworkDialog.importImage')}
               <input hidden accept="image/*" type="file" onChange={handleFile} />
             </Button>
             {form.image && (
               <Typography variant="caption" color="text.secondary">
-                Fichier : {form.image.name}
+                {t('addArtworkDialog.fileLabel', { name: form.image.name })}
               </Typography>
             )}
             <TextField
-              label="Titre"
+              label={t('addArtworkDialog.titleLabel')}
               name="title"
               value={form.title}
               onChange={handleChange}
@@ -109,24 +111,24 @@ export default function AddArtworkDialog({ open, onClose, onSaved }) {
               fullWidth
             />
             <FormControl fullWidth required>
-              <InputLabel id="technique-label">Technique</InputLabel>
+              <InputLabel id="technique-label">{t('addArtworkDialog.techniqueLabel')}</InputLabel>
               <Select
                 labelId="technique-label"
-                label="Technique"
+                label={t('addArtworkDialog.techniqueLabel')}
                 name="technique"
                 value={form.technique}
                 onChange={handleChange}
               >
-                {techniques.map((t) => (
-                  <MenuItem key={t.value} value={t.value}>
-                    {t.label}
+                {techniques.map((tech) => (
+                  <MenuItem key={tech.value} value={tech.value}>
+                    {t(`techniques.${tech.value}`)}
                   </MenuItem>
                 ))}
               </Select>
             </FormControl>
             <Stack direction="row" spacing={1} alignItems="center">
               <TextField
-                label="Hauteur (cm)"
+                label={t('addArtworkDialog.heightLabel')}
                 name="height"
                 value={form.height}
                 onChange={handleChange}
@@ -135,7 +137,7 @@ export default function AddArtworkDialog({ open, onClose, onSaved }) {
               />
               <Typography variant="body2">x</Typography>
               <TextField
-                label="Largeur (cm)"
+                label={t('addArtworkDialog.widthLabel')}
                 name="width"
                 value={form.width}
                 onChange={handleChange}
@@ -144,7 +146,7 @@ export default function AddArtworkDialog({ open, onClose, onSaved }) {
               />
             </Stack>
             <TextField
-              label="Annee"
+              label={t('addArtworkDialog.yearLabel')}
               name="year"
               value={form.year}
               onChange={handleChange}
@@ -153,7 +155,7 @@ export default function AddArtworkDialog({ open, onClose, onSaved }) {
               fullWidth
             />
             <TextField
-              label="Commentaire (optionnel)"
+              label={t('addArtworkDialog.commentLabel')}
               name="comment"
               value={form.comment}
               onChange={handleChange}
@@ -169,9 +171,9 @@ export default function AddArtworkDialog({ open, onClose, onSaved }) {
           </Stack>
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleClose}>Annuler</Button>
+          <Button onClick={handleClose}>{t('addArtworkDialog.cancel')}</Button>
           <Button type="submit" variant="contained" disabled={submitting}>
-            {submitting ? 'Sauvegarde...' : 'Sauvegarder'}
+            {submitting ? t('addArtworkDialog.saving') : t('addArtworkDialog.save')}
           </Button>
         </DialogActions>
       </Box>

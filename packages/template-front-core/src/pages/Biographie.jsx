@@ -1,16 +1,14 @@
 ﻿import React from 'react';
 import { Box, Container, Typography, CircularProgress } from '@mui/material';
+import { useTranslation } from 'react-i18next';
 import { useSiteConfig } from '../contexts/SiteConfigContext';
 
-const DEFAULT_TEXT = `Ceci est un court texte de présentation. Remplacez-le par votre propre biographie: vos débuts, influences, thèmes de travail et étapes marquantes.
-
-Ajoutez quelques lignes sur votre démarche artistique, votre manière de créer et ce qui vous inspire au quotidien.`;
-
 export default function Biographie() {
+  const { t } = useTranslation();
   const config = useSiteConfig();
 
   const imageUrl = config?.biographyImageUrl || '/placeholder-portrait.svg';
-  const text = config?.biographyText || DEFAULT_TEXT;
+  const text = config?.biographyText || t('biography.defaultText');
 
   if (!config) {
     return (
@@ -23,14 +21,14 @@ export default function Biographie() {
   return (
     <Container maxWidth="md" sx={{ py: 6 }}>
       <Typography variant="h3" component="h1" fontWeight={700} gutterBottom>
-        Biographie
+        {t('biography.heading')}
       </Typography>
 
       <Box>
         <Box
           component="img"
           src={imageUrl}
-          alt="Portrait"
+          alt={t('biography.portraitAlt')}
           sx={{
             float: 'left',
             width: { xs: 140, sm: 200, md: 260 },

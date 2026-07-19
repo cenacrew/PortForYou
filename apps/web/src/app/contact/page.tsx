@@ -2,18 +2,13 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
 import { API_URL } from '@/lib/api';
 import styles from './contact.module.css';
 
-const PROJECT_TYPES = [
-  'Portfolio artiste',
-  'Site vitrine',
-  'Boutique / e-commerce',
-  'Refonte de site existant',
-  'Autre',
-];
-
 export default function ContactPage() {
+  const t = useTranslations('Contact');
+  const PROJECT_TYPES = t.raw('projectTypes') as string[];
   const [form, setForm] = useState({
     name: '',
     email: '',
@@ -41,7 +36,7 @@ export default function ContactPage() {
       });
       if (!res.ok) {
         const data = (await res.json().catch(() => ({}))) as { error?: string };
-        throw new Error(data.error ?? 'Envoi impossible, réessayez.');
+        throw new Error(data.error ?? t('sendError'));
       }
       setStatus('sent');
     } catch (err) {
@@ -58,26 +53,22 @@ export default function ContactPage() {
             <span className={styles.badge} aria-hidden>
               ✉️
             </span>
-            <h1>Demande envoyée.</h1>
-            <p className="cartel">
-              Merci {form.name.split(' ')[0]} — on revient vers vous très vite avec une proposition
-              sur mesure.
-            </p>
+            <h1>{t('successTitle')}</h1>
+            <p className="cartel">{t('successMessage', { name: form.name.split(' ')[0] })}</p>
             <Link href="/templates" className="btn">
-              Revoir les templates
+              {t('viewTemplates')}
             </Link>
           </div>
         ) : (
           <>
-            <h1>Un projet sur mesure ?</h1>
+            <h1>{t('title')}</h1>
             <p className={styles.intro}>
-              Vous ne trouvez pas votre bonheur dans nos templates ? Décrivez votre projet et on
-              vous prépare un <strong>devis personnalisé</strong>, sans engagement.
+              {t.rich('intro', { strong: (chunks) => <strong>{chunks}</strong> })}
             </p>
             <form onSubmit={submit}>
               <div className={styles.row}>
                 <div className="field">
-                  <label htmlFor="name">Votre nom</label>
+                  <label htmlFor="name">{t('nameLabel')}</label>
                   <input
                     id="name"
                     required
@@ -87,7 +78,7 @@ export default function ContactPage() {
                   />
                 </div>
                 <div className="field">
-                  <label htmlFor="email">Email</label>
+                  <label htmlFor="email">{t('emailLabel')}</label>
                   <input
                     id="email"
                     type="email"
@@ -100,29 +91,29 @@ export default function ContactPage() {
               </div>
               <div className={styles.row}>
                 <div className="field">
-                  <label htmlFor="projectType">Type de projet</label>
+                  <label htmlFor="projectType">{t('projectTypeLabel')}</label>
                   <select id="projectType" value={form.projectType} onChange={set('projectType')}>
-                    <option value="">— Sélectionnez —</option>
-                    {PROJECT_TYPES.map((t) => (
-                      <option key={t} value={t}>
-                        {t}
+                    <option value="">{t('selectPlaceholder')}</option>
+                    {PROJECT_TYPES.map((type) => (
+                      <option key={type} value={type}>
+                        {type}
                       </option>
                     ))}
                   </select>
                 </div>
                 <div className="field">
-                  <label htmlFor="budget">Budget indicatif (optionnel)</label>
+                  <label htmlFor="budget">{t('budgetLabel')}</label>
                   <input
                     id="budget"
                     maxLength={60}
-                    placeholder="ex. 500 – 1000 €"
+                    placeholder={t('budgetPlaceholder')}
                     value={form.budget}
                     onChange={set('budget')}
                   />
                 </div>
               </div>
               <div className="field">
-                <label htmlFor="message">Votre projet en quelques mots</label>
+                <label htmlFor="message">{t('messageLabel')}</label>
                 <textarea
                   id="message"
                   required
@@ -140,7 +131,7 @@ export default function ContactPage() {
                 disabled={status === 'sending'}
                 style={{ width: '100%', justifyContent: 'center' }}
               >
-                {status === 'sending' ? 'Envoi…' : 'Demander un devis'}
+                {status === 'sending' ? t('submitBusy') : t('submit')}
               </button>
             </form>
           </>

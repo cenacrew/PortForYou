@@ -1,5 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
+import { NextIntlClientProvider } from 'next-intl';
+import messages from '../../../messages/fr.json';
 
 const replace = vi.fn();
 vi.mock('next/navigation', () => ({
@@ -14,6 +16,14 @@ vi.mock('@/lib/auth', () => ({
 
 const { RequireAuth } = await import('../RequireAuth');
 
+function renderWithIntl(ui: React.ReactElement) {
+  return render(
+    <NextIntlClientProvider locale="fr" messages={messages}>
+      {ui}
+    </NextIntlClientProvider>,
+  );
+}
+
 beforeEach(() => {
   replace.mockReset();
   authState.user = null;
@@ -23,7 +33,7 @@ beforeEach(() => {
 
 describe('RequireAuth', () => {
   it('redirige vers /login quand non connecté', () => {
-    render(
+    renderWithIntl(
       <RequireAuth>
         <p>contenu privé</p>
       </RequireAuth>,
@@ -34,7 +44,7 @@ describe('RequireAuth', () => {
 
   it('affiche les enfants quand connecté', () => {
     authState.user = { uid: 'u1' };
-    render(
+    renderWithIntl(
       <RequireAuth>
         <p>contenu privé</p>
       </RequireAuth>,
@@ -45,7 +55,7 @@ describe('RequireAuth', () => {
 
   it('renvoie un non-admin vers /dashboard sur les pages admin', () => {
     authState.user = { uid: 'u1' };
-    render(
+    renderWithIntl(
       <RequireAuth admin>
         <p>zone admin</p>
       </RequireAuth>,
@@ -56,7 +66,7 @@ describe('RequireAuth', () => {
 
   it("n'affiche rien pendant le chargement de l'auth", () => {
     authState.loading = true;
-    render(
+    renderWithIntl(
       <RequireAuth>
         <p>contenu privé</p>
       </RequireAuth>,

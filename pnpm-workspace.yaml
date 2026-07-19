@@ -19,7 +19,9 @@ overrides:
 # et codegen légitimes, requis pour esbuild/vitest, sharp (images Next), etc.
 allowBuilds:
   '@firebase/util': true
+  '@parcel/watcher': true
   '@sentry/cli': true
+  '@swc/core': true
   esbuild: true
   protobufjs: true
   re2: true

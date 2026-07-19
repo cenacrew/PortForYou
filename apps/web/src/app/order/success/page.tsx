@@ -1,7 +1,9 @@
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
 
 /** Retour du Stripe Checkout réel (mode test). */
 export default function OrderSuccess() {
+  const t = useTranslations('OrderSuccess');
   return (
     <section className="section">
       <div className="container" style={{ maxWidth: 560, textAlign: 'center' }}>
@@ -9,14 +11,11 @@ export default function OrderSuccess() {
           className="display"
           style={{ fontSize: 'clamp(2rem, 5vw, 3.2rem)', marginBottom: '1rem' }}
         >
-          Merci, c’est parti.
+          {t('title')}
         </h1>
-        <p style={{ marginBottom: '2rem' }}>
-          Votre paiement est confirmé : le déploiement de votre portfolio démarre. Suivez sa
-          progression en direct depuis votre espace.
-        </p>
+        <p style={{ marginBottom: '2rem' }}>{t('message')}</p>
         <Link href="/dashboard" className="btn btn-primary">
-          Suivre mon déploiement
+          {t('cta')}
         </Link>
       </div>
     </section>

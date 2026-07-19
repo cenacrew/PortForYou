@@ -1,8 +1,10 @@
 import React, { useState, useRef } from 'react';
 import { Box, Button } from '@mui/material';
+import { useTranslation } from 'react-i18next';
 import CropDialog from './CropDialog';
 
 export default function ImageUploadField({ label, aspect, currentUrl, onBlob, cropTitle }) {
+  const { t } = useTranslation();
   const inputRef = useRef(null);
   const [rawSrc, setRawSrc] = useState(null);
   const [cropOpen, setCropOpen] = useState(false);
@@ -45,7 +47,7 @@ export default function ImageUploadField({ label, aspect, currentUrl, onBlob, cr
         <Box sx={{ height: 100, bgcolor: 'action.hover', borderRadius: 1 }} />
       )}
       <Button variant="outlined" size="small" onClick={() => inputRef.current?.click()}>
-        {label || 'Choisir une image'}
+        {label || t('imageUploadField.defaultLabel')}
       </Button>
       <input ref={inputRef} hidden type="file" accept="image/*" onChange={handleFileChange} />
       <CropDialog

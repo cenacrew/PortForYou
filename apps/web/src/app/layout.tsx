@@ -1,5 +1,7 @@
 import type { Metadata } from 'next';
 import { Fraunces, Instrument_Sans, IBM_Plex_Mono } from 'next/font/google';
+import { NextIntlClientProvider } from 'next-intl';
+import { getLocale, getMessages } from 'next-intl/server';
 import './globals.css';
 import { LenisProvider } from '@/components/LenisProvider';
 import { AuthProvider } from '@/lib/auth';
@@ -44,22 +46,27 @@ export const metadata: Metadata = {
   robots: { index: true, follow: true },
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const locale = await getLocale();
+  const messages = await getMessages();
+
   return (
     <html
-      lang="fr"
+      lang={locale}
       className={`${fraunces.variable} ${instrument.variable} ${plexMono.variable}`}
       data-scroll-behavior="smooth"
       suppressHydrationWarning
     >
       <body>
-        <AuthProvider>
-          <LenisProvider>
-            <Header />
-            <main>{children}</main>
-            <Footer />
-          </LenisProvider>
-        </AuthProvider>
+        <NextIntlClientProvider messages={messages}>
+          <AuthProvider>
+            <LenisProvider>
+              <Header />
+              <main>{children}</main>
+              <Footer />
+            </LenisProvider>
+          </AuthProvider>
+        </NextIntlClientProvider>
       </body>
     </html>
   );

@@ -1,4 +1,5 @@
 import { ImageResponse } from 'next/og';
+import { getTranslations } from 'next-intl/server';
 import { SITE_NAME } from '@/lib/site';
 
 // Image Open Graph par défaut de la vitrine (1200×630), générée à la build.
@@ -9,7 +10,8 @@ export const alt = "Port'ForYou — Portfolios pour artistes visuels";
 export const size = { width: 1200, height: 630 };
 export const contentType = 'image/png';
 
-export default function OpengraphImage() {
+export default async function OpengraphImage() {
+  const t = await getTranslations('OpengraphImage');
   return new ImageResponse(
     <div
       style={{
@@ -37,11 +39,11 @@ export default function OpengraphImage() {
           marginTop: 24,
         }}
       >
-        <span>Portfolios pour</span>
-        <span>artistes visuels</span>
+        <span>{t('titleLine1')}</span>
+        <span>{t('titleLine2')}</span>
       </div>
       <div style={{ fontSize: 32, opacity: 0.8, marginTop: 36, maxWidth: 900 }}>
-        Une template, un nom de site — votre portfolio en ligne en quelques minutes.
+        {t('description')}
       </div>
     </div>,
     size,

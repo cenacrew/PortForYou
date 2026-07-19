@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, afterEach } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
+import '../i18n';
 import Galerie from '../pages/Galerie';
 import { DesignSystemProvider } from '../design-system/DesignSystemContext';
 

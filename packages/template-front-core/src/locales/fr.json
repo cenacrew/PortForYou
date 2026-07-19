@@ -1,0 +1,244 @@
+{
+  "nav": {
+    "home": "Accueil",
+    "biography": "Biographie",
+    "gallery": "Galerie",
+    "press": "Presse",
+    "contact": "Contact"
+  },
+  "footer": {
+    "rights": "© {{year}} {{name}}. Tous droits réservés.",
+    "reproduction": "Reproduction interdite sans autorisation."
+  },
+  "localeSwitcher": {
+    "label": "Langue",
+    "fr": "FR",
+    "en": "EN"
+  },
+  "techniques": {
+    "mixed_canvas": "Techniques mixtes sur toile",
+    "mixed_paper": "Techniques mixtes sur papier",
+    "watercolor_pastel": "Aquarelles et Pastels",
+    "drawing": "Dessins et Croquis",
+    "illustration_edition": "Illustrations d'edition",
+    "illustration_poster": "Illustrations d'affiches"
+  },
+  "utils": {
+    "sessionExpired": "Session expirée, veuillez vous reconnecter",
+    "uploadFailed": "Échec de l'upload",
+    "saveFailed": "Sauvegarde échouée"
+  },
+  "home": {
+    "scrollAria": "Scroll vers la galerie",
+    "galleryHeading": "Galerie",
+    "newsHeading": "Actualités",
+    "biographyHeading": "Biographie",
+    "pressHeading": "Presse",
+    "viewAllPress": "Voir toute la presse",
+    "defaultBiographyText": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.",
+    "portraitAlt": "Portrait",
+    "newsItemLearnMore": "En savoir plus",
+    "pressTypes": {
+      "article": "Article",
+      "video": "Video",
+      "interview": "Interview"
+    },
+    "contactSection": {
+      "title": "Contact",
+      "sentTitle": "Message envoyé",
+      "sentBody": "Merci, je vous répondrai dans les plus brefs délais.",
+      "nameLabel": "Nom",
+      "emailLabel": "Email",
+      "messageLabel": "Message",
+      "send": "Envoyer",
+      "emailOverline": "Email",
+      "socialsOverline": "Retrouvez l artiste sur"
+    }
+  },
+  "biography": {
+    "heading": "Biographie",
+    "portraitAlt": "Portrait",
+    "defaultText": "Ceci est un court texte de présentation. Remplacez-le par votre propre biographie: vos débuts, influences, thèmes de travail et étapes marquantes.\n\nAjoutez quelques lignes sur votre démarche artistique, votre manière de créer et ce qui vous inspire au quotidien."
+  },
+  "gallery": {
+    "heading": "Galerie",
+    "backToGallery": "Toute la galerie",
+    "loadError": "Erreur de chargement",
+    "noArtworks": "Aucune oeuvre pour le moment."
+  },
+  "artworkInfo": {
+    "defaultTitle": "Oeuvre",
+    "techniqueLabel": "Technique : ",
+    "dimensionsLabel": "Dimensions : ",
+    "dimensionsValue": "{{height}} × {{width}} cm",
+    "yearLabel": "Année : ",
+    "commentLabel": "Commentaire"
+  },
+  "press": {
+    "heading": "Presse",
+    "demoArticles": [
+      { "title": "Interview exclusive", "source": "Le Journal" },
+      { "title": "Exposition majeure", "source": "Art & Culture" },
+      { "title": "Parcours et influences", "source": "Magazine Créatif" }
+    ]
+  },
+  "contact": {
+    "heading": "Contact",
+    "sentAlert": "Votre message a bien été envoyé, merci !",
+    "genericSendError": "L'envoi a échoué, réessayez plus tard.",
+    "nameLabel": "Nom",
+    "emailLabel": "Email",
+    "messageLabel": "Message",
+    "send": "Envoyer",
+    "sending": "Envoi…"
+  },
+  "adminLogin": {
+    "title": "Administration",
+    "subtitle": "Connectez-vous pour acceder au back office.",
+    "emailLabel": "Email",
+    "passwordLabel": "Mot de passe",
+    "loginError": "Connexion echouee",
+    "loggingIn": "Connexion...",
+    "loginButton": "Se connecter"
+  },
+  "backOffice": {
+    "navArtworks": "Oeuvres",
+    "navNews": "Actualites",
+    "navConfig": "Contenu du site",
+    "adminOverline": "Administration",
+    "logout": "Deconnexion",
+    "addArtwork": "Ajouter une oeuvre",
+    "noArtworks": "Aucune oeuvre pour l instant."
+  },
+  "addArtworkDialog": {
+    "title": "Ajouter une oeuvre",
+    "importImage": "Importer une image",
+    "fileLabel": "Fichier : {{name}}",
+    "titleLabel": "Titre",
+    "techniqueLabel": "Technique",
+    "heightLabel": "Hauteur (cm)",
+    "widthLabel": "Largeur (cm)",
+    "yearLabel": "Annee",
+    "commentLabel": "Commentaire (optionnel)",
+    "cancel": "Annuler",
+    "saving": "Sauvegarde...",
+    "save": "Sauvegarder",
+    "errRequiredTitleTechnique": "Titre et technique sont requis.",
+    "errRequiredImage": "Une image est requise.",
+    "errCreate": "Erreur lors de la creation",
+    "errGeneric": "Une erreur est survenue"
+  },
+  "editArtworkDialog": {
+    "title": "Modifier l oeuvre",
+    "changeImage": "Changer l image",
+    "replaceMainImage": "Remplacer l image principale",
+    "newFileLabel": "Nouveau fichier : {{name}}",
+    "titleLabel": "Titre",
+    "techniqueLabel": "Technique",
+    "heightLabel": "Hauteur",
+    "widthLabel": "Largeur",
+    "yearLabel": "Annee",
+    "commentLabel": "Commentaire (optionnel)",
+    "extraImages": "Images supplementaires",
+    "cancel": "Annuler",
+    "saving": "Sauvegarde...",
+    "save": "Sauvegarder",
+    "deleting": "Suppression...",
+    "confirmDelete": "Confirmer la suppression",
+    "delete": "Supprimer",
+    "errRequiredTitleTechnique": "Titre et technique sont requis.",
+    "errUpdate": "Erreur lors de la mise a jour",
+    "errDelete": "Erreur de suppression",
+    "errGeneric": "Une erreur est survenue"
+  },
+  "colorPickerField": {
+    "recentLabel": "Récentes :",
+    "closeToSave": "Fermer pour sauvegarder dans les récentes"
+  },
+  "cropDialog": {
+    "defaultTitle": "Recadrer l'image",
+    "zoomLabel": "Zoom",
+    "cancel": "Annuler",
+    "confirm": "Confirmer le recadrage"
+  },
+  "imageUploadField": {
+    "defaultLabel": "Choisir une image"
+  },
+  "newsPanel": {
+    "count_one": "{{count}} actualite",
+    "count_other": "{{count}} actualites",
+    "addNews": "Ajouter une actualite",
+    "emptyState": "Aucune actualite. Cliquez sur Ajouter pour commencer.",
+    "newItemDefaultTitle": "Nouvelle actualite",
+    "titleLabel": "Titre *",
+    "startDateLabel": "Date de debut *",
+    "endDateLabel": "Date de fin (optionnel)",
+    "locationLabel": "Lieu",
+    "locationPlaceholder": "Galerie XY, 12 rue de la Paix, Paris",
+    "descriptionLabel": "Description (optionnel)",
+    "linkLabel": "Lien externe (optionnel)",
+    "linkPlaceholder": "https://...",
+    "imageHelper": "Image (optionnel, 16:9)",
+    "chooseImage": "Choisir une image",
+    "cropTitle": "Recadrer l image (16:9)",
+    "save": "Sauvegarder",
+    "saving": "Sauvegarde...",
+    "saveSuccess": "Sauvegarde avec succes"
+  },
+  "siteConfigPanel": {
+    "seo": {
+      "heading": "Référencement (SEO)",
+      "siteNameLabel": "Nom du site / de l'artiste",
+      "siteNamePlaceholder": "Prénom Nom",
+      "siteNameHelper": "Utilisé dans le titre des pages et le partage sur les réseaux.",
+      "descriptionLabel": "Description du site",
+      "descriptionPlaceholder": "Portfolio d'artiste visuel — œuvres, biographie, presse…",
+      "descriptionHelper": "Résumé affiché dans les résultats de recherche (≈ 160 caractères)."
+    },
+    "save": "Sauvegarder",
+    "saving": "Sauvegarde...",
+    "hero": {
+      "heading": "Image de la page d'accueil (Hero)",
+      "chooseImage": "Choisir l'image hero",
+      "cropTitle": "Recadrer le hero (16:9)"
+    },
+    "techniquesSection": {
+      "heading": "Images des techniques (Galerie)",
+      "choose": "Choisir",
+      "cropTitle": "Recadrer — {{label}} (1:1)",
+      "save": "Sauvegarder les images"
+    },
+    "biographySection": {
+      "heading": "Biographie",
+      "photoLabel": "Photo",
+      "choosePhoto": "Choisir la photo",
+      "cropTitle": "Recadrer la photo de biographie (1:1)",
+      "textLabel": "Texte de la biographie"
+    },
+    "pressSection": {
+      "heading": "Articles de presse",
+      "articleLabel": "Article {{n}}",
+      "typeLabel": "Type",
+      "dateLabel": "Date",
+      "titleLabel": "Titre",
+      "sourceLabel": "Source / Publication",
+      "urlLabel": "URL (optionnel)",
+      "addArticle": "Ajouter un article",
+      "save": "Sauvegarder la presse"
+    },
+    "contactSection": {
+      "heading": "Contact & Réseaux sociaux",
+      "emailLabel": "Email de contact",
+      "emailPlaceholder": "artiste@exemple.com",
+      "instagramLabel": "URL Instagram",
+      "instagramPlaceholder": "https://instagram.com/...",
+      "facebookLabel": "URL Facebook",
+      "facebookPlaceholder": "https://facebook.com/..."
+    },
+    "colorsSection": {
+      "heading": "Couleurs du site",
+      "bgLabel": "Couleur de fond",
+      "contentLabel": "Couleur du contenu"
+    }
+  }
+}

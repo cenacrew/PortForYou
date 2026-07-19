@@ -2,6 +2,7 @@
 
 import { lazy, Suspense, useEffect, useState } from 'react';
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
 import styles from './Hero.module.css';
 
 const VeilCanvas = lazy(() => import('./VeilCanvas'));
@@ -18,6 +19,7 @@ function useCanvasAllowed() {
 }
 
 export function Hero() {
+  const t = useTranslations('Hero');
   const canvasAllowed = useCanvasAllowed();
 
   return (
@@ -29,27 +31,24 @@ export function Hero() {
       )}
       <div className={styles.fallback} aria-hidden data-hidden={canvasAllowed || undefined} />
       <div className={`container ${styles.content}`}>
-        <p className="cartel">Port’ForYou — plateforme de portfolios, est. 2026</p>
+        <p className="cartel">{t('eyebrow')}</p>
         <h1 className={`display ${styles.title}`}>
-          Votre art mérite
+          {t('titleLine1')}
           <br />
-          mieux qu’un template.
+          {t('titleLine2')}
         </h1>
-        <p className={styles.sub}>
-          Un portfolio professionnel, pensé pour les artistes visuels : galerie par technique,
-          back-office complet, en ligne en quelques minutes.
-        </p>
+        <p className={styles.sub}>{t('subtitle')}</p>
         <div className={styles.ctas}>
           <Link href="/templates" className="btn btn-primary">
-            Découvrir les templates
+            {t('ctaTemplates')}
           </Link>
           <Link href="/#comment" className="btn">
-            Comment ça marche
+            {t('ctaHow')}
           </Link>
         </div>
       </div>
       <p className={`cartel ${styles.scrollHint}`} aria-hidden>
-        Défiler ↓
+        {t('scrollHint')}
       </p>
     </section>
   );

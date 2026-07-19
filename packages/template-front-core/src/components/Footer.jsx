@@ -1,7 +1,9 @@
 import React from 'react';
 import { Box, Typography } from '@mui/material';
+import { useTranslation } from 'react-i18next';
 
 export default function Footer() {
+  const { t } = useTranslation();
   return (
     <Box
       component="footer"
@@ -18,10 +20,10 @@ export default function Footer() {
       }}
     >
       <Typography variant="caption" color="text.disabled">
-        © {new Date().getFullYear()} Prénom Nom. Tous droits réservés.
+        {t('footer.rights', { year: new Date().getFullYear(), name: 'Prénom Nom' })}
       </Typography>
       <Typography variant="caption" color="text.disabled">
-        Reproduction interdite sans autorisation.
+        {t('footer.reproduction')}
       </Typography>
     </Box>
   );

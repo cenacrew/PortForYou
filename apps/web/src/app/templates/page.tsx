@@ -1,29 +1,33 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
+import { getTranslations } from 'next-intl/server';
 import { TemplateCard } from '@/components/TemplateCard';
 import { TEMPLATES } from '@/lib/templates';
 
-export const metadata: Metadata = {
-  title: 'Templates',
-  description:
-    'Parcourez la collection de templates de portfolio Port’ForYou — galerie, biographie, ' +
-    'presse, back-office. Trouvez celle qui ressemble à votre travail.',
-  alternates: { canonical: '/templates' },
-  openGraph: {
-    type: 'website',
-    title: "Templates — Port'ForYou",
-    description: 'La collection de templates de portfolio pour artistes visuels.',
-    url: '/templates',
-  },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations('Templates');
+  return {
+    title: t('metaTitle'),
+    description: t('metaDescription'),
+    alternates: { canonical: '/templates' },
+    openGraph: {
+      type: 'website',
+      title: t('ogTitle'),
+      description: t('ogDescription'),
+      url: '/templates',
+    },
+  };
+}
 
 export default function TemplatesPage() {
+  const t = useTranslations('Templates');
   return (
     <section className="section">
       <div className="container">
         <div className="section-head">
-          <h2>La collection</h2>
-          <p className="cartel">{TEMPLATES.length} templates — toutes fonctionnalités incluses</p>
+          <h2>{t('title')}</h2>
+          <p className="cartel">{t('subtitle', { count: TEMPLATES.length })}</p>
         </div>
         <div
           style={{
@@ -47,13 +51,11 @@ export default function TemplatesPage() {
           }}
         >
           <p className="display" style={{ fontSize: '1.6rem' }}>
-            Vous ne trouvez pas votre bonheur ?
+            {t('notFoundTitle')}
           </p>
-          <p className="cartel">
-            On conçoit votre site sur mesure — devis personnalisé, sans engagement.
-          </p>
+          <p className="cartel">{t('notFoundSubtitle')}</p>
           <Link href="/contact" className="btn btn-primary">
-            Demander un devis →
+            {t('requestQuote')}
           </Link>
         </div>
       </div>

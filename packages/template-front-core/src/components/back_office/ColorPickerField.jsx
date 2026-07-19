@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { HexColorPicker } from 'react-colorful';
 import { Box, Typography, Popover, Tooltip } from '@mui/material';
+import { useTranslation } from 'react-i18next';
 
 const MAX_RECENT = 5;
 
@@ -18,6 +19,7 @@ function saveRecent(category, color) {
 }
 
 export default function ColorPickerField({ label, value, onChange, category }) {
+  const { t } = useTranslation();
   const [anchorEl, setAnchorEl] = useState(null);
   const [recent, setRecent] = useState(() => getRecent(category));
 
@@ -66,7 +68,7 @@ export default function ColorPickerField({ label, value, onChange, category }) {
       {recent.length > 0 && (
         <Box sx={{ display: 'flex', gap: 1, mt: 1.5, flexWrap: 'wrap', alignItems: 'center' }}>
           <Typography variant="caption" color="text.disabled" sx={{ mr: 0.5 }}>
-            Récentes :
+            {t('colorPickerField.recentLabel')}
           </Typography>
           {recent.map((c) => (
             <Tooltip key={c} title={c}>
@@ -104,7 +106,7 @@ export default function ColorPickerField({ label, value, onChange, category }) {
             display="block"
             sx={{ mt: 1, textAlign: 'center' }}
           >
-            Fermer pour sauvegarder dans les récentes
+            {t('colorPickerField.closeToSave')}
           </Typography>
         </Box>
       </Popover>

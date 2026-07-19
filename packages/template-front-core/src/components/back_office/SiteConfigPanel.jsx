@@ -15,6 +15,7 @@ import {
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import DeleteIcon from '@mui/icons-material/Delete';
 import AddIcon from '@mui/icons-material/Add';
+import { useTranslation } from 'react-i18next';
 import ImageUploadField from './ImageUploadField';
 import ColorPickerField from './ColorPickerField';
 import { techniques, uploadImage, saveSiteConfig, apiUrl } from '../../utils';
@@ -22,6 +23,7 @@ import { techniques, uploadImage, saveSiteConfig, apiUrl } from '../../utils';
 const PRESS_TYPES = ['article', 'video', 'interview'];
 
 export default function SiteConfigPanel() {
+  const { t } = useTranslation();
   const [config, setConfig] = useState(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState({});
@@ -191,29 +193,29 @@ export default function SiteConfigPanel() {
       {/* Référencement (SEO) */}
       <Accordion>
         <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-          <Typography fontWeight={600}>Référencement (SEO)</Typography>
+          <Typography fontWeight={600}>{t('siteConfigPanel.seo.heading')}</Typography>
         </AccordionSummary>
         <AccordionDetails>
           <Stack spacing={2} sx={{ maxWidth: 480 }}>
             <TextField
-              label="Nom du site / de l'artiste"
+              label={t('siteConfigPanel.seo.siteNameLabel')}
               value={config.siteName || ''}
               onChange={(e) => setConfig((c) => ({ ...c, siteName: e.target.value }))}
               size="small"
               fullWidth
-              placeholder="Prénom Nom"
-              helperText="Utilisé dans le titre des pages et le partage sur les réseaux."
+              placeholder={t('siteConfigPanel.seo.siteNamePlaceholder')}
+              helperText={t('siteConfigPanel.seo.siteNameHelper')}
             />
             <TextField
-              label="Description du site"
+              label={t('siteConfigPanel.seo.descriptionLabel')}
               value={config.siteDescription || ''}
               onChange={(e) => setConfig((c) => ({ ...c, siteDescription: e.target.value }))}
               size="small"
               fullWidth
               multiline
               minRows={2}
-              placeholder="Portfolio d'artiste visuel — œuvres, biographie, presse…"
-              helperText="Résumé affiché dans les résultats de recherche (≈ 160 caractères)."
+              placeholder={t('siteConfigPanel.seo.descriptionPlaceholder')}
+              helperText={t('siteConfigPanel.seo.descriptionHelper')}
             />
             {errors.seo && (
               <Typography color="error" variant="caption">
@@ -226,7 +228,7 @@ export default function SiteConfigPanel() {
               onClick={saveSeo}
               disabled={saving.seo}
             >
-              {saving.seo ? 'Sauvegarde...' : 'Sauvegarder'}
+              {saving.seo ? t('siteConfigPanel.saving') : t('siteConfigPanel.save')}
             </Button>
           </Stack>
         </AccordionDetails>
@@ -235,16 +237,16 @@ export default function SiteConfigPanel() {
       {/* Hero */}
       <Accordion defaultExpanded>
         <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-          <Typography fontWeight={600}>Image de la page d'accueil (Hero)</Typography>
+          <Typography fontWeight={600}>{t('siteConfigPanel.hero.heading')}</Typography>
         </AccordionSummary>
         <AccordionDetails>
           <Box sx={{ maxWidth: 480 }}>
             <ImageUploadField
-              label="Choisir l'image hero"
+              label={t('siteConfigPanel.hero.chooseImage')}
               aspect={16 / 9}
               currentUrl={config.heroImageUrl}
               onBlob={setHeroBlob}
-              cropTitle="Recadrer le hero (16:9)"
+              cropTitle={t('siteConfigPanel.hero.cropTitle')}
             />
             {errors.hero && (
               <Typography color="error" variant="caption" display="block" sx={{ mt: 1 }}>
@@ -252,7 +254,7 @@ export default function SiteConfigPanel() {
               </Typography>
             )}
             <Button variant="contained" sx={{ mt: 2 }} onClick={saveHero} disabled={saving.hero}>
-              {saving.hero ? 'Sauvegarde...' : 'Sauvegarder'}
+              {saving.hero ? t('siteConfigPanel.saving') : t('siteConfigPanel.save')}
             </Button>
           </Box>
         </AccordionDetails>
@@ -261,7 +263,7 @@ export default function SiteConfigPanel() {
       {/* Techniques */}
       <Accordion>
         <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-          <Typography fontWeight={600}>Images des techniques (Galerie)</Typography>
+          <Typography fontWeight={600}>{t('siteConfigPanel.techniquesSection.heading')}</Typography>
         </AccordionSummary>
         <AccordionDetails>
           <Box
@@ -271,20 +273,23 @@ export default function SiteConfigPanel() {
               gap: 3,
             }}
           >
-            {techniques.map(({ value, label }) => (
-              <Box key={value}>
-                <Typography variant="caption" fontWeight={600} display="block" sx={{ mb: 1 }}>
-                  {label}
-                </Typography>
-                <ImageUploadField
-                  label="Choisir"
-                  aspect={1}
-                  currentUrl={config.techniqueImages?.[value]}
-                  onBlob={(blob) => setTechniqueBlobs((b) => ({ ...b, [value]: blob }))}
-                  cropTitle={`Recadrer — ${label} (1:1)`}
-                />
-              </Box>
-            ))}
+            {techniques.map(({ value }) => {
+              const label = t(`techniques.${value}`);
+              return (
+                <Box key={value}>
+                  <Typography variant="caption" fontWeight={600} display="block" sx={{ mb: 1 }}>
+                    {label}
+                  </Typography>
+                  <ImageUploadField
+                    label={t('siteConfigPanel.techniquesSection.choose')}
+                    aspect={1}
+                    currentUrl={config.techniqueImages?.[value]}
+                    onBlob={(blob) => setTechniqueBlobs((b) => ({ ...b, [value]: blob }))}
+                    cropTitle={t('siteConfigPanel.techniquesSection.cropTitle', { label })}
+                  />
+                </Box>
+              );
+            })}
           </Box>
           {errors.techniques && (
             <Typography color="error" variant="caption" display="block" sx={{ mt: 2 }}>
@@ -297,7 +302,9 @@ export default function SiteConfigPanel() {
             onClick={saveTechniques}
             disabled={saving.techniques}
           >
-            {saving.techniques ? 'Sauvegarde...' : 'Sauvegarder les images'}
+            {saving.techniques
+              ? t('siteConfigPanel.saving')
+              : t('siteConfigPanel.techniquesSection.save')}
           </Button>
         </AccordionDetails>
       </Accordion>
@@ -305,24 +312,24 @@ export default function SiteConfigPanel() {
       {/* Biographie */}
       <Accordion>
         <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-          <Typography fontWeight={600}>Biographie</Typography>
+          <Typography fontWeight={600}>{t('siteConfigPanel.biographySection.heading')}</Typography>
         </AccordionSummary>
         <AccordionDetails>
           <Stack spacing={3} sx={{ maxWidth: 720 }}>
             <Box>
               <Typography variant="caption" fontWeight={600} display="block" sx={{ mb: 1 }}>
-                Photo
+                {t('siteConfigPanel.biographySection.photoLabel')}
               </Typography>
               <ImageUploadField
-                label="Choisir la photo"
+                label={t('siteConfigPanel.biographySection.choosePhoto')}
                 aspect={1}
                 currentUrl={config.biographyImageUrl}
                 onBlob={setBioBlob}
-                cropTitle="Recadrer la photo de biographie (1:1)"
+                cropTitle={t('siteConfigPanel.biographySection.cropTitle')}
               />
             </Box>
             <TextField
-              label="Texte de la biographie"
+              label={t('siteConfigPanel.biographySection.textLabel')}
               value={config.biographyText || ''}
               onChange={(e) => setConfig((c) => ({ ...c, biographyText: e.target.value }))}
               multiline
@@ -340,7 +347,7 @@ export default function SiteConfigPanel() {
               onClick={saveBio}
               disabled={saving.bio}
             >
-              {saving.bio ? 'Sauvegarde...' : 'Sauvegarder'}
+              {saving.bio ? t('siteConfigPanel.saving') : t('siteConfigPanel.save')}
             </Button>
           </Stack>
         </AccordionDetails>
@@ -349,7 +356,7 @@ export default function SiteConfigPanel() {
       {/* Presse */}
       <Accordion>
         <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-          <Typography fontWeight={600}>Articles de presse</Typography>
+          <Typography fontWeight={600}>{t('siteConfigPanel.pressSection.heading')}</Typography>
         </AccordionSummary>
         <AccordionDetails>
           <Stack spacing={2}>
@@ -365,7 +372,7 @@ export default function SiteConfigPanel() {
                   sx={{ mb: 1.5 }}
                 >
                   <Typography variant="caption" fontWeight={600}>
-                    Article {i + 1}
+                    {t('siteConfigPanel.pressSection.articleLabel', { n: i + 1 })}
                   </Typography>
                   <IconButton size="small" color="error" onClick={() => removePressItem(i)}>
                     <DeleteIcon fontSize="small" />
@@ -375,21 +382,21 @@ export default function SiteConfigPanel() {
                   <Stack direction="row" spacing={1}>
                     <TextField
                       select
-                      label="Type"
+                      label={t('siteConfigPanel.pressSection.typeLabel')}
                       value={item.type || 'article'}
                       onChange={(e) => updatePressItem(i, 'type', e.target.value)}
                       size="small"
                       sx={{ width: 130 }}
                       SelectProps={{ native: true }}
                     >
-                      {PRESS_TYPES.map((t) => (
-                        <option key={t} value={t}>
-                          {t}
+                      {PRESS_TYPES.map((type) => (
+                        <option key={type} value={type}>
+                          {type}
                         </option>
                       ))}
                     </TextField>
                     <TextField
-                      label="Date"
+                      label={t('siteConfigPanel.pressSection.dateLabel')}
                       type="date"
                       value={item.date || ''}
                       onChange={(e) => updatePressItem(i, 'date', e.target.value)}
@@ -399,7 +406,7 @@ export default function SiteConfigPanel() {
                     />
                   </Stack>
                   <TextField
-                    label="Titre"
+                    label={t('siteConfigPanel.pressSection.titleLabel')}
                     value={item.title || ''}
                     onChange={(e) => updatePressItem(i, 'title', e.target.value)}
                     size="small"
@@ -407,14 +414,14 @@ export default function SiteConfigPanel() {
                   />
                   <Stack direction="row" spacing={1}>
                     <TextField
-                      label="Source / Publication"
+                      label={t('siteConfigPanel.pressSection.sourceLabel')}
                       value={item.source || ''}
                       onChange={(e) => updatePressItem(i, 'source', e.target.value)}
                       size="small"
                       fullWidth
                     />
                     <TextField
-                      label="URL (optionnel)"
+                      label={t('siteConfigPanel.pressSection.urlLabel')}
                       value={item.url || ''}
                       onChange={(e) => updatePressItem(i, 'url', e.target.value)}
                       size="small"
@@ -430,7 +437,7 @@ export default function SiteConfigPanel() {
               onClick={addPressItem}
               sx={{ alignSelf: 'flex-start' }}
             >
-              Ajouter un article
+              {t('siteConfigPanel.pressSection.addArticle')}
             </Button>
             <Divider />
             {errors.press && (
@@ -444,7 +451,7 @@ export default function SiteConfigPanel() {
               onClick={savePress}
               disabled={saving.press}
             >
-              {saving.press ? 'Sauvegarde...' : 'Sauvegarder la presse'}
+              {saving.press ? t('siteConfigPanel.saving') : t('siteConfigPanel.pressSection.save')}
             </Button>
           </Stack>
         </AccordionDetails>
@@ -453,34 +460,34 @@ export default function SiteConfigPanel() {
       {/* Contact & Réseaux sociaux */}
       <Accordion>
         <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-          <Typography fontWeight={600}>Contact &amp; Réseaux sociaux</Typography>
+          <Typography fontWeight={600}>{t('siteConfigPanel.contactSection.heading')}</Typography>
         </AccordionSummary>
         <AccordionDetails>
           <Stack spacing={2} sx={{ maxWidth: 480 }}>
             <TextField
-              label="Email de contact"
+              label={t('siteConfigPanel.contactSection.emailLabel')}
               type="email"
               value={config.contactEmail || ''}
               onChange={(e) => setConfig((c) => ({ ...c, contactEmail: e.target.value }))}
               size="small"
               fullWidth
-              placeholder="artiste@exemple.com"
+              placeholder={t('siteConfigPanel.contactSection.emailPlaceholder')}
             />
             <TextField
-              label="URL Instagram"
+              label={t('siteConfigPanel.contactSection.instagramLabel')}
               value={config.socialInstagram || ''}
               onChange={(e) => setConfig((c) => ({ ...c, socialInstagram: e.target.value }))}
               size="small"
               fullWidth
-              placeholder="https://instagram.com/..."
+              placeholder={t('siteConfigPanel.contactSection.instagramPlaceholder')}
             />
             <TextField
-              label="URL Facebook"
+              label={t('siteConfigPanel.contactSection.facebookLabel')}
               value={config.socialFacebook || ''}
               onChange={(e) => setConfig((c) => ({ ...c, socialFacebook: e.target.value }))}
               size="small"
               fullWidth
-              placeholder="https://facebook.com/..."
+              placeholder={t('siteConfigPanel.contactSection.facebookPlaceholder')}
             />
             {errors.contact && (
               <Typography color="error" variant="caption">
@@ -493,7 +500,7 @@ export default function SiteConfigPanel() {
               onClick={saveContact}
               disabled={saving.contact}
             >
-              {saving.contact ? 'Sauvegarde...' : 'Sauvegarder'}
+              {saving.contact ? t('siteConfigPanel.saving') : t('siteConfigPanel.save')}
             </Button>
           </Stack>
         </AccordionDetails>
@@ -502,18 +509,18 @@ export default function SiteConfigPanel() {
       {/* Couleurs du site */}
       <Accordion>
         <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-          <Typography fontWeight={600}>Couleurs du site</Typography>
+          <Typography fontWeight={600}>{t('siteConfigPanel.colorsSection.heading')}</Typography>
         </AccordionSummary>
         <AccordionDetails>
           <Stack spacing={3} sx={{ maxWidth: 320 }}>
             <ColorPickerField
-              label="Couleur de fond"
+              label={t('siteConfigPanel.colorsSection.bgLabel')}
               value={config.bgColor || '#ffffff'}
               onChange={(color) => setConfig((c) => ({ ...c, bgColor: color }))}
               category="bg"
             />
             <ColorPickerField
-              label="Couleur du contenu"
+              label={t('siteConfigPanel.colorsSection.contentLabel')}
               value={config.contentColor || '#020403'}
               onChange={(color) => setConfig((c) => ({ ...c, contentColor: color }))}
               category="content"
@@ -529,7 +536,7 @@ export default function SiteConfigPanel() {
               onClick={saveColors}
               disabled={saving.colors}
             >
-              {saving.colors ? 'Sauvegarde...' : 'Sauvegarder'}
+              {saving.colors ? t('siteConfigPanel.saving') : t('siteConfigPanel.save')}
             </Button>
           </Stack>
         </AccordionDetails>

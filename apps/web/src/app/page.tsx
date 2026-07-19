@@ -1,26 +1,19 @@
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
 import { Hero } from '@/components/hero/Hero';
 import { Reveal } from '@/components/Reveal';
 import { TemplateCard } from '@/components/TemplateCard';
 import { TEMPLATES } from '@/lib/templates';
 import styles from './page.module.css';
 
-const STEPS = [
-  {
-    title: 'Choisissez',
-    text: 'Parcourez les templates, visitez leurs démos, trouvez celle qui ressemble à votre travail.',
-  },
-  {
-    title: 'Nommez',
-    text: 'Réservez le nom de votre site en un clic — il devient votre adresse en ligne.',
-  },
-  {
-    title: 'C’est en ligne',
-    text: 'Payez, suivez le déploiement en direct, recevez vos accès : votre portfolio est vivant.',
-  },
-];
-
 export default function Home() {
+  const t = useTranslations('Home');
+  const STEPS = [
+    { title: t('step1Title'), text: t('step1Text') },
+    { title: t('step2Title'), text: t('step2Text') },
+    { title: t('step3Title'), text: t('step3Text') },
+  ];
+
   return (
     <>
       <Hero />
@@ -28,8 +21,8 @@ export default function Home() {
       <section id="comment" className="section">
         <div className="container">
           <div className="section-head">
-            <h2>Comment ça marche</h2>
-            <p className="cartel">De la toile à l’écran</p>
+            <h2>{t('stepsTitle')}</h2>
+            <p className="cartel">{t('stepsSubtitle')}</p>
           </div>
           <div className={styles.steps}>
             {STEPS.map((step, i) => (
@@ -47,29 +40,24 @@ export default function Home() {
       <section id="artistes" className={`section ${styles.trusted}`}>
         <div className="container">
           <div className="section-head">
-            <h2>Ils nous ont fait confiance</h2>
-            <p className="cartel">Le premier d’une longue série</p>
+            <h2>{t('trustedTitle')}</h2>
+            <p className="cartel">{t('trustedSubtitle')}</p>
           </div>
           <Reveal>
             <blockquote className={styles.testimonial}>
-              <p className={`display ${styles.quote}`}>
-                « Je gère mes œuvres, mes expositions et ma presse moi-même — sans jamais toucher au
-                code. »
-              </p>
+              <p className={`display ${styles.quote}`}>{t('testimonialQuote')}</p>
               <footer>
                 <p>
-                  <strong>Marcel Nino Pajot</strong>
+                  <strong>{t('testimonialName')}</strong>
                 </p>
-                <p className="cartel">
-                  Artiste peintre — techniques mixtes, aquarelle, illustration
-                </p>
+                <p className="cartel">{t('testimonialRole')}</p>
                 <a
                   className={styles.testimonialLink}
                   href="https://marcel-nino-pajot.web.app"
                   target="_blank"
                   rel="noreferrer"
                 >
-                  Voir son portfolio →
+                  {t('testimonialLink')}
                 </a>
               </footer>
             </blockquote>
@@ -80,9 +68,9 @@ export default function Home() {
       <section className="section">
         <div className="container">
           <div className="section-head">
-            <h2>Les templates</h2>
+            <h2>{t('templatesTitle')}</h2>
             <Link href="/templates" className="cartel">
-              Toute la collection →
+              {t('templatesLink')}
             </Link>
           </div>
           <div className={styles.templates}>
@@ -99,22 +87,19 @@ export default function Home() {
         <div className="container">
           <Reveal>
             <div className={styles.priceCard}>
-              <p className="cartel">Tarification à l’usage — sans engagement</p>
+              <p className="cartel">{t('pricingTagline')}</p>
               <p className={`display ${styles.price}`}>
-                5 €<span>/mois + consommation</span>
+                5 €<span>{t('priceSuffix')}</span>
               </p>
               <ul className={styles.priceList}>
-                <li>5 € d’abonnement + 1 € de domaine par mois</li>
-                <li>
-                  + votre consommation d’infrastructure réelle — vous payez ce que votre site
-                  consomme, rien de plus
-                </li>
-                <li>+ 10 % pour la maintenance et le support</li>
-                <li>Exemple : 4,50 € d’infra ce mois-ci → (5 + 4,50 + 1) × 1,10 = 11,55 €</li>
-                <li>Détail de consommation visible en continu dans votre espace</li>
+                <li>{t('priceItem1')}</li>
+                <li>{t('priceItem2')}</li>
+                <li>{t('priceItem3')}</li>
+                <li>{t('priceItem4')}</li>
+                <li>{t('priceItem5')}</li>
               </ul>
               <Link href="/order" className="btn btn-primary">
-                Créer mon portfolio
+                {t('createCta')}
               </Link>
             </div>
           </Reveal>

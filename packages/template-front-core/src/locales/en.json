@@ -1,0 +1,244 @@
+{
+  "nav": {
+    "home": "Home",
+    "biography": "Biography",
+    "gallery": "Gallery",
+    "press": "Press",
+    "contact": "Contact"
+  },
+  "footer": {
+    "rights": "© {{year}} {{name}}. All rights reserved.",
+    "reproduction": "Reproduction prohibited without authorization."
+  },
+  "localeSwitcher": {
+    "label": "Language",
+    "fr": "FR",
+    "en": "EN"
+  },
+  "techniques": {
+    "mixed_canvas": "Mixed media on canvas",
+    "mixed_paper": "Mixed media on paper",
+    "watercolor_pastel": "Watercolors and pastels",
+    "drawing": "Drawings and sketches",
+    "illustration_edition": "Editorial illustrations",
+    "illustration_poster": "Poster illustrations"
+  },
+  "utils": {
+    "sessionExpired": "Session expired, please log in again",
+    "uploadFailed": "Upload failed",
+    "saveFailed": "Save failed"
+  },
+  "home": {
+    "scrollAria": "Scroll to gallery",
+    "galleryHeading": "Gallery",
+    "newsHeading": "News",
+    "biographyHeading": "Biography",
+    "pressHeading": "Press",
+    "viewAllPress": "See all press coverage",
+    "defaultBiographyText": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.",
+    "portraitAlt": "Portrait",
+    "newsItemLearnMore": "Learn more",
+    "pressTypes": {
+      "article": "Article",
+      "video": "Video",
+      "interview": "Interview"
+    },
+    "contactSection": {
+      "title": "Contact",
+      "sentTitle": "Message sent",
+      "sentBody": "Thank you, I'll get back to you as soon as possible.",
+      "nameLabel": "Name",
+      "emailLabel": "Email",
+      "messageLabel": "Message",
+      "send": "Send",
+      "emailOverline": "Email",
+      "socialsOverline": "Find the artist on"
+    }
+  },
+  "biography": {
+    "heading": "Biography",
+    "portraitAlt": "Portrait",
+    "defaultText": "This is a short introduction text. Replace it with your own biography: your beginnings, influences, themes and key milestones.\n\nAdd a few lines about your artistic approach, your way of creating and what inspires you day to day."
+  },
+  "gallery": {
+    "heading": "Gallery",
+    "backToGallery": "Whole gallery",
+    "loadError": "Loading error",
+    "noArtworks": "No artwork at the moment."
+  },
+  "artworkInfo": {
+    "defaultTitle": "Artwork",
+    "techniqueLabel": "Technique: ",
+    "dimensionsLabel": "Dimensions: ",
+    "dimensionsValue": "{{height}} × {{width}} cm",
+    "yearLabel": "Year: ",
+    "commentLabel": "Comment"
+  },
+  "press": {
+    "heading": "Press",
+    "demoArticles": [
+      { "title": "Exclusive interview", "source": "The Journal" },
+      { "title": "Major exhibition", "source": "Art & Culture" },
+      { "title": "Journey and influences", "source": "Creative Magazine" }
+    ]
+  },
+  "contact": {
+    "heading": "Contact",
+    "sentAlert": "Your message has been sent, thank you!",
+    "genericSendError": "Sending failed, please try again later.",
+    "nameLabel": "Name",
+    "emailLabel": "Email",
+    "messageLabel": "Message",
+    "send": "Send",
+    "sending": "Sending…"
+  },
+  "adminLogin": {
+    "title": "Administration",
+    "subtitle": "Log in to access the back office.",
+    "emailLabel": "Email",
+    "passwordLabel": "Password",
+    "loginError": "Login failed",
+    "loggingIn": "Logging in...",
+    "loginButton": "Log in"
+  },
+  "backOffice": {
+    "navArtworks": "Artworks",
+    "navNews": "News",
+    "navConfig": "Site content",
+    "adminOverline": "Administration",
+    "logout": "Log out",
+    "addArtwork": "Add an artwork",
+    "noArtworks": "No artwork yet."
+  },
+  "addArtworkDialog": {
+    "title": "Add an artwork",
+    "importImage": "Upload an image",
+    "fileLabel": "File: {{name}}",
+    "titleLabel": "Title",
+    "techniqueLabel": "Technique",
+    "heightLabel": "Height (cm)",
+    "widthLabel": "Width (cm)",
+    "yearLabel": "Year",
+    "commentLabel": "Comment (optional)",
+    "cancel": "Cancel",
+    "saving": "Saving...",
+    "save": "Save",
+    "errRequiredTitleTechnique": "Title and technique are required.",
+    "errRequiredImage": "An image is required.",
+    "errCreate": "Error while creating",
+    "errGeneric": "An error occurred"
+  },
+  "editArtworkDialog": {
+    "title": "Edit artwork",
+    "changeImage": "Change image",
+    "replaceMainImage": "Replace main image",
+    "newFileLabel": "New file: {{name}}",
+    "titleLabel": "Title",
+    "techniqueLabel": "Technique",
+    "heightLabel": "Height",
+    "widthLabel": "Width",
+    "yearLabel": "Year",
+    "commentLabel": "Comment (optional)",
+    "extraImages": "Additional images",
+    "cancel": "Cancel",
+    "saving": "Saving...",
+    "save": "Save",
+    "deleting": "Deleting...",
+    "confirmDelete": "Confirm deletion",
+    "delete": "Delete",
+    "errRequiredTitleTechnique": "Title and technique are required.",
+    "errUpdate": "Error while updating",
+    "errDelete": "Error while deleting",
+    "errGeneric": "An error occurred"
+  },
+  "colorPickerField": {
+    "recentLabel": "Recent:",
+    "closeToSave": "Close to save to recents"
+  },
+  "cropDialog": {
+    "defaultTitle": "Crop the image",
+    "zoomLabel": "Zoom",
+    "cancel": "Cancel",
+    "confirm": "Confirm crop"
+  },
+  "imageUploadField": {
+    "defaultLabel": "Choose an image"
+  },
+  "newsPanel": {
+    "count_one": "{{count}} news item",
+    "count_other": "{{count}} news items",
+    "addNews": "Add a news item",
+    "emptyState": "No news yet. Click Add to get started.",
+    "newItemDefaultTitle": "New news item",
+    "titleLabel": "Title *",
+    "startDateLabel": "Start date *",
+    "endDateLabel": "End date (optional)",
+    "locationLabel": "Location",
+    "locationPlaceholder": "Gallery XY, 12 rue de la Paix, Paris",
+    "descriptionLabel": "Description (optional)",
+    "linkLabel": "External link (optional)",
+    "linkPlaceholder": "https://...",
+    "imageHelper": "Image (optional, 16:9)",
+    "chooseImage": "Choose an image",
+    "cropTitle": "Crop the image (16:9)",
+    "save": "Save",
+    "saving": "Saving...",
+    "saveSuccess": "Saved successfully"
+  },
+  "siteConfigPanel": {
+    "seo": {
+      "heading": "Search engine optimization (SEO)",
+      "siteNameLabel": "Site / artist name",
+      "siteNamePlaceholder": "First name Last name",
+      "siteNameHelper": "Used in page titles and social sharing.",
+      "descriptionLabel": "Site description",
+      "descriptionPlaceholder": "Visual artist portfolio — artworks, biography, press…",
+      "descriptionHelper": "Summary shown in search results (≈ 160 characters)."
+    },
+    "save": "Save",
+    "saving": "Saving...",
+    "hero": {
+      "heading": "Homepage image (Hero)",
+      "chooseImage": "Choose the hero image",
+      "cropTitle": "Crop the hero (16:9)"
+    },
+    "techniquesSection": {
+      "heading": "Technique images (Gallery)",
+      "choose": "Choose",
+      "cropTitle": "Crop — {{label}} (1:1)",
+      "save": "Save images"
+    },
+    "biographySection": {
+      "heading": "Biography",
+      "photoLabel": "Photo",
+      "choosePhoto": "Choose the photo",
+      "cropTitle": "Crop the biography photo (1:1)",
+      "textLabel": "Biography text"
+    },
+    "pressSection": {
+      "heading": "Press articles",
+      "articleLabel": "Article {{n}}",
+      "typeLabel": "Type",
+      "dateLabel": "Date",
+      "titleLabel": "Title",
+      "sourceLabel": "Source / Publication",
+      "urlLabel": "URL (optional)",
+      "addArticle": "Add an article",
+      "save": "Save press"
+    },
+    "contactSection": {
+      "heading": "Contact & Social networks",
+      "emailLabel": "Contact email",
+      "emailPlaceholder": "artist@example.com",
+      "instagramLabel": "Instagram URL",
+      "instagramPlaceholder": "https://instagram.com/...",
+      "facebookLabel": "Facebook URL",
+      "facebookPlaceholder": "https://facebook.com/..."
+    },
+    "colorsSection": {
+      "heading": "Site colors",
+      "bgLabel": "Background color",
+      "contentLabel": "Content color"
+    }
+  }
+}

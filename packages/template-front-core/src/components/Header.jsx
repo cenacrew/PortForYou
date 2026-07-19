@@ -6,16 +6,19 @@ import Typography from '@mui/material/Typography';
 import Button from '@mui/material/Button';
 import Container from '@mui/material/Container';
 import { NavLink as RouterLink } from 'react-router-dom';
-
-const pages = [
-  { label: 'Accueil', to: '/' },
-  { label: 'Biographie', to: '/biographie' },
-  { label: 'Galerie', to: '/galerie' },
-  { label: 'Presse', to: '/presse' },
-  { label: 'Contact', to: '/contact' },
-];
+import { useTranslation } from 'react-i18next';
+import LocaleSwitcher from './LocaleSwitcher';
 
 export default function Header() {
+  const { t } = useTranslation();
+  const pages = [
+    { label: t('nav.home'), to: '/' },
+    { label: t('nav.biography'), to: '/biographie' },
+    { label: t('nav.gallery'), to: '/galerie' },
+    { label: t('nav.press'), to: '/presse' },
+    { label: t('nav.contact'), to: '/contact' },
+  ];
+
   return (
     <AppBar
       position="sticky"
@@ -45,7 +48,15 @@ export default function Header() {
             Prénom Nom
           </Typography>
 
-          <Box sx={{ flexGrow: 1, display: 'flex', gap: 1, justifyContent: 'flex-end' }}>
+          <Box
+            sx={{
+              flexGrow: 1,
+              display: 'flex',
+              alignItems: 'center',
+              gap: 1,
+              justifyContent: 'flex-end',
+            }}
+          >
             {pages.map((page) => (
               <Button
                 key={page.to}
@@ -64,6 +75,7 @@ export default function Header() {
                 {page.label}
               </Button>
             ))}
+            <LocaleSwitcher />
           </Box>
         </Toolbar>
       </Container>

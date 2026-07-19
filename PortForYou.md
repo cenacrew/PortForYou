@@ -93,7 +93,7 @@ portforyou/
 ### 4.2 Pages publiques
 
 1. **Accueil `/`**
-   - **Hero** : titre manifeste (ex. « Votre art mérite mieux qu'un template. »), sous-titre, CTA « Découvrir les templates », canvas R3F signature. Indicateur de scroll.
+   - **Hero** : titre manifeste (ex. « Votre art mérite une vitrine à la hauteur. »), sous-titre, CTA « Découvrir les templates », canvas R3F signature. Indicateur de scroll.
    - **Section « Comment ça marche »** : 3 étapes (Choisissez · Personnalisez · C'est en ligne), animées au scroll.
    - **Section « Ils nous ont fait confiance »** : liste des artistes clients — pour l'instant **un seul, Marcel Nino Pajot** (photo/œuvre, citation, lien vers son site en production). Grille prévue pour s'étendre. Assumer le « 1 » avec élégance (ex. « Le premier d'une longue série. »).
    - **Aperçu des templates** : les 3 templates en cards larges avec visuel, lien vers `/templates`.

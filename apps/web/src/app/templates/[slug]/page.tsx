@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import Image from 'next/image';
 import { notFound } from 'next/navigation';
+import { getTranslations } from 'next-intl/server';
 import { TEMPLATES, getTemplate } from '@/lib/templates';
 import styles from './page.module.css';
 
@@ -16,7 +17,8 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { slug } = await params;
   const template = getTemplate(slug);
-  if (!template) return { title: 'Template introuvable' };
+  const t = await getTranslations('TemplateDetail');
+  if (!template) return { title: t('notFoundMetaTitle') };
   const title = `Template ${template.name}`;
   const description = template.description;
   return {
@@ -28,7 +30,7 @@ export async function generateMetadata({
       title,
       description,
       url: `/templates/${template.slug}`,
-      images: [{ url: template.image, alt: `Aperçu de la template ${template.name}` }],
+      images: [{ url: template.image, alt: t('previewAlt', { name: template.name }) }],
     },
     twitter: { card: 'summary_large_image', title, description, images: [template.image] },
   };
@@ -38,18 +40,19 @@ export default async function TemplateDetail({ params }: { params: Promise<{ slu
   const { slug } = await params;
   const template = getTemplate(slug);
   if (!template) notFound();
+  const t = await getTranslations('TemplateDetail');
 
   return (
     <section className="section">
       <div className="container">
         <p className="cartel" style={{ marginBottom: '1rem' }}>
-          <Link href="/templates">Collection</Link> / {template.name}
+          <Link href="/templates">{t('breadcrumbCollection')}</Link> / {template.name}
         </p>
         <div className={styles.grid}>
           <div>
             <Image
               src={template.image}
-              alt={`Aperçu de la template ${template.name}`}
+              alt={t('previewAlt', { name: template.name })}
               width={800}
               height={560}
               className={styles.image}
@@ -72,16 +75,16 @@ export default async function TemplateDetail({ params }: { params: Promise<{ slu
             <div className={styles.ctas}>
               {template.available ? (
                 <Link href={`/order?template=${template.slug}`} className="btn btn-primary">
-                  Choisir cette template
+                  {t('choose')}
                 </Link>
               ) : (
                 <span className="btn" aria-disabled>
-                  Bientôt disponible
+                  {t('comingSoon')}
                 </span>
               )}
               {template.demoUrl && (
                 <a href={template.demoUrl} target="_blank" rel="noreferrer" className="btn">
-                  Voir la démo
+                  {t('viewDemo')}
                 </a>
               )}
             </div>
