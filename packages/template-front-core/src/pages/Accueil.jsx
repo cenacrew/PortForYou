@@ -2,7 +2,7 @@
 import { Box, Typography, IconButton, Chip, Button, TextField, Stack } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ArticleIcon from '@mui/icons-material/Article';
-import PlayCircleOutlineIcon from '@mui/icons-material/PlayCircleOutline';
+import PlayCircleOutlineIcon from '@mui/icons-material/PlayCircleOutlined';
 import MicIcon from '@mui/icons-material/Mic';
 import OpenInNewIcon from '@mui/icons-material/OpenInNew';
 import InstagramIcon from '@mui/icons-material/Instagram';

@@ -7,7 +7,7 @@
 
   "features": {
     // Version alignée sur .nvmrc / "engines.node" du package.json racine.
-    "ghcr.io/devcontainers/features/node:1": {
+    "ghcr.io/devcontainers/features/node:2": {
       "version": "24.18.0"
     },
     // JRE requis par les émulateurs Firebase (infra/docker/emulators.Dockerfile
