@@ -1,3 +1,5 @@
+import i18n from './i18n';
+
 export const techniques = [
   { value: 'mixed_canvas', label: 'Techniques mixtes sur toile' },
   { value: 'mixed_paper', label: 'Techniques mixtes sur papier' },
@@ -19,7 +21,7 @@ export async function authFetch(url, options = {}) {
   const res = await fetch(url, { credentials: 'include', ...options });
   if (res.status === 401) {
     handleUnauthorized();
-    throw new Error('Session expirée, veuillez vous reconnecter');
+    throw new Error(i18n.t('utils.sessionExpired'));
   }
   return res;
 }
@@ -36,7 +38,7 @@ export async function uploadImage(
     body: fd,
   });
   const data = await res.json().catch(() => ({}));
-  if (!res.ok) throw new Error(data?.error || "Échec de l'upload");
+  if (!res.ok) throw new Error(data?.error || i18n.t('utils.uploadFailed'));
   return data.url;
 }
 
@@ -47,7 +49,7 @@ export async function saveSiteConfig(fields) {
     body: JSON.stringify(fields),
   });
   const data = await res.json().catch(() => ({}));
-  if (!res.ok) throw new Error(data?.error || 'Sauvegarde échouée');
+  if (!res.ok) throw new Error(data?.error || i18n.t('utils.saveFailed'));
 }
 
 /** Beacon analytics first-party (aucun cookie, aucune donnée personnelle). */

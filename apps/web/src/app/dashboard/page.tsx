@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { useLocale, useTranslations } from 'next-intl';
 import { RequireAuth } from '@/components/RequireAuth';
 import { api } from '@/lib/api';
 import { useAuth, useAuthActions } from '@/lib/auth';
@@ -19,14 +20,15 @@ interface Site {
   createdAt: string | null;
 }
 
-const STATUS_LABELS: Record<string, string> = {
-  live: 'En ligne',
-  provisioning: 'Déploiement…',
-  error: 'Erreur',
-  suspended: 'Suspendu',
-};
-
 function Dashboard() {
+  const t = useTranslations('Dashboard');
+  const locale = useLocale();
+  const STATUS_LABELS: Record<string, string> = {
+    live: t('statusLive'),
+    provisioning: t('statusProvisioning'),
+    error: t('statusError'),
+    suspended: t('statusSuspended'),
+  };
   const { user } = useAuth();
   const { logout, resendVerification } = useAuthActions();
   const router = useRouter();
@@ -54,7 +56,7 @@ function Dashboard() {
     <section className="section">
       <div className="container">
         <div className="section-head">
-          <h2>Mes sites</h2>
+          <h2>{t('title')}</h2>
           <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
             <Link href="/dashboard/profile" className="cartel">
               {user?.email}
@@ -64,7 +66,7 @@ function Dashboard() {
               onClick={openBilling}
               disabled={billingBusy}
             >
-              Facturation
+              {t('billing')}
             </button>
             <button
               className={`btn ${styles.btnSmall}`}
@@ -73,7 +75,7 @@ function Dashboard() {
                 router.push('/');
               }}
             >
-              Déconnexion
+              {t('logout')}
             </button>
           </div>
         </div>
@@ -92,19 +94,19 @@ function Dashboard() {
               borderRadius: '0.4rem',
             }}
           >
-            <span>Confirmez votre adresse email pour profiter de toutes les fonctionnalités.</span>
+            <span>{t('verifyEmailBanner')}</span>
             <button
               className={`btn ${styles.btnSmall}`}
               disabled={verifSent}
               onClick={() => resendVerification().then(() => setVerifSent(true))}
             >
-              {verifSent ? 'Email envoyé' : "Renvoyer l'email"}
+              {verifSent ? t('verifyEmailSent') : t('verifyEmailResend')}
             </button>
           </div>
         )}
 
         {sites === null ? (
-          <p className="cartel">Chargement…</p>
+          <p className="cartel">{t('loading')}</p>
         ) : sites.length === 0 ? (
           <div
             style={{
@@ -116,10 +118,10 @@ function Dashboard() {
             }}
           >
             <p className="display" style={{ fontSize: '1.8rem' }}>
-              Votre premier portfolio vous attend.
+              {t('emptyTitle')}
             </p>
             <Link href="/order" className="btn btn-primary">
-              Créer mon portfolio
+              {t('createCta')}
             </Link>
           </div>
         ) : (
@@ -132,8 +134,12 @@ function Dashboard() {
                 <h3>{site.artistName}</h3>
                 <p className={styles.mono}>{site.urls?.front ?? site.plannedUrl}</p>
                 <p className={styles.meta}>
-                  Template {site.templateSlug} — créé le{' '}
-                  {site.createdAt ? new Date(site.createdAt).toLocaleDateString('fr-FR') : '—'}
+                  {t('templateMeta', {
+                    template: site.templateSlug,
+                    date: site.createdAt
+                      ? new Date(site.createdAt).toLocaleDateString(locale)
+                      : '—',
+                  })}
                 </p>
               </Link>
             ))}

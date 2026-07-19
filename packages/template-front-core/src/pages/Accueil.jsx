@@ -9,17 +9,17 @@ import InstagramIcon from '@mui/icons-material/Instagram';
 import FacebookIcon from '@mui/icons-material/Facebook';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { techniques } from '../utils';
 import { useSiteConfig } from '../contexts/SiteConfigContext';
 
 const TYPE_CONFIG = {
-  article: { label: 'Article', icon: <ArticleIcon sx={{ fontSize: 14 }} />, color: 'default' },
+  article: { icon: <ArticleIcon sx={{ fontSize: 14 }} />, color: 'default' },
   video: {
-    label: 'Video',
     icon: <PlayCircleOutlineIcon sx={{ fontSize: 14 }} />,
     color: 'secondary',
   },
-  interview: { label: 'Interview', icon: <MicIcon sx={{ fontSize: 14 }} />, color: 'default' },
+  interview: { icon: <MicIcon sx={{ fontSize: 14 }} />, color: 'default' },
 };
 
 function formatDateRange(dateStr, endDateStr) {
@@ -40,6 +40,7 @@ function formatDateRange(dateStr, endDateStr) {
 }
 
 function NewsItem({ item }) {
+  const { t } = useTranslation();
   const dateLabel = formatDateRange(item.date, item.endDate || '');
   const hasImage = !!item.imageUrl;
   return (
@@ -141,7 +142,7 @@ function NewsItem({ item }) {
                 '&:hover': { bgcolor: 'text.primary', color: 'white', borderColor: 'text.primary' },
               }}
             >
-              En savoir plus
+              {t('home.newsItemLearnMore')}
             </Button>
           </Box>
         )}
@@ -151,7 +152,9 @@ function NewsItem({ item }) {
 }
 
 function PressCard({ item }) {
+  const { t } = useTranslation();
   const conf = TYPE_CONFIG[item.type] || TYPE_CONFIG.article;
+  const label = t(`home.pressTypes.${item.type in TYPE_CONFIG ? item.type : 'article'}`);
   const formattedDate = new Date(item.date).toLocaleDateString('fr-FR', {
     day: 'numeric',
     month: 'long',
@@ -179,7 +182,7 @@ function PressCard({ item }) {
       <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <Chip
           icon={conf.icon}
-          label={conf.label}
+          label={label}
           size="small"
           color={conf.color}
           variant="outlined"
@@ -206,6 +209,7 @@ function PressCard({ item }) {
 }
 
 function ContactSection({ config }) {
+  const { t } = useTranslation();
   const email = config?.contactEmail || '';
   const instagram = config?.socialInstagram || '';
   const facebook = config?.socialFacebook || '';
@@ -230,7 +234,7 @@ function ContactSection({ config }) {
     <Box sx={{ py: 10, px: { xs: 4, md: 8, lg: 12 }, bgcolor: 'background.default' }}>
       <Box sx={{ maxWidth: 1100, mx: 'auto' }}>
         <Typography variant="h3" component="h2" fontWeight={700} textAlign="center" sx={{ mb: 8 }}>
-          Contact
+          {t('home.contactSection.title')}
         </Typography>
         <Box
           sx={{
@@ -244,16 +248,16 @@ function ContactSection({ config }) {
             {sent ? (
               <Box sx={{ py: 6, textAlign: 'center' }}>
                 <Typography variant="h6" fontWeight={600} gutterBottom>
-                  Message envoyé
+                  {t('home.contactSection.sentTitle')}
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
-                  Merci, je vous répondrai dans les plus brefs délais.
+                  {t('home.contactSection.sentBody')}
                 </Typography>
               </Box>
             ) : (
               <Stack component="form" spacing={2.5} noValidate onSubmit={handleSubmit}>
                 <TextField
-                  label="Nom"
+                  label={t('home.contactSection.nameLabel')}
                   name="name"
                   value={form.name}
                   onChange={handleChange}
@@ -262,7 +266,7 @@ function ContactSection({ config }) {
                   variant="outlined"
                 />
                 <TextField
-                  label="Email"
+                  label={t('home.contactSection.emailLabel')}
                   name="email"
                   type="email"
                   value={form.email}
@@ -272,7 +276,7 @@ function ContactSection({ config }) {
                   variant="outlined"
                 />
                 <TextField
-                  label="Message"
+                  label={t('home.contactSection.messageLabel')}
                   name="message"
                   value={form.message}
                   onChange={handleChange}
@@ -288,7 +292,7 @@ function ContactSection({ config }) {
                   size="large"
                   sx={{ alignSelf: 'flex-start', borderRadius: 0, px: 5, letterSpacing: 1 }}
                 >
-                  Envoyer
+                  {t('home.contactSection.send')}
                 </Button>
               </Stack>
             )}
@@ -297,7 +301,7 @@ function ContactSection({ config }) {
             {email && (
               <Box>
                 <Typography variant="overline" color="text.disabled" letterSpacing={2}>
-                  Email
+                  {t('home.contactSection.emailOverline')}
                 </Typography>
                 <Typography
                   component="a"
@@ -318,7 +322,7 @@ function ContactSection({ config }) {
             {socials.length > 0 && (
               <Box>
                 <Typography variant="overline" color="text.disabled" letterSpacing={2}>
-                  Retrouvez l artiste sur
+                  {t('home.contactSection.socialsOverline')}
                 </Typography>
                 <Stack direction="row" spacing={1.5} sx={{ mt: 1.5 }}>
                   {socials.map(({ label, icon, url }) => (
@@ -381,15 +385,14 @@ function ScrollToTop() {
 }
 
 export default function Accueil() {
+  const { t } = useTranslation();
   const galleryRef = useRef(null);
   const config = useSiteConfig();
 
   const heroImageUrl = config?.heroImageUrl || '/placeholder-hero.svg';
   const techniqueImages = config?.techniqueImages || {};
   const biographyImageUrl = config?.biographyImageUrl || null;
-  const biographyText =
-    config?.biographyText ||
-    'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.';
+  const biographyText = config?.biographyText || t('home.defaultBiographyText');
   const pressItems = config?.pressItems || [];
   const rawNewsItems = (config?.newsItems || []).filter((n) => n.title && n.date);
   const newsItems = useMemo(
@@ -418,7 +421,7 @@ export default function Accueil() {
       >
         <IconButton
           onClick={scrollToGallery}
-          aria-label="Scroll vers la galerie"
+          aria-label={t('home.scrollAria')}
           sx={{
             position: 'absolute',
             bottom: 0,
@@ -443,7 +446,7 @@ export default function Accueil() {
         sx={{ pt: 4, pb: 10, px: { xs: 4, md: 8, lg: 12 }, bgcolor: 'background.default' }}
       >
         <Typography variant="h3" component="h2" fontWeight={700} textAlign="center" sx={{ mb: 8 }}>
-          Galerie
+          {t('home.galleryHeading')}
         </Typography>
         <Box
           sx={{
@@ -455,7 +458,7 @@ export default function Accueil() {
             mx: 'auto',
           }}
         >
-          {techniques.map(({ value, label }) => (
+          {techniques.map(({ value }) => (
             <Box
               key={value}
               component={Link}
@@ -495,7 +498,7 @@ export default function Accueil() {
                 textAlign="center"
                 sx={{ mt: 1.5, color: 'text.primary', fontWeight: 500 }}
               >
-                {label}
+                {t(`techniques.${value}`)}
               </Typography>
             </Box>
           ))}
@@ -513,7 +516,7 @@ export default function Accueil() {
               textAlign="center"
               sx={{ mb: 6 }}
             >
-              Actualit&#233;s
+              {t('home.newsHeading')}
             </Typography>
             <Box>
               {newsItems.map((item, i) => (
@@ -527,14 +530,14 @@ export default function Accueil() {
       {/* Biographie */}
       <Box sx={{ py: 10, px: { xs: 4, md: 8, lg: 12 }, bgcolor: 'background.default' }}>
         <Typography variant="h3" component="h2" fontWeight={700} textAlign="center" sx={{ mb: 8 }}>
-          Biographie
+          {t('home.biographyHeading')}
         </Typography>
         <Box sx={{ maxWidth: 1100, mx: 'auto' }}>
           {biographyImageUrl ? (
             <Box
               component="img"
               src={biographyImageUrl}
-              alt="Portrait"
+              alt={t('home.portraitAlt')}
               sx={{
                 float: 'left',
                 width: { xs: '100%', md: 200 },
@@ -587,7 +590,7 @@ export default function Accueil() {
             textAlign="center"
             sx={{ mb: 8 }}
           >
-            Presse
+            {t('home.pressHeading')}
           </Typography>
           <Box
             sx={{
@@ -608,7 +611,7 @@ export default function Accueil() {
               endIcon={<OpenInNewIcon sx={{ fontSize: 16 }} />}
               sx={{ borderRadius: 0, px: 4, py: 1.2, letterSpacing: 1 }}
             >
-              Voir toute la presse
+              {t('home.viewAllPress')}
             </Button>
           </Box>
         </Box>

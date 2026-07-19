@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
+import { useLocale, useTranslations } from 'next-intl';
 import { RequireAuth } from '@/components/RequireAuth';
 import { api } from '@/lib/api';
 import styles from '../dashboard/dashboard.module.css';
@@ -33,6 +34,8 @@ interface AdminDeployment {
 }
 
 function AdminView() {
+  const t = useTranslations('Admin');
+  const locale = useLocale();
   const [overview, setOverview] = useState<Overview | null>(null);
   const [sites, setSites] = useState<AdminSite[]>([]);
   const [deployments, setDeployments] = useState<AdminDeployment[]>([]);
@@ -57,7 +60,7 @@ function AdminView() {
     setMessage('');
     try {
       await api(path, { method, body: method === 'POST' ? JSON.stringify({}) : undefined });
-      setMessage('Action effectuée.');
+      setMessage(t('actionDone'));
       load();
     } catch (err) {
       setMessage((err as Error).message);
@@ -68,27 +71,27 @@ function AdminView() {
     <section className="section">
       <div className="container">
         <div className="section-head">
-          <h2>Administration</h2>
-          <p className="cartel">Supervision de la plateforme</p>
+          <h2>{t('title')}</h2>
+          <p className="cartel">{t('subtitle')}</p>
         </div>
 
         {overview && (
           <div className={styles.statRow} style={{ marginBottom: '2.5rem', flexWrap: 'wrap' }}>
             <p>
               <strong>{overview.clients}</strong>
-              <span className="cartel">Clients</span>
+              <span className="cartel">{t('statClients')}</span>
             </p>
             <p>
               <strong>{overview.sites}</strong>
-              <span className="cartel">Sites</span>
+              <span className="cartel">{t('statSites')}</span>
             </p>
             <p>
               <strong>{overview.sitesByStatus.live ?? 0}</strong>
-              <span className="cartel">En ligne</span>
+              <span className="cartel">{t('statLive')}</span>
             </p>
             <p>
               <strong>{overview.failedDeployments}</strong>
-              <span className="cartel">Déploiements échoués</span>
+              <span className="cartel">{t('statFailedDeployments')}</span>
             </p>
           </div>
         )}
@@ -100,15 +103,15 @@ function AdminView() {
         )}
 
         <div className={styles.panel} style={{ marginBottom: '2rem', overflowX: 'auto' }}>
-          <p className={styles.panelTitle}>Sites</p>
+          <p className={styles.panelTitle}>{t('sitesTableTitle')}</p>
           <table className={styles.table}>
             <thead>
               <tr>
-                <th>Site</th>
-                <th>Client</th>
-                <th>Statut</th>
-                <th>Santé</th>
-                <th>Actions</th>
+                <th>{t('colSite')}</th>
+                <th>{t('colClient')}</th>
+                <th>{t('colStatus')}</th>
+                <th>{t('colHealth')}</th>
+                <th>{t('colActions')}</th>
               </tr>
             </thead>
             <tbody>
@@ -136,7 +139,7 @@ function AdminView() {
                         className={`btn ${styles.btnSmall}`}
                         onClick={() => action(`/admin/sites/${site.id}/redeploy`, 'POST')}
                       >
-                        Redéployer
+                        {t('redeploy')}
                       </button>
                       <button
                         className={`btn ${styles.btnSmall}`}
@@ -144,11 +147,11 @@ function AdminView() {
                           action(
                             `/admin/sites/${site.id}/suspend`,
                             'POST',
-                            `Suspendre ${site.slug} ?`,
+                            t('suspendConfirm', { slug: site.slug }),
                           )
                         }
                       >
-                        Suspendre
+                        {t('suspend')}
                       </button>
                       <button
                         className={`btn ${styles.btnSmall}`}
@@ -156,11 +159,11 @@ function AdminView() {
                           action(
                             `/admin/sites/${site.id}`,
                             'DELETE',
-                            `Supprimer définitivement ${site.slug} (site, données, secrets) ?`,
+                            t('deleteConfirm', { slug: site.slug }),
                           )
                         }
                       >
-                        Supprimer
+                        {t('delete')}
                       </button>
                     </div>
                   </td>
@@ -171,15 +174,15 @@ function AdminView() {
         </div>
 
         <div className={styles.panel} style={{ overflowX: 'auto' }}>
-          <p className={styles.panelTitle}>Derniers déploiements</p>
+          <p className={styles.panelTitle}>{t('deploymentsTableTitle')}</p>
           <table className={styles.table}>
             <thead>
               <tr>
-                <th>Date</th>
-                <th>Site</th>
-                <th>Déclencheur</th>
-                <th>Statut</th>
-                <th>Étapes</th>
+                <th>{t('colDate')}</th>
+                <th>{t('colSite')}</th>
+                <th>{t('colTrigger')}</th>
+                <th>{t('colStatus')}</th>
+                <th>{t('colSteps')}</th>
                 <th></th>
               </tr>
             </thead>
@@ -188,7 +191,7 @@ function AdminView() {
                 <tr key={deployment.id}>
                   <td className={styles.mono}>
                     {deployment.createdAt
-                      ? new Date(deployment.createdAt).toLocaleString('fr-FR')
+                      ? new Date(deployment.createdAt).toLocaleString(locale)
                       : '—'}
                   </td>
                   <td className={styles.mono}>{deployment.siteId.slice(0, 8)}…</td>
@@ -205,7 +208,7 @@ function AdminView() {
                         className={`btn ${styles.btnSmall}`}
                         onClick={() => action(`/admin/deployments/${deployment.id}/retry`, 'POST')}
                       >
-                        Retry
+                        {t('retry')}
                       </button>
                     )}
                   </td>

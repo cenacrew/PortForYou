@@ -6,6 +6,7 @@ import type { ProvisionerDriver, TenantSpec, DeployedUrls } from './driver.js';
 import { gfetch, assertOk, waitOperation, PROJECT, REGION } from './gcpClients.js';
 import { db } from '../lib/firebase.js';
 import { config } from '../config.js';
+import { ProvisioningUserError } from './errors.js';
 
 const RUN_API = `https://run.googleapis.com/v2`;
 const HOSTING_API = `https://firebasehosting.googleapis.com/v1beta1`;
@@ -15,6 +16,34 @@ const storage = new Storage({ projectId: PROJECT });
 
 function hostingSiteId(slug: string) {
   return `pfy-${slug}`;
+}
+
+/**
+ * Crée (ou réutilise, 409) le site Firebase Hosting `siteId`. Les ID de site
+ * Hosting sont uniques sur tout Firebase : un nom jamais créé côté
+ * PortForYou peut donc être réservé par un projet tiers (HTTP 400
+ * FAILED_PRECONDITION « reserved by another project »). Ce cas précis est
+ * remonté en `ProvisioningUserError`, seul type d'erreur dont le message est
+ * sûr à afficher tel quel côté client (cf. errors.ts).
+ */
+async function ensureHostingSite(siteId: string) {
+  const site = await gfetch(`${HOSTING_API}/projects/${PROJECT}/sites?siteId=${siteId}`, {
+    method: 'POST',
+    body: {},
+  });
+  if ([200, 409].includes(site.status)) return;
+  const errorBody = site.json.error as { status?: string; message?: string } | undefined;
+  if (
+    site.status === 400 &&
+    errorBody?.status === 'FAILED_PRECONDITION' &&
+    errorBody.message?.includes('reserved by another project')
+  ) {
+    throw new ProvisioningUserError(
+      `Le nom de site "${siteId}" est déjà utilisé sur Firebase Hosting (par un autre projet, ` +
+        `indépendant de PortForYou). Choisissez un autre identifiant pour ce site.`,
+    );
+  }
+  assertOk(site, `Création du site Hosting ${siteId}`);
 }
 
 /** Crée (ou réutilise) un secret et y ajoute une version. */
@@ -151,12 +180,9 @@ export const gcpProvisionerDriver: ProvisionerDriver = {
   async deployFrontend(spec: TenantSpec): Promise<{ frontUrl: string }> {
     const siteId = hostingSiteId(spec.slug);
 
-    // 1. Créer le site Hosting (409 = déjà créé).
-    const site = await gfetch(`${HOSTING_API}/projects/${PROJECT}/sites?siteId=${siteId}`, {
-      method: 'POST',
-      body: {},
-    });
-    if (![200, 409].includes(site.status)) assertOk(site, `Création du site Hosting ${siteId}`);
+    // 1. Créer le site Hosting (409 = déjà créé — idempotent, y compris si
+    // checkHostingNameAvailable l'a déjà créé lors de la réservation du slug).
+    await ensureHostingSite(siteId);
 
     // 2. Créer une version avec les rewrites /api/** → Cloud Run du tenant.
     const version = await gfetch(`${HOSTING_API}/sites/${siteId}/versions`, {
@@ -254,6 +280,16 @@ export const gcpProvisionerDriver: ProvisionerDriver = {
     assertOk(release, `Release Hosting ${siteId}`);
 
     return { frontUrl: `https://${siteId}.web.app` };
+  },
+
+  async checkHostingNameAvailable(slug: string) {
+    try {
+      await ensureHostingSite(hostingSiteId(slug));
+      return { available: true };
+    } catch (err) {
+      if (err instanceof ProvisioningUserError) return { available: false, reason: err.message };
+      throw err;
+    }
   },
 
   async verify(urls: DeployedUrls) {

@@ -3,16 +3,18 @@
 import { useState, Suspense } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { useAuthActions } from '@/lib/auth';
 import styles from '../auth.module.css';
 
 function ResetForm() {
+  const t = useTranslations('ResetPassword');
   const router = useRouter();
   const params = useSearchParams();
   const { resetPassword } = useAuthActions();
   const token = params.get('token') ?? '';
   const [password, setPassword] = useState('');
-  const [error, setError] = useState(token ? '' : 'Lien invalide.');
+  const [error, setError] = useState(token ? '' : t('invalidLink'));
   const [busy, setBusy] = useState(false);
 
   const submit = async (e: React.FormEvent) => {
@@ -31,10 +33,10 @@ function ResetForm() {
   return (
     <div className={styles.wrap}>
       <div className={styles.card}>
-        <h1>Nouveau mot de passe</h1>
+        <h1>{t('title')}</h1>
         <form onSubmit={submit}>
           <div className="field">
-            <label htmlFor="password">Nouveau mot de passe (8 caractères minimum)</label>
+            <label htmlFor="password">{t('passwordLabel')}</label>
             <input
               id="password"
               type="password"
@@ -52,11 +54,11 @@ function ResetForm() {
             disabled={busy || !token}
             style={{ width: '100%', justifyContent: 'center' }}
           >
-            {busy ? 'Enregistrement…' : 'Changer le mot de passe'}
+            {busy ? t('submitBusy') : t('submit')}
           </button>
         </form>
         <p className={styles.switch}>
-          <Link href="/login">← Retour à la connexion</Link>
+          <Link href="/login">{t('backToLogin')}</Link>
         </p>
       </div>
     </div>

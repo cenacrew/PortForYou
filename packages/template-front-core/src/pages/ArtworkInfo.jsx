@@ -1,11 +1,13 @@
 ﻿import React, { useMemo, useState, useEffect } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { Container, Typography, Stack, Box, Divider, Chip, CircularProgress } from '@mui/material';
+import { useTranslation } from 'react-i18next';
 import { techniques, apiUrl } from '../utils';
 import { useSiteConfig } from '../contexts/SiteConfigContext';
 import { applyHead, buildArtworkSeo } from '../seo';
 
 export default function ArtworkInfo() {
+  const { t } = useTranslation();
   const location = useLocation();
   const navigate = useNavigate();
   const { id } = useParams();
@@ -61,8 +63,9 @@ export default function ArtworkInfo() {
 
   const allImages = [...(item.imageUrl ? [item.imageUrl] : []), ...(item.additionalImages || [])];
 
-  const techniqueLabel =
-    techniques.find((t) => t.value === item.technique)?.label || item.technique;
+  const techniqueLabel = techniques.find((tech) => tech.value === item.technique)
+    ? t(`techniques.${item.technique}`)
+    : item.technique;
 
   return (
     <Container maxWidth="lg" sx={{ py: 6 }}>
@@ -129,26 +132,28 @@ export default function ArtworkInfo() {
         {/* ── Infos ── */}
         <Box>
           <Typography variant="h4" component="h1" fontWeight={700} gutterBottom>
-            {item.title || 'Oeuvre'}
+            {item.title || t('artworkInfo.defaultTitle')}
           </Typography>
 
           <Stack spacing={1} sx={{ mb: 3 }}>
             {item.technique && (
               <Typography variant="body1">
-                Technique : <strong>{techniqueLabel}</strong>
+                {t('artworkInfo.techniqueLabel')}
+                <strong>{techniqueLabel}</strong>
               </Typography>
             )}
             {item.height != null && item.width != null && (
               <Typography variant="body1">
-                Dimensions :{' '}
+                {t('artworkInfo.dimensionsLabel')}
                 <strong>
-                  {item.height} × {item.width} cm
+                  {t('artworkInfo.dimensionsValue', { height: item.height, width: item.width })}
                 </strong>
               </Typography>
             )}
             {item.year != null && (
               <Typography variant="body1">
-                Année : <strong>{item.year}</strong>
+                {t('artworkInfo.yearLabel')}
+                <strong>{item.year}</strong>
               </Typography>
             )}
           </Stack>
@@ -156,7 +161,7 @@ export default function ArtworkInfo() {
           {item.comment && (
             <>
               <Divider sx={{ my: 2 }}>
-                <Chip label="Commentaire" size="small" />
+                <Chip label={t('artworkInfo.commentLabel')} size="small" />
               </Divider>
               <Typography variant="body2" color="text.secondary" sx={{ whiteSpace: 'pre-wrap' }}>
                 {item.comment}

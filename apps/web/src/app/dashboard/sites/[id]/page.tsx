@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
 import { RequireAuth } from '@/components/RequireAuth';
 import { DeploymentTimeline } from '@/components/DeploymentTimeline';
 import { api } from '@/lib/api';
@@ -45,6 +46,7 @@ interface Analytics {
 }
 
 function SiteDetailView() {
+  const t = useTranslations('DashboardSite');
   const { id } = useParams<{ id: string }>();
   const [data, setData] = useState<SiteDetail | null>(null);
   const [analytics, setAnalytics] = useState<Analytics | null>(null);
@@ -57,8 +59,8 @@ function SiteDetailView() {
   const load = useCallback(() => {
     api<SiteDetail>(`/me/sites/${id}`)
       .then(setData)
-      .catch(() => setError('Site introuvable'));
-  }, [id]);
+      .catch(() => setError(t('notFound')));
+  }, [id, t]);
 
   useEffect(() => {
     load();
@@ -116,7 +118,7 @@ function SiteDetailView() {
   if (!data) {
     return (
       <div className="container section">
-        <p className="cartel">Chargement…</p>
+        <p className="cartel">{t('loading')}</p>
       </div>
     );
   }
@@ -128,15 +130,15 @@ function SiteDetailView() {
     <section className="section">
       <div className="container">
         <p className="cartel" style={{ marginBottom: '0.6rem' }}>
-          <Link href="/dashboard">Mes sites</Link> / {site.slug}
+          <Link href="/dashboard">{t('breadcrumbDashboard')}</Link> / {site.slug}
         </p>
         <div className="section-head">
           <h2>{site.artistName}</h2>
           <span className={styles.status} data-status={site.status}>
             {site.status === 'live'
-              ? 'En ligne'
+              ? t('statusLive')
               : site.status === 'provisioning'
-                ? 'Déploiement…'
+                ? t('statusProvisioning')
                 : site.status}
           </span>
         </div>
@@ -144,7 +146,7 @@ function SiteDetailView() {
         <div className={styles.twoCol}>
           <div className={styles.panel}>
             <p className={styles.panelTitle}>
-              {site.status === 'provisioning' ? 'Déploiement en cours' : 'Dernier déploiement'}
+              {site.status === 'provisioning' ? t('deployingTitle') : t('lastDeployTitle')}
             </p>
             <DeploymentTimeline siteId={site.id} />
             {site.status === 'live' && site.urls?.front && (
@@ -154,17 +156,14 @@ function SiteDetailView() {
                 rel="noreferrer"
                 className="btn btn-primary"
               >
-                Visiter mon site →
+                {t('visitSite')}
               </a>
             )}
             {site.status === 'error' && (
               <>
-                <p className={styles.meta}>
-                  Le déploiement s’est interrompu. Vous pouvez le relancer sur le même site — les
-                  étapes déjà réussies sont conservées, la reprise reprend là où ça a échoué.
-                </p>
+                <p className={styles.meta}>{t('deployErrorText')}</p>
                 <button className="btn btn-primary" onClick={retry} disabled={retryBusy}>
-                  {retryBusy ? 'Relance…' : 'Relancer le déploiement'}
+                  {retryBusy ? t('retryBusy') : t('retryCta')}
                 </button>
                 {error && <p className="error-text">{error}</p>}
               </>
@@ -173,7 +172,7 @@ function SiteDetailView() {
 
           <div style={{ display: 'grid', gap: '1.5rem' }}>
             <div className={styles.panel}>
-              <p className={styles.panelTitle}>Back-office de votre site</p>
+              <p className={styles.panelTitle}>{t('backOfficeTitle')}</p>
               <div className={styles.credRow}>
                 <span className={styles.mono}>{site.adminEmail ?? '—'}</span>
                 {site.urls?.backOffice && (
@@ -183,14 +182,14 @@ function SiteDetailView() {
                     rel="noreferrer"
                     className={`btn ${styles.btnSmall}`}
                   >
-                    Ouvrir le back-office
+                    {t('openBackOffice')}
                   </a>
                 )}
               </div>
               {password ? (
                 <>
                   <p className={styles.password}>{password}</p>
-                  <p className="cartel">Notez ce mot de passe : il ne sera plus jamais affiché.</p>
+                  <p className="cartel">{t('passwordNotice')}</p>
                 </>
               ) : (
                 <button
@@ -198,64 +197,58 @@ function SiteDetailView() {
                   onClick={regenerate}
                   disabled={regenBusy || site.status !== 'live'}
                 >
-                  {regenBusy ? 'Génération…' : 'Régénérer le mot de passe'}
+                  {regenBusy ? t('regenBusy') : t('regenCta')}
                 </button>
               )}
               {error && <p className="error-text">{error}</p>}
             </div>
 
             <div className={styles.panel}>
-              <p className={styles.panelTitle}>Audience — 30 jours</p>
+              <p className={styles.panelTitle}>{t('audienceTitle')}</p>
               {analytics && analytics.totals.pageViews > 0 ? (
                 <>
                   <div className={styles.statRow}>
                     <p>
                       <strong>{analytics.totals.pageViews}</strong>
-                      <span className="cartel">Pages vues</span>
+                      <span className="cartel">{t('pageViews')}</span>
                     </p>
                     <p>
                       <strong>{analytics.totals.uniques}</strong>
-                      <span className="cartel">Visiteurs</span>
+                      <span className="cartel">{t('visitors')}</span>
                     </p>
                   </div>
-                  <div
-                    className={styles.bars}
-                    role="img"
-                    aria-label="Pages vues par jour sur 30 jours"
-                  >
+                  <div className={styles.bars} role="img" aria-label={t('barsAriaLabel')}>
                     {analytics.days.map((day) => (
                       <span
                         key={day.date}
                         style={{ height: `${(day.pageViews / maxViews) * 100}%` }}
-                        title={`${day.date} : ${day.pageViews} pages vues`}
+                        title={t('barTitle', { date: day.date, count: day.pageViews })}
                       />
                     ))}
                   </div>
                 </>
               ) : (
-                <p className="cartel">
-                  Pas encore de visites mesurées — partagez l’adresse de votre site !
-                </p>
+                <p className="cartel">{t('noVisits')}</p>
               )}
             </div>
 
             {billing && (
               <div className={styles.panel}>
-                <p className={styles.panelTitle}>Consommation du mois</p>
+                <p className={styles.panelTitle}>{t('consumptionTitle')}</p>
                 <div className={styles.summaryRow}>
-                  <span className="cartel">Calcul (Cloud Run)</span>
+                  <span className="cartel">{t('compute')}</span>
                   <span>{billing.current.computeEur.toFixed(2)} €</span>
                 </div>
                 <div className={styles.summaryRow}>
-                  <span className="cartel">Requêtes</span>
+                  <span className="cartel">{t('requests')}</span>
                   <span>{billing.current.requestsEur.toFixed(2)} €</span>
                 </div>
                 <div className={styles.summaryRow}>
-                  <span className="cartel">Stockage</span>
+                  <span className="cartel">{t('storage')}</span>
                   <span>{billing.current.storageEur.toFixed(2)} €</span>
                 </div>
                 <div className={styles.summaryRow}>
-                  <span className="cartel">Trafic sortant</span>
+                  <span className="cartel">{t('egress')}</span>
                   <span>{billing.current.egressEur.toFixed(2)} €</span>
                 </div>
                 <div
@@ -263,15 +256,19 @@ function SiteDetailView() {
                   style={{ borderTop: '1px solid var(--line)', paddingTop: '0.6rem' }}
                 >
                   <span className="cartel">
-                    <strong>Infrastructure ce mois-ci</strong>
+                    <strong>{t('infraMonth')}</strong>
                   </span>
                   <strong>{billing.current.totalEur.toFixed(2)} €</strong>
                 </div>
                 <p className={styles.meta}>
-                  Facture projetée : ({billing.pricing.baseEur} € +{' '}
-                  {billing.current.totalEur.toFixed(2)} € + {billing.pricing.domainEur} €) × 1,10 ={' '}
-                  <strong>{billing.pricing.projectedTotalEur.toFixed(2)} €</strong>
-                  {billing.current.method === 'estimation-locale' && ' (estimation locale)'}
+                  {t.rich('projectedInvoice', {
+                    base: billing.pricing.baseEur,
+                    total: billing.current.totalEur.toFixed(2),
+                    domain: billing.pricing.domainEur,
+                    projected: billing.pricing.projectedTotalEur.toFixed(2),
+                    strong: (chunks) => <strong>{chunks}</strong>,
+                  })}
+                  {billing.current.method === 'estimation-locale' && t('estimationLocal')}
                 </p>
               </div>
             )}

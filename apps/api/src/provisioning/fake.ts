@@ -28,6 +28,11 @@ export const fakeProvisionerDriver: ProvisionerDriver = {
     return { frontUrl: `http://localhost:3100/?tenant=${spec.slug}` };
   },
 
+  async checkHostingNameAvailable(_slug: string) {
+    await wait(200);
+    return { available: true };
+  },
+
   async verify(_urls: DeployedUrls) {
     await wait(1000);
   },

@@ -2,12 +2,14 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
 import { RequireAuth } from '@/components/RequireAuth';
 import { useAuth, useAuthActions } from '@/lib/auth';
 import { api } from '@/lib/api';
 import styles from '../dashboard.module.css';
 
 function ProfileView() {
+  const t = useTranslations('DashboardProfile');
   const { user } = useAuth();
   const { logout } = useAuthActions();
   const [confirmText, setConfirmText] = useState('');
@@ -53,49 +55,43 @@ function ProfileView() {
     <section className="section">
       <div className="container" style={{ maxWidth: 640 }}>
         <p className="cartel" style={{ marginBottom: '0.6rem' }}>
-          <Link href="/dashboard">Mes sites</Link> / Profil
+          <Link href="/dashboard">{t('breadcrumbDashboard')}</Link> / {t('breadcrumbCurrent')}
         </p>
         <div className="section-head">
-          <h2>Mon profil</h2>
+          <h2>{t('title')}</h2>
         </div>
 
         <div className={styles.panel} style={{ marginBottom: '2rem' }}>
-          <p className={styles.panelTitle}>Informations du compte</p>
+          <p className={styles.panelTitle}>{t('accountInfoTitle')}</p>
           <div className={styles.summaryRow}>
-            <span className="cartel">Nom</span>
+            <span className="cartel">{t('nameLabel')}</span>
             <span>{user?.displayName ?? '—'}</span>
           </div>
           <div className={styles.summaryRow}>
-            <span className="cartel">Email</span>
+            <span className="cartel">{t('emailLabel')}</span>
             <span className={styles.mono}>{user?.email}</span>
           </div>
           <div className={styles.summaryRow}>
-            <span className="cartel">Facturation</span>
-            <span>Gérée depuis « Facturation » sur la page Mes sites</span>
+            <span className="cartel">{t('billingLabel')}</span>
+            <span>{t('billingManaged')}</span>
           </div>
         </div>
 
         <div className={styles.panel} style={{ marginBottom: '2rem' }}>
-          <p className={styles.panelTitle}>Exporter mes données</p>
-          <p style={{ fontSize: '0.95rem' }}>
-            Téléchargez l’intégralité des données de votre compte (profil, sites et commandes) au
-            format JSON — droit à la portabilité (RGPD, art. 20).
-          </p>
+          <p className={styles.panelTitle}>{t('exportTitle')}</p>
+          <p style={{ fontSize: '0.95rem' }}>{t('exportDescription')}</p>
           <button className={`btn ${styles.btnSmall}`} disabled={exporting} onClick={exportData}>
-            {exporting ? 'Préparation…' : 'Télécharger mes données (JSON)'}
+            {exporting ? t('exportBusy') : t('exportCta')}
           </button>
         </div>
 
         <div className={styles.panel} style={{ borderColor: '#b3261e55' }}>
           <p className={styles.panelTitle} style={{ color: '#b3261e' }}>
-            Supprimer mon compte
+            {t('deleteTitle')}
           </p>
-          <p style={{ fontSize: '0.95rem' }}>
-            Votre compte est supprimé immédiatement et vos sites sont suspendus, puis définitivement
-            effacés sous 30 jours. Cette action est irréversible.
-          </p>
+          <p style={{ fontSize: '0.95rem' }}>{t('deleteDescription')}</p>
           <div className="field">
-            <label htmlFor="confirm">Tapez « SUPPRIMER » pour confirmer</label>
+            <label htmlFor="confirm">{t('confirmLabel', { word: t('deleteWord') })}</label>
             <input
               id="confirm"
               value={confirmText}
@@ -107,10 +103,10 @@ function ProfileView() {
           <button
             className={`btn ${styles.btnSmall}`}
             style={{ borderColor: '#b3261e', color: '#b3261e' }}
-            disabled={busy || confirmText !== 'SUPPRIMER'}
+            disabled={busy || confirmText !== t('deleteWord')}
             onClick={deleteAccount}
           >
-            {busy ? 'Suppression…' : 'Supprimer définitivement mon compte'}
+            {busy ? t('deleteBusy') : t('deleteCta')}
           </button>
         </div>
       </div>

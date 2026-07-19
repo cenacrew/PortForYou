@@ -2,18 +2,22 @@
 import { useSearchParams, Link } from 'react-router-dom';
 import { Container, Typography, Box, CircularProgress, Button } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import { useTranslation } from 'react-i18next';
 import { useDesignSystem } from '../design-system/DesignSystemContext';
 import { techniques, apiUrl } from '../utils';
 
 const PAGE_SIZE = 24;
 
 export default function Galerie() {
+  const { t } = useTranslation();
   // ArtworkList porte la direction artistique du template — injecté par la DA.
   const { ArtworkList } = useDesignSystem();
   const [searchParams] = useSearchParams();
   const techniqueFilter = searchParams.get('technique');
   const techniqueLabel = techniqueFilter
-    ? techniques.find((t) => t.value === techniqueFilter)?.label || techniqueFilter
+    ? techniques.find((tech) => tech.value === techniqueFilter)
+      ? t(`techniques.${techniqueFilter}`)
+      : techniqueFilter
     : null;
 
   const [items, setItems] = useState([]);
@@ -33,9 +37,13 @@ export default function Galerie() {
 
       const res = await fetch(`${base}?${params}`, { cache: 'no-store', signal });
       const data = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(data?.error || 'Erreur de chargement');
+      if (!res.ok) throw new Error(data?.error || t('gallery.loadError'));
       return data;
     },
+    // `t` volontairement exclu : un changement de langue ne doit pas re-fetch
+    // la galerie (les œuvres ne dépendent pas de la locale), seul le message
+    // d'erreur ponctuel s'en sert.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [techniqueFilter],
   );
 
@@ -104,7 +112,7 @@ export default function Galerie() {
             variant="text"
             sx={{ mb: 2, pl: 0 }}
           >
-            Toute la galerie
+            {t('gallery.backToGallery')}
           </Button>
           <Typography variant="h3" component="h1" fontWeight={700}>
             {techniqueLabel}
@@ -114,7 +122,7 @@ export default function Galerie() {
 
       {!techniqueLabel && (
         <Typography variant="h3" component="h1" fontWeight={700} gutterBottom>
-          Galerie
+          {t('gallery.heading')}
         </Typography>
       )}
 
@@ -129,7 +137,7 @@ export default function Galerie() {
           <CircularProgress />
         </Box>
       ) : items.length === 0 ? (
-        <Box sx={{ color: 'text.secondary' }}>Aucune oeuvre pour le moment.</Box>
+        <Box sx={{ color: 'text.secondary' }}>{t('gallery.noArtworks')}</Box>
       ) : (
         <>
           <ArtworkList items={items} />

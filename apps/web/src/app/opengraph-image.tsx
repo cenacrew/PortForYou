@@ -3,7 +3,11 @@ import { SITE_NAME } from '@/lib/site';
 
 // Image Open Graph par défaut de la vitrine (1200×630), générée à la build.
 // Convention Next : appliquée automatiquement à og:image et twitter:image de
-// toutes les pages, sauf celles qui définissent leur propre image.
+// toutes les pages, sauf celles qui définissent leur propre image. Texte fixe
+// en français (pas de useTranslations/getTranslations ici) : les crawlers de
+// réseaux sociaux qui récupèrent cette image n'envoient jamais le cookie de
+// langue de l'utilisateur, un texte dynamique par locale n'aurait donc aucun
+// effet sur eux — seulement le coût de perdre le pré-rendu statique de Next.
 export const runtime = 'nodejs';
 export const alt = "Port'ForYou — Portfolios pour artistes visuels";
 export const size = { width: 1200, height: 630 };

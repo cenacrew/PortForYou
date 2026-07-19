@@ -14,19 +14,20 @@ import EventIcon from '@mui/icons-material/Event';
 import SettingsIcon from '@mui/icons-material/Settings';
 import LogoutIcon from '@mui/icons-material/Logout';
 import AddIcon from '@mui/icons-material/Add';
+import { useTranslation } from 'react-i18next';
 import AddArtworkDialog from '../../components/back_office/AddArtworkDialog';
 import EditArtworkDialog from '../../components/back_office/EditArtworkDialog';
 import SiteConfigPanel from '../../components/back_office/SiteConfigPanel';
 import NewsPanel from '../../components/back_office/NewsPanel';
 import { apiUrl } from '../../utils';
 
-const NAV = [
-  { id: 'artworks', label: 'Oeuvres', icon: <ImageIcon fontSize="small" /> },
-  { id: 'news', label: 'Actualites', icon: <EventIcon fontSize="small" /> },
-  { id: 'config', label: 'Contenu du site', icon: <SettingsIcon fontSize="small" /> },
-];
-
 export default function BackOffice() {
+  const { t } = useTranslation();
+  const NAV = [
+    { id: 'artworks', label: t('backOffice.navArtworks'), icon: <ImageIcon fontSize="small" /> },
+    { id: 'news', label: t('backOffice.navNews'), icon: <EventIcon fontSize="small" /> },
+    { id: 'config', label: t('backOffice.navConfig'), icon: <SettingsIcon fontSize="small" /> },
+  ];
   const navigate = useNavigate();
   const [section, setSection] = useState('artworks');
   const [openAdd, setOpenAdd] = useState(false);
@@ -89,7 +90,7 @@ export default function BackOffice() {
             display: 'block',
           }}
         >
-          Administration
+          {t('backOffice.adminOverline')}
         </Typography>
         {NAV.map((item) => (
           <Button
@@ -138,7 +139,7 @@ export default function BackOffice() {
             '& .MuiButton-startIcon': { color: 'inherit' },
           }}
         >
-          Deconnexion
+          {t('backOffice.logout')}
         </Button>
       </Box>
 
@@ -174,7 +175,7 @@ export default function BackOffice() {
               onClick={() => setOpenAdd(true)}
               sx={{ borderRadius: 1, textTransform: 'none', fontWeight: 600, px: 2.5 }}
             >
-              Ajouter une oeuvre
+              {t('backOffice.addArtwork')}
             </Button>
           )}
         </Box>
@@ -188,7 +189,7 @@ export default function BackOffice() {
             ) : artworks.length === 0 ? (
               <Box sx={{ textAlign: 'center', py: 10 }}>
                 <ImageIcon sx={{ fontSize: 48, color: 'action.disabled', mb: 1 }} />
-                <Typography color="text.secondary">Aucune oeuvre pour l instant.</Typography>
+                <Typography color="text.secondary">{t('backOffice.noArtworks')}</Typography>
               </Box>
             ) : (
               <Box

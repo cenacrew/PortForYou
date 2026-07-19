@@ -2,10 +2,12 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
 import { useAuthActions } from '@/lib/auth';
 import styles from '../auth.module.css';
 
 export default function ForgotPasswordPage() {
+  const t = useTranslations('ForgotPassword');
   const { forgotPassword } = useAuthActions();
   const [email, setEmail] = useState('');
   const [sent, setSent] = useState(false);
@@ -21,16 +23,13 @@ export default function ForgotPasswordPage() {
   return (
     <div className={styles.wrap}>
       <div className={styles.card}>
-        <h1>Mot de passe oublié</h1>
+        <h1>{t('title')}</h1>
         {sent ? (
-          <p>
-            Si un compte existe pour <strong>{email}</strong>, un lien de réinitialisation vient de
-            lui être envoyé (valable 1 heure).
-          </p>
+          <p>{t.rich('sentMessage', { email, strong: (chunks) => <strong>{chunks}</strong> })}</p>
         ) : (
           <form onSubmit={submit}>
             <div className="field">
-              <label htmlFor="email">Email du compte</label>
+              <label htmlFor="email">{t('emailLabel')}</label>
               <input
                 id="email"
                 type="email"
@@ -46,12 +45,12 @@ export default function ForgotPasswordPage() {
               disabled={busy}
               style={{ width: '100%', justifyContent: 'center' }}
             >
-              {busy ? 'Envoi…' : 'Envoyer le lien'}
+              {busy ? t('submitBusy') : t('submit')}
             </button>
           </form>
         )}
         <p className={styles.switch}>
-          <Link href="/login">← Retour à la connexion</Link>
+          <Link href="/login">{t('backToLogin')}</Link>
         </p>
       </div>
     </div>

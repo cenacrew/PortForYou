@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { API_URL, getAccessToken } from '@/lib/api';
 import styles from './DeploymentTimeline.module.css';
 
@@ -25,6 +26,7 @@ const ICONS = { pending: '○', running: '◐', done: '●', failed: '✕' } as 
  * de header, l'access token passe en query — vérifié comme un Bearer.
  */
 export function DeploymentTimeline({ siteId }: { siteId: string }) {
+  const t = useTranslations('DeploymentTimeline');
   const [deployment, setDeployment] = useState<Deployment | null>(null);
 
   useEffect(() => {
@@ -44,10 +46,10 @@ export function DeploymentTimeline({ siteId }: { siteId: string }) {
     return () => source.close();
   }, [siteId]);
 
-  if (!deployment) return <p className="cartel">Aucun déploiement pour ce site.</p>;
+  if (!deployment) return <p className="cartel">{t('empty')}</p>;
 
   return (
-    <ol className={styles.timeline} aria-label="Progression du déploiement">
+    <ol className={styles.timeline} aria-label={t('ariaLabel')}>
       {deployment.steps.map((step) => (
         <li key={step.id} className={styles.step} data-status={step.status}>
           <span className={styles.icon} aria-hidden>

@@ -2,19 +2,22 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { useAuth } from '@/lib/auth';
+import { LocaleSwitcher } from './LocaleSwitcher';
 import styles from './Header.module.css';
 
-const NAV = [
-  { href: '/templates', label: 'Templates' },
-  { href: '/#artistes', label: 'Artistes' },
-  { href: '/#tarif', label: 'Tarif' },
-  { href: '/contact', label: 'Devis' },
-];
-
 export function Header() {
+  const t = useTranslations('Header');
   const { user, loading, isAdmin } = useAuth();
   const pathname = usePathname();
+
+  const NAV = [
+    { href: '/templates', label: t('navTemplates') },
+    { href: '/#artistes', label: t('navArtists') },
+    { href: '/#tarif', label: t('navPricing') },
+    { href: '/contact', label: t('navQuote') },
+  ];
 
   return (
     <header className={styles.header}>
@@ -22,7 +25,7 @@ export function Header() {
         <Link href="/" className={styles.brand}>
           Port’For<span>You</span>
         </Link>
-        <nav className={styles.nav} aria-label="Navigation principale">
+        <nav className={styles.nav} aria-label={t('navMain')}>
           {NAV.map((item) => (
             <Link
               key={item.href}
@@ -36,19 +39,20 @@ export function Header() {
         <div className={styles.actions}>
           {loading ? null : user ? (
             <>
-              {isAdmin && <Link href="/admin">Admin</Link>}
+              {isAdmin && <Link href="/admin">{t('navAdmin')}</Link>}
               <Link href="/dashboard" className="btn">
-                Mon espace
+                {t('navDashboard')}
               </Link>
             </>
           ) : (
             <>
-              <Link href="/login">Connexion</Link>
+              <Link href="/login">{t('navLogin')}</Link>
               <Link href="/order" className="btn btn-primary">
-                Créer mon portfolio
+                {t('navCreate')}
               </Link>
             </>
           )}
+          <LocaleSwitcher />
         </div>
       </div>
     </header>

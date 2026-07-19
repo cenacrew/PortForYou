@@ -15,6 +15,7 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import DeleteIcon from '@mui/icons-material/Delete';
 import AddIcon from '@mui/icons-material/Add';
 import EventIcon from '@mui/icons-material/Event';
+import { useTranslation } from 'react-i18next';
 import ImageUploadField from './ImageUploadField';
 import { uploadImage, saveSiteConfig, apiUrl } from '../../utils';
 
@@ -29,6 +30,7 @@ const EMPTY_ITEM = {
 };
 
 export default function NewsPanel() {
+  const { t } = useTranslation();
   const [items, setItems] = useState([]);
   const [blobs, setBlobs] = useState({});
   const [loading, setLoading] = useState(true);
@@ -93,7 +95,7 @@ export default function NewsPanel() {
     <Box>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
         <Typography variant="body2" color="text.secondary">
-          {items.length} actualite{items.length !== 1 ? 's' : ''}
+          {t('newsPanel.count', { count: items.length })}
         </Typography>
         <Button
           startIcon={<AddIcon />}
@@ -101,16 +103,14 @@ export default function NewsPanel() {
           onClick={addItem}
           sx={{ textTransform: 'none', borderRadius: 1 }}
         >
-          Ajouter une actualite
+          {t('newsPanel.addNews')}
         </Button>
       </Box>
       <Stack spacing={1.5}>
         {items.length === 0 && (
           <Box sx={{ textAlign: 'center', py: 8, color: 'text.secondary' }}>
             <EventIcon sx={{ fontSize: 44, opacity: 0.25, mb: 1.5 }} />
-            <Typography variant="body2">
-              Aucune actualite. Cliquez sur Ajouter pour commencer.
-            </Typography>
+            <Typography variant="body2">{t('newsPanel.emptyState')}</Typography>
           </Box>
         )}
         {items.map((item, i) => (
@@ -140,7 +140,7 @@ export default function NewsPanel() {
                 <EventIcon sx={{ fontSize: 18, color: 'secondary.main', flexShrink: 0 }} />
                 <Box sx={{ flex: 1, minWidth: 0 }}>
                   <Typography fontWeight={600} noWrap sx={{ fontSize: '0.875rem' }}>
-                    {item.title || 'Nouvelle actualite'}
+                    {item.title || t('newsPanel.newItemDefaultTitle')}
                   </Typography>
                   {item.date && (
                     <Typography variant="caption" color="text.secondary">
@@ -169,7 +169,7 @@ export default function NewsPanel() {
             <AccordionDetails sx={{ pt: 0 }}>
               <Stack spacing={2}>
                 <TextField
-                  label="Titre *"
+                  label={t('newsPanel.titleLabel')}
                   value={item.title || ''}
                   onChange={(e) => updateItem(i, 'title', e.target.value)}
                   fullWidth
@@ -177,7 +177,7 @@ export default function NewsPanel() {
                 />
                 <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5}>
                   <TextField
-                    label="Date de debut *"
+                    label={t('newsPanel.startDateLabel')}
                     type="date"
                     value={item.date || ''}
                     onChange={(e) => updateItem(i, 'date', e.target.value)}
@@ -186,7 +186,7 @@ export default function NewsPanel() {
                     sx={{ flex: 1 }}
                   />
                   <TextField
-                    label="Date de fin (optionnel)"
+                    label={t('newsPanel.endDateLabel')}
                     type="date"
                     value={item.endDate || ''}
                     onChange={(e) => updateItem(i, 'endDate', e.target.value)}
@@ -196,15 +196,15 @@ export default function NewsPanel() {
                   />
                 </Stack>
                 <TextField
-                  label="Lieu"
+                  label={t('newsPanel.locationLabel')}
                   value={item.location || ''}
                   onChange={(e) => updateItem(i, 'location', e.target.value)}
                   fullWidth
                   size="small"
-                  placeholder="Galerie XY, 12 rue de la Paix, Paris"
+                  placeholder={t('newsPanel.locationPlaceholder')}
                 />
                 <TextField
-                  label="Description (optionnel)"
+                  label={t('newsPanel.descriptionLabel')}
                   value={item.description || ''}
                   onChange={(e) => updateItem(i, 'description', e.target.value)}
                   fullWidth
@@ -213,23 +213,23 @@ export default function NewsPanel() {
                   size="small"
                 />
                 <TextField
-                  label="Lien externe (optionnel)"
+                  label={t('newsPanel.linkLabel')}
                   value={item.link || ''}
                   onChange={(e) => updateItem(i, 'link', e.target.value)}
                   fullWidth
                   size="small"
-                  placeholder="https://..."
+                  placeholder={t('newsPanel.linkPlaceholder')}
                 />
                 <Box>
                   <Typography variant="caption" fontWeight={600} display="block" sx={{ mb: 1 }}>
-                    Image (optionnel, 16:9)
+                    {t('newsPanel.imageHelper')}
                   </Typography>
                   <ImageUploadField
-                    label="Choisir une image"
+                    label={t('newsPanel.chooseImage')}
                     aspect={16 / 9}
                     currentUrl={item.imageUrl}
                     onBlob={(blob) => setBlobs((b) => ({ ...b, [i]: blob }))}
-                    cropTitle="Recadrer l image (16:9)"
+                    cropTitle={t('newsPanel.cropTitle')}
                   />
                 </Box>
               </Stack>
@@ -244,7 +244,7 @@ export default function NewsPanel() {
           disabled={saving || items.length === 0}
           sx={{ textTransform: 'none', borderRadius: 1, fontWeight: 600, px: 3 }}
         >
-          {saving ? 'Sauvegarde...' : 'Sauvegarder'}
+          {saving ? t('common.saving') : t('common.save')}
         </Button>
         {error && (
           <Typography color="error" variant="caption">
@@ -253,7 +253,7 @@ export default function NewsPanel() {
         )}
         {success && (
           <Typography color="success.main" variant="caption" fontWeight={600}>
-            Sauvegarde avec succes
+            {t('newsPanel.saveSuccess')}
           </Typography>
         )}
       </Box>

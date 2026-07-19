@@ -1,6 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { NextIntlClientProvider } from 'next-intl';
+import messages from '../../../../messages/fr.json';
 
 const replace = vi.fn();
 const push = vi.fn();
@@ -24,6 +26,14 @@ vi.mock('@/lib/api', () => ({
 
 const OrderPage = (await import('../page')).default;
 
+function renderPage() {
+  return render(
+    <NextIntlClientProvider locale="fr" messages={messages}>
+      <OrderPage />
+    </NextIntlClientProvider>,
+  );
+}
+
 beforeEach(() => {
   apiMock.mockReset();
   replace.mockReset();
@@ -42,7 +52,7 @@ describe('Funnel de commande', () => {
       return Promise.resolve({});
     });
 
-    render(<OrderPage />);
+    renderPage();
 
     // Étape 1 : template pré-sélectionnée via l'URL, les 3 templates listées
     expect(screen.getByText('Choisissez votre template')).toBeInTheDocument();
@@ -90,7 +100,7 @@ describe('Funnel de commande', () => {
     const user = userEvent.setup();
     apiMock.mockResolvedValue({ available: false, reason: 'Ce nom est déjà pris' });
 
-    render(<OrderPage />);
+    renderPage();
     await user.click(screen.getByRole('button', { name: 'Continuer →' }));
     await user.type(screen.getByLabelText(/Nom du site/), 'deja-pris');
 

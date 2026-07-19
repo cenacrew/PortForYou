@@ -1,9 +1,11 @@
 ﻿import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { apiUrl } from '../../utils';
 import { Box, Button, Container, TextField, Typography, Paper, Stack } from '@mui/material';
 
 export default function AdminLogin() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -23,14 +25,14 @@ export default function AdminLogin() {
     })
       .then(async (res) => {
         const data = await res.json().catch(() => ({}));
-        if (!res.ok) throw new Error(data?.error || 'Connexion echouee');
+        if (!res.ok) throw new Error(data?.error || t('adminLogin.loginError'));
         return data;
       })
       .then(() => {
         localStorage.setItem('logged_in', 'true');
         navigate('/admin/back-office');
       })
-      .catch((err) => setError(err.message || 'Connexion echouee'))
+      .catch((err) => setError(err.message || t('adminLogin.loginError')))
       .finally(() => setLoading(false));
   };
 
@@ -40,16 +42,16 @@ export default function AdminLogin() {
         <Stack spacing={3}>
           <Box>
             <Typography component="h1" variant="h4" gutterBottom>
-              Administration
+              {t('adminLogin.title')}
             </Typography>
             <Typography variant="body2" color="text.secondary">
-              Connectez-vous pour acceder au back office.
+              {t('adminLogin.subtitle')}
             </Typography>
           </Box>
           <Box component="form" onSubmit={handleSubmit} noValidate>
             <Stack spacing={2}>
               <TextField
-                label="Email"
+                label={t('adminLogin.emailLabel')}
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -57,7 +59,7 @@ export default function AdminLogin() {
                 fullWidth
               />
               <TextField
-                label="Mot de passe"
+                label={t('adminLogin.passwordLabel')}
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
@@ -70,7 +72,7 @@ export default function AdminLogin() {
                 </Typography>
               )}
               <Button type="submit" variant="contained" size="large" disabled={loading}>
-                {loading ? 'Connexion...' : 'Se connecter'}
+                {loading ? t('adminLogin.loggingIn') : t('adminLogin.loginButton')}
               </Button>
             </Stack>
           </Box>

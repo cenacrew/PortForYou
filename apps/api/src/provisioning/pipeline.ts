@@ -10,6 +10,7 @@ import { deploymentsCol, sitesCol } from '../lib/firebase.js';
 import type { ProvisionerDriver } from './driver.js';
 import { seedTenant } from './seed.js';
 import { sendMail, siteLiveEmail, deploymentFailedEmail } from '../emails/mailer.js';
+import { ProvisioningUserError } from './errors.js';
 
 interface SiteData {
   uid: string;
@@ -165,15 +166,17 @@ export async function runProvisioning(
     await sendMail({ to: site.clientEmail, type: 'site_live', ...mail });
   } catch (err) {
     // Le détail (souvent une réponse d'API GCP) reste côté serveur : il ne doit
-    // jamais fuiter au client via le flux SSE. L'étape ne porte qu'un message
-    // générique et sûr.
+    // jamais fuiter au client via le flux SSE. Exception : ProvisioningUserError,
+    // dont le message est spécifiquement rédigé pour être sûr et actionnable
+    // (ex. nom de site Hosting déjà pris ailleurs) — dans ce cas on l'affiche
+    // tel quel plutôt que le message générique, sinon l'échec reste un mystère
+    // même après plusieurs tentatives de relance.
     console.error(`Provisioning de ${site.slug} échoué à l'étape ${current}:`, err);
-    await setStep(
-      deployId,
-      current,
-      'failed',
-      'Cette étape a échoué. Vous pouvez relancer le déploiement ; si le problème persiste, contactez le support.',
-    );
+    const stepError =
+      err instanceof ProvisioningUserError
+        ? err.message
+        : 'Cette étape a échoué. Vous pouvez relancer le déploiement ; si le problème persiste, contactez le support.';
+    await setStep(deployId, current, 'failed', stepError);
     await deploymentsCol().doc(deployId).update({ status: 'failed' });
     await siteRef.update({ status: 'error' });
     const mail = deploymentFailedEmail(site.artistName, site.slug);

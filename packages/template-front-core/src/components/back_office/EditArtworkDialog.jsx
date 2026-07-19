@@ -17,9 +17,11 @@ import {
 } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import AddPhotoAlternateIcon from '@mui/icons-material/AddPhotoAlternate';
+import { useTranslation } from 'react-i18next';
 import { techniques, uploadImage, authFetch, apiUrl } from '../../utils';
 
 export default function EditArtworkDialog({ artwork, onClose, onSaved, onDeleted }) {
+  const { t } = useTranslation();
   const open = Boolean(artwork);
   const extraInputRef = useRef(null);
 
@@ -87,7 +89,7 @@ export default function EditArtworkDialog({ artwork, onClose, onSaved, onDeleted
     e.preventDefault();
     setError('');
     if (!form.title || !form.technique) {
-      setError('Titre et technique sont requis.');
+      setError(t('editArtworkDialog.errRequiredTitleTechnique'));
       return;
     }
 
@@ -120,10 +122,10 @@ export default function EditArtworkDialog({ artwork, onClose, onSaved, onDeleted
         }),
       });
       const data = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(data?.error || 'Erreur lors de la mise a jour');
+      if (!res.ok) throw new Error(data?.error || t('editArtworkDialog.errUpdate'));
       onSaved?.(data);
     } catch (err) {
-      setError(err.message || 'Une erreur est survenue');
+      setError(err.message || t('editArtworkDialog.errGeneric'));
     } finally {
       setSubmitting(false);
     }
@@ -139,11 +141,11 @@ export default function EditArtworkDialog({ artwork, onClose, onSaved, onDeleted
       const res = await authFetch(apiUrl(`/admin/artworks/${artwork.id}`), { method: 'DELETE' });
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
-        throw new Error(data?.error || 'Erreur de suppression');
+        throw new Error(data?.error || t('editArtworkDialog.errDelete'));
       }
       onDeleted?.();
     } catch (err) {
-      setError(err.message || 'Une erreur est survenue');
+      setError(err.message || t('editArtworkDialog.errGeneric'));
       setDeleting(false);
       setConfirmDelete(false);
     }
@@ -151,17 +153,19 @@ export default function EditArtworkDialog({ artwork, onClose, onSaved, onDeleted
 
   return (
     <Dialog open={open} onClose={handleClose} fullWidth maxWidth="sm">
-      <DialogTitle>Modifier l oeuvre</DialogTitle>
+      <DialogTitle>{t('editArtworkDialog.title')}</DialogTitle>
       <Box component="form" onSubmit={handleSubmit} noValidate>
         <DialogContent dividers>
           <Stack spacing={2}>
             <Button variant="outlined" component="label">
-              {form.image ? 'Changer l image' : 'Remplacer l image principale'}
+              {form.image
+                ? t('editArtworkDialog.changeImage')
+                : t('editArtworkDialog.replaceMainImage')}
               <input hidden accept="image/*" type="file" onChange={handleMainFile} />
             </Button>
             {form.image && (
               <Typography variant="caption" color="text.secondary">
-                Nouveau fichier : {form.image.name}
+                {t('editArtworkDialog.newFileLabel', { name: form.image.name })}
               </Typography>
             )}
             {!form.image && form.imageUrl && (
@@ -173,7 +177,7 @@ export default function EditArtworkDialog({ artwork, onClose, onSaved, onDeleted
               />
             )}
             <TextField
-              label="Titre"
+              label={t('editArtworkDialog.titleLabel')}
               name="title"
               value={form.title}
               onChange={handleChange}
@@ -181,24 +185,26 @@ export default function EditArtworkDialog({ artwork, onClose, onSaved, onDeleted
               fullWidth
             />
             <FormControl fullWidth required>
-              <InputLabel id="edit-technique-label">Technique</InputLabel>
+              <InputLabel id="edit-technique-label">
+                {t('editArtworkDialog.techniqueLabel')}
+              </InputLabel>
               <Select
                 labelId="edit-technique-label"
-                label="Technique"
+                label={t('editArtworkDialog.techniqueLabel')}
                 name="technique"
                 value={form.technique}
                 onChange={handleChange}
               >
-                {techniques.map((t) => (
-                  <MenuItem key={t.value} value={t.value}>
-                    {t.label}
+                {techniques.map((tech) => (
+                  <MenuItem key={tech.value} value={tech.value}>
+                    {t(`techniques.${tech.value}`)}
                   </MenuItem>
                 ))}
               </Select>
             </FormControl>
             <Stack direction="row" spacing={1} alignItems="center">
               <TextField
-                label="Hauteur"
+                label={t('editArtworkDialog.heightLabel')}
                 name="height"
                 value={form.height}
                 onChange={handleChange}
@@ -207,7 +213,7 @@ export default function EditArtworkDialog({ artwork, onClose, onSaved, onDeleted
               />
               <Typography variant="body2">x</Typography>
               <TextField
-                label="Largeur"
+                label={t('editArtworkDialog.widthLabel')}
                 name="width"
                 value={form.width}
                 onChange={handleChange}
@@ -216,7 +222,7 @@ export default function EditArtworkDialog({ artwork, onClose, onSaved, onDeleted
               />
             </Stack>
             <TextField
-              label="Annee"
+              label={t('editArtworkDialog.yearLabel')}
               name="year"
               value={form.year}
               onChange={handleChange}
@@ -225,7 +231,7 @@ export default function EditArtworkDialog({ artwork, onClose, onSaved, onDeleted
               fullWidth
             />
             <TextField
-              label="Commentaire (optionnel)"
+              label={t('editArtworkDialog.commentLabel')}
               name="comment"
               value={form.comment}
               onChange={handleChange}
@@ -235,7 +241,7 @@ export default function EditArtworkDialog({ artwork, onClose, onSaved, onDeleted
             />
             <Box>
               <Typography variant="caption" fontWeight={600} display="block" sx={{ mb: 1 }}>
-                Images supplementaires
+                {t('editArtworkDialog.extraImages')}
               </Typography>
               <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
                 {extraImages.map((entry, i) => (
@@ -305,15 +311,21 @@ export default function EditArtworkDialog({ artwork, onClose, onSaved, onDeleted
             onClick={handleDelete}
             disabled={deleting}
           >
-            {deleting ? 'Suppression...' : confirmDelete ? 'Confirmer la suppression' : 'Supprimer'}
+            {deleting
+              ? t('editArtworkDialog.deleting')
+              : confirmDelete
+                ? t('editArtworkDialog.confirmDelete')
+                : t('editArtworkDialog.delete')}
           </Button>
           <Stack direction="row" spacing={1}>
-            {confirmDelete && <Button onClick={() => setConfirmDelete(false)}>Annuler</Button>}
+            {confirmDelete && (
+              <Button onClick={() => setConfirmDelete(false)}>{t('common.cancel')}</Button>
+            )}
             {!confirmDelete && (
               <>
-                <Button onClick={handleClose}>Annuler</Button>
+                <Button onClick={handleClose}>{t('common.cancel')}</Button>
                 <Button type="submit" variant="contained" disabled={submitting}>
-                  {submitting ? 'Sauvegarde...' : 'Sauvegarder'}
+                  {submitting ? t('common.saving') : t('common.save')}
                 </Button>
               </>
             )}

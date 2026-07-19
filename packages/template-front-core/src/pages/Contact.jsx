@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import { Container, Typography, Divider, TextField, Button, Stack, Alert } from '@mui/material';
+import { useTranslation } from 'react-i18next';
 import { apiUrl } from '../utils';
 
 export default function Contact() {
+  const { t } = useTranslation();
   const [form, setForm] = useState({ name: '', email: '', message: '', website: '' });
   const [status, setStatus] = useState('idle'); // idle | sending | sent | error
   const [errorMsg, setErrorMsg] = useState('');
@@ -20,7 +22,7 @@ export default function Contact() {
         body: JSON.stringify(form),
       });
       const data = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(data?.error || "L'envoi a échoué, réessayez plus tard.");
+      if (!res.ok) throw new Error(data?.error || t('contact.genericSendError'));
       setStatus('sent');
       setForm({ name: '', email: '', message: '', website: '' });
     } catch (err) {
@@ -32,12 +34,12 @@ export default function Contact() {
   return (
     <Container maxWidth="sm" sx={{ py: 6 }}>
       <Typography variant="h3" component="h1" fontWeight={700} gutterBottom>
-        Contact
+        {t('contact.heading')}
       </Typography>
       <Divider sx={{ mb: 3 }} />
       {status === 'sent' && (
         <Alert severity="success" sx={{ mb: 2 }}>
-          Votre message a bien été envoyé, merci !
+          {t('contact.sentAlert')}
         </Alert>
       )}
       {status === 'error' && (
@@ -47,14 +49,14 @@ export default function Contact() {
       )}
       <Stack component="form" spacing={2} noValidate onSubmit={handleSubmit}>
         <TextField
-          label="Nom"
+          label={t('contact.nameLabel')}
           fullWidth
           required
           value={form.name}
           onChange={handleChange('name')}
         />
         <TextField
-          label="Email"
+          label={t('contact.emailLabel')}
           type="email"
           fullWidth
           required
@@ -62,7 +64,7 @@ export default function Contact() {
           onChange={handleChange('email')}
         />
         <TextField
-          label="Message"
+          label={t('contact.messageLabel')}
           fullWidth
           required
           multiline
@@ -81,7 +83,7 @@ export default function Contact() {
           aria-hidden="true"
         />
         <Button type="submit" variant="contained" size="large" disabled={status === 'sending'}>
-          {status === 'sending' ? 'Envoi…' : 'Envoyer'}
+          {status === 'sending' ? t('contact.sending') : t('contact.send')}
         </Button>
       </Stack>
     </Container>

@@ -2,6 +2,7 @@
 
 import { useEffect, useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { useAuth } from '@/lib/auth';
 import { api } from '@/lib/api';
 import { TEMPLATES } from '@/lib/templates';
@@ -10,6 +11,7 @@ import styles from './order.module.css';
 type SlugState = { checking: boolean; available: boolean | null; reason?: string };
 
 function OrderFunnel() {
+  const t = useTranslations('Order');
   const { user, loading } = useAuth();
   const router = useRouter();
   const params = useSearchParams();
@@ -45,11 +47,11 @@ function OrderFunnel() {
         );
         setSlugState({ checking: false, available: res.available, reason: res.reason });
       } catch {
-        setSlugState({ checking: false, available: null, reason: 'Vérification impossible' });
+        setSlugState({ checking: false, available: null, reason: t('checkFailed') });
       }
     }, 400);
     return () => clearTimeout(timer);
-  }, [siteSlug]);
+  }, [siteSlug, t]);
 
   const pay = async () => {
     setBusy(true);
@@ -88,23 +90,23 @@ function OrderFunnel() {
 
       {step === 0 && (
         <>
-          <h1 className={styles.title}>Choisissez votre template</h1>
+          <h1 className={styles.title}>{t('step0Title')}</h1>
           <div className={styles.templateChoices}>
-            {TEMPLATES.map((t) => (
+            {TEMPLATES.map((tpl) => (
               <button
-                key={t.slug}
+                key={tpl.slug}
                 type="button"
                 className={styles.templateChoice}
-                data-selected={t.slug === templateSlug || undefined}
-                disabled={!t.available}
-                onClick={() => setTemplateSlug(t.slug)}
+                data-selected={tpl.slug === templateSlug || undefined}
+                disabled={!tpl.available}
+                onClick={() => setTemplateSlug(tpl.slug)}
               >
                 <span>
-                  <strong>{t.name}</strong>
+                  <strong>{tpl.name}</strong>
                   <br />
-                  <span className="cartel">{t.tagline}</span>
+                  <span className="cartel">{tpl.tagline}</span>
                 </span>
-                {!t.available && <span className="cartel">Bientôt</span>}
+                {!tpl.available && <span className="cartel">{t('comingSoon')}</span>}
               </button>
             ))}
           </div>
@@ -113,37 +115,40 @@ function OrderFunnel() {
 
       {step === 1 && (
         <>
-          <h1 className={styles.title}>Nommez votre site</h1>
+          <h1 className={styles.title}>{t('step1Title')}</h1>
           <div className="field">
-            <label htmlFor="slug">Nom du site (minuscules, chiffres, tirets)</label>
+            <label htmlFor="slug">{t('slugLabel')}</label>
             <input
               id="slug"
               value={siteSlug}
-              placeholder="atelier-camille"
+              placeholder={t('slugPlaceholder')}
               autoComplete="off"
               onChange={(e) => setSiteSlug(e.target.value.toLowerCase().trim())}
             />
           </div>
           <p className={styles.slugPreview}>
-            Votre adresse : <strong>pfy-{siteSlug || 'votre-nom'}.web.app</strong>
+            {t.rich('slugPreview', {
+              slug: siteSlug || t('slugPlaceholderName'),
+              strong: (chunks) => <strong>{chunks}</strong>,
+            })}
           </p>
-          {slugState.checking && <p className="cartel">Vérification…</p>}
-          {slugState.available === true && <p className="ok-text">✓ Ce nom est disponible</p>}
+          {slugState.checking && <p className="cartel">{t('checking')}</p>}
+          {slugState.available === true && <p className="ok-text">{t('slugAvailable')}</p>}
           {slugState.available === false && (
-            <p className="error-text">{slugState.reason ?? 'Ce nom est déjà pris'}</p>
+            <p className="error-text">{slugState.reason ?? t('slugTaken')}</p>
           )}
         </>
       )}
 
       {step === 2 && (
         <>
-          <h1 className={styles.title}>Votre identité d’artiste</h1>
+          <h1 className={styles.title}>{t('step2Title')}</h1>
           <div className="field">
-            <label htmlFor="artist">Nom affiché sur le site</label>
+            <label htmlFor="artist">{t('artistLabel')}</label>
             <input id="artist" value={artistName} onChange={(e) => setArtistName(e.target.value)} />
           </div>
           <div className="field">
-            <label htmlFor="contact">Email de contact du portfolio</label>
+            <label htmlFor="contact">{t('contactLabel')}</label>
             <input
               id="contact"
               type="email"
@@ -156,23 +161,23 @@ function OrderFunnel() {
 
       {step === 3 && (
         <>
-          <h1 className={styles.title}>Récapitulatif</h1>
+          <h1 className={styles.title}>{t('step3Title')}</h1>
           <dl className={styles.summary}>
             <div className={styles.summaryRow}>
-              <dt>Template</dt>
+              <dt>{t('summaryTemplate')}</dt>
               <dd>{template?.name}</dd>
             </div>
             <div className={styles.summaryRow}>
-              <dt>Adresse</dt>
+              <dt>{t('summaryAddress')}</dt>
               <dd>pfy-{siteSlug}.web.app</dd>
             </div>
             <div className={styles.summaryRow}>
-              <dt>Artiste</dt>
+              <dt>{t('summaryArtist')}</dt>
               <dd>{artistName}</dd>
             </div>
             <div className={styles.summaryRow}>
-              <dt>Abonnement</dt>
-              <dd>5 €/mois + 1 € domaine + consommation réelle (+10 % MCO)</dd>
+              <dt>{t('summarySubscription')}</dt>
+              <dd>{t('subscriptionDetail')}</dd>
             </div>
           </dl>
           {error && <p className="error-text">{error}</p>}
@@ -182,7 +187,7 @@ function OrderFunnel() {
             disabled={busy}
             onClick={pay}
           >
-            {busy ? 'Redirection…' : 'Procéder au paiement'}
+            {busy ? t('payBusy') : t('pay')}
           </button>
         </>
       )}
@@ -190,14 +195,14 @@ function OrderFunnel() {
       <div className={styles.nav}>
         {step > 0 ? (
           <button className="btn" onClick={() => setStep(step - 1)}>
-            ← Retour
+            {t('back')}
           </button>
         ) : (
           <span />
         )}
         {step < 3 && (
           <button className="btn btn-primary" disabled={!canNext} onClick={() => setStep(step + 1)}>
-            Continuer →
+            {t('continue')}
           </button>
         )}
       </div>

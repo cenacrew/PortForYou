@@ -10,6 +10,7 @@ import {
   Box,
   Typography,
 } from '@mui/material';
+import { useTranslation } from 'react-i18next';
 
 function createImage(url) {
   return new Promise((resolve, reject) => {
@@ -42,6 +43,7 @@ async function getCroppedBlob(imageSrc, croppedAreaPixels) {
 }
 
 export default function CropDialog({ open, imageSrc, aspect, title, onCrop, onClose }) {
+  const { t } = useTranslation();
   const [crop, setCrop] = useState({ x: 0, y: 0 });
   const [zoom, setZoom] = useState(1);
   const [croppedAreaPixels, setCroppedAreaPixels] = useState(null);
@@ -55,7 +57,7 @@ export default function CropDialog({ open, imageSrc, aspect, title, onCrop, onCl
 
   return (
     <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
-      <DialogTitle>{title || "Recadrer l'image"}</DialogTitle>
+      <DialogTitle>{title || t('cropDialog.defaultTitle')}</DialogTitle>
       <DialogContent sx={{ p: 0 }}>
         <Box sx={{ position: 'relative', height: 420, bgcolor: '#111' }}>
           {imageSrc && (
@@ -72,15 +74,15 @@ export default function CropDialog({ open, imageSrc, aspect, title, onCrop, onCl
         </Box>
         <Box sx={{ px: 3, py: 2 }}>
           <Typography variant="caption" color="text.secondary">
-            Zoom
+            {t('cropDialog.zoomLabel')}
           </Typography>
           <Slider value={zoom} min={1} max={3} step={0.01} onChange={(_, v) => setZoom(v)} />
         </Box>
       </DialogContent>
       <DialogActions>
-        <Button onClick={onClose}>Annuler</Button>
+        <Button onClick={onClose}>{t('common.cancel')}</Button>
         <Button variant="contained" onClick={handleConfirm}>
-          Confirmer le recadrage
+          {t('cropDialog.confirm')}
         </Button>
       </DialogActions>
     </Dialog>
