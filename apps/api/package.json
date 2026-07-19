@@ -11,6 +11,7 @@
     "test:coverage": "vitest run --coverage",
     "set-admin": "tsx scripts/set-admin.ts",
     "test:emu": "firebase emulators:exec --only firestore --project portforyou-vsp --config ../../firebase.json \"vitest run\"",
+    "test:coverage:emu": "firebase emulators:exec --only firestore --project portforyou-vsp --config ../../firebase.json \"vitest run --coverage\"",
     "seed-demos": "tsx scripts/seed-demo-tenants.ts",
     "stripe-setup": "tsx scripts/stripe-setup.ts"
   },
