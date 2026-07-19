@@ -19,17 +19,17 @@
     "test:ui": "vitest --ui"
   },
   "peerDependencies": {
-    "@emotion/react": "^11",
-    "@emotion/styled": "^11",
-    "@mui/icons-material": "^9",
-    "@mui/material": "^9",
-    "i18next": "^26",
-    "react": "^19",
-    "react-colorful": "^5",
-    "react-dom": "^19",
-    "react-easy-crop": "^6",
-    "react-i18next": "^17",
-    "react-router-dom": "^7"
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.1",
+    "@mui/icons-material": "^9.2.0",
+    "@mui/material": "^9.2.0",
+    "i18next": "^26.3.6",
+    "react": "^19.2.7",
+    "react-colorful": "^5.8.0",
+    "react-dom": "^19.2.7",
+    "react-easy-crop": "^6.2.2",
+    "react-i18next": "^17.0.10",
+    "react-router-dom": "^7.18.1"
   },
   "devDependencies": {
     "@emotion/react": "^11.14.0",
