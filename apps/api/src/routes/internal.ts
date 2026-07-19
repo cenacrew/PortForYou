@@ -77,16 +77,43 @@ router.post('/internal/health-checks', requireCloudTasksOidc, async (_req, res) 
   res.json({ checked: results.filter(Boolean) });
 });
 
-/** Purge des réservations de slugs expirées — Cloud Scheduler (1 h). */
+/**
+ * Purge des réservations de slugs expirées — Cloud Scheduler (1 h).
+ * Une réservation expirée peut avoir laissé un site Firebase Hosting réel et
+ * vide (créé comme effet de bord de `checkHostingNameAvailable` à la
+ * réservation du slug, avant tout paiement — cf. docs/ARCHITECTURE.md §6).
+ * `driver.deprovision` est donc appelé avant de libérer le slug : il nettoie
+ * ce site orphelin (et no-op partout ailleurs, puisqu'aucune autre ressource
+ * n'a été créée pour une simple réservation jamais payée). Un slug dont le
+ * deprovision échoue reste en `reserved` expiré : il sera retenté au prochain
+ * passage (requête stateless sur `reservedAt`), sans jamais bloquer la purge
+ * des autres.
+ */
 router.post('/internal/cleanup-slugs', requireCloudTasksOidc, async (_req, res) => {
   const { slugsCol } = await import('../lib/firebase.js');
+  const driver = await getProvisionerDriver();
   const cutoff = new Date(Date.now() - 30 * 60 * 1000);
   const stale = await slugsCol()
     .where('status', '==', 'reserved')
     .where('reservedAt', '<', cutoff)
     .get();
-  await Promise.all(stale.docs.map((doc) => doc.ref.delete()));
-  res.json({ purged: stale.size });
+
+  const results = await Promise.allSettled(
+    stale.docs.map(async (doc) => {
+      await driver.deprovision(doc.id);
+      await doc.ref.delete();
+    }),
+  );
+
+  const failed: string[] = [];
+  results.forEach((r, i) => {
+    if (r.status === 'rejected') {
+      const slug = stale.docs[i]!.id;
+      console.error(`cleanup-slugs deprovision ${slug}:`, r.reason);
+      failed.push(slug);
+    }
+  });
+  res.json({ purged: results.length - failed.length, failed });
 });
 
 /**
