@@ -283,6 +283,12 @@ sequenceDiagram
     C->>W: choisit template + slug + infos artiste
     W->>A: POST /api/v1/orders
     A->>F: réserve slugs/{slug} (transaction, TTL 30 min)
+    A->>D: checkHostingNameAvailable(slug) — les ID de site Hosting sont globaux à Firebase
+    D->>H: crée (ou constate déjà pris ailleurs) le site pfy-{slug}
+    alt nom Hosting indisponible (pris par un projet tiers)
+        A->>F: libère slugs/{slug}
+        A-->>W: 409 slug_hosting_unavailable
+    end
     A->>S: crée Checkout Session (metadata: orderId, siteSlug, templateSlug, uid)
     A-->>W: URL Checkout
     C->>S: paie (mode test)
@@ -309,7 +315,7 @@ sequenceDiagram
     A->>C: email "votre site est en ligne" (Resend, URL + credentials)
 
     alt échec à une étape
-        A->>F: step failed + message générique (détail réel loggé serveur uniquement)
+        A->>F: step failed + message générique (ou message ProvisioningUserError si sûr/actionnable) — détail brut loggé serveur uniquement
         A->>F: deployments/{id}.status=failed, sites/{id}.status=error
         A->>C: email d'excuse
         note over A: admin peut relancer — chaque étape re-vérifie l'existant avant de créer
@@ -317,6 +323,10 @@ sequenceDiagram
 ```
 
 **Étapes** (`packages/shared` → `DEPLOYMENT_STEP_IDS`) : `validation` → `database` → `secrets` → `backend` → `frontend` → `checks` → `finalize`. Implémentation : `apps/api/src/provisioning/pipeline.ts` (`runProvisioning`).
+
+**Disponibilité du nom Hosting vérifiée avant paiement** : les ID de site Firebase Hosting (`pfy-<slug>`) sont uniques sur **tout Firebase**, pas seulement le projet `portforyou-vsp` — un slug jamais utilisé côté PortForYou peut donc être déjà pris par un projet tiers, sans qu'aucune vérification interne ne puisse le détecter. Sans garde-fou, la commande serait payée puis le provisioning échouerait irrémédiablement à l'étape `frontend`, avec un message générique ne donnant aucune piste (bug rencontré en prod sur le tenant `test2` : `pfy-test2` réservé par un projet Firebase tiers, échec identique à chaque relance). `reserveSlug` (`apps/api/src/orders/service.ts`) appelle donc `driver.checkHostingNameAvailable(slug)` juste après la réservation Firestore : en cas d'indisponibilité, la réservation est libérée immédiatement et `POST /orders` répond `409 slug_hosting_unavailable` — avant tout paiement. Effet de bord accepté : la vérification crée réellement le site Hosting (vide, sans release) si le nom est libre, ce qui le réserve globalement dès cet instant ; l'étape `frontend` du pipeline le retrouvera ensuite via le même appel idempotent (409 toléré). Si l'utilisateur abandonne avant paiement, ce site Hosting vide reste orphelin (aucun contenu, aucun trafic, coût négligeable) — pas de nettoyage automatique à ce jour.
+
+**Erreurs de provisioning sûres à afficher** : la plupart des erreurs du pipeline restent génériques côté client (`pipeline.ts`, voir plus bas) pour ne jamais faire fuiter un détail d'API GCP. Exception : `ProvisioningUserError` (`apps/api/src/provisioning/errors.ts`), levée par `gcp.ts` pour les cas identifiés comme sûrs et actionnables (ex. nom de site Hosting déjà pris ailleurs) — son message est alors affiché tel quel dans `deployments/{id}.steps[].error`.
 
 **Deux modes de déclenchement** (`dispatchProvisioning`) :
 

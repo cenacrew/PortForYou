@@ -24,6 +24,14 @@ export interface ProvisionerDriver {
   deployBackend(spec: TenantSpec): Promise<{ apiUrl: string }>;
   /** Déploie le front du tenant (site Firebase Hosting pfy-<slug>). */
   deployFrontend(spec: TenantSpec): Promise<{ frontUrl: string }>;
+  /**
+   * Vérifie que le nom de site Firebase Hosting pfy-<slug> est disponible.
+   * Les ID de site Hosting sont uniques sur TOUT Firebase (pas seulement ce
+   * projet) : un slug jamais utilisé côté PortForYou peut donc déjà être pris
+   * par un projet Firebase tiers. Appelé à la réservation du slug (avant
+   * paiement) pour échouer tôt plutôt qu'en plein provisioning.
+   */
+  checkHostingNameAvailable(slug: string): Promise<{ available: boolean; reason?: string }>;
   /** Vérifie que le site répond (poll avec timeout). */
   verify(urls: DeployedUrls): Promise<void>;
   /** Supprime toutes les ressources du tenant. */

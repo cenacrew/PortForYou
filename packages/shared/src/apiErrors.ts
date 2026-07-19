@@ -25,6 +25,7 @@ export const API_ERROR_CODES = [
   'invalid_or_expired_token',
   // Commandes / sites / déploiements
   'slug_taken',
+  'slug_hosting_unavailable',
   'site_not_found',
   'deployment_not_found',
   'order_not_found',

@@ -2,13 +2,23 @@ import { FieldValue } from 'firebase-admin/firestore';
 import { tenantFrontUrl, storedOrderSchema, INITIAL_SITE_STATUS } from '@portforyou/shared';
 import { db, ordersCol, sitesCol, slugsCol } from '../lib/firebase.js';
 import { dispatchProvisioning } from '../provisioning/pipeline.js';
+import { getProvisionerDriver } from '../provisioning/index.js';
 import { sendMail, orderConfirmationEmail } from '../emails/mailer.js';
 import { parseDoc } from '../lib/parseDoc.js';
 
 /** Durée de validité d'une réservation de slug non payée. */
 const SLUG_RESERVATION_TTL_MS = 30 * 60 * 1000;
 
-/** Réserve un slug de façon atomique. Jette si déjà pris. */
+/**
+ * Réserve un slug de façon atomique, puis vérifie que le nom de site Firebase
+ * Hosting `pfy-<slug>` correspondant est bien disponible. Les ID de site
+ * Hosting sont uniques sur tout Firebase (pas seulement notre projet) : un
+ * slug jamais utilisé côté PortForYou peut donc déjà être pris par un projet
+ * tiers. Sans cette vérification, la commande serait payée puis le
+ * provisioning échouerait irrémédiablement à l'étape "frontend" (même
+ * problème rencontré en prod sur le tenant test2). Jette si le slug est déjà
+ * pris côté PortForYou, ou si le nom est indisponible sur Hosting.
+ */
 export async function reserveSlug(slug: string, uid: string, orderId: string) {
   await db.runTransaction(async (tx) => {
     const ref = slugsCol().doc(slug);
@@ -30,6 +40,15 @@ export async function reserveSlug(slug: string, uid: string, orderId: string) {
       reservedAt: FieldValue.serverTimestamp(),
     });
   });
+
+  const driver = await getProvisionerDriver();
+  const hosting = await driver.checkHostingNameAvailable(slug);
+  if (!hosting.available) {
+    // Libère la réservation Firestore : ce slug ne pourra jamais aboutir tel
+    // quel, inutile de le bloquer pour d'autres utilisateurs pendant 30 min.
+    await slugsCol().doc(slug).delete();
+    throw new Error('SLUG_HOSTING_NAME_UNAVAILABLE');
+  }
 }
 
 export async function isSlugAvailable(slug: string): Promise<boolean> {
