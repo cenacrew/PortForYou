@@ -8,10 +8,13 @@ packages:
 # tar = correctif de sécurité.
 overrides:
   'tar@<6.2.2': '>=7.5.20'
-  # Correctif CVE-2026-12151 (DoS undici via WebSocket) — corrigé en 6.27.0.
-  # Contraint au major 6 pour éviter un saut 7/8 (risque runtime sur les libs
-  # Google/Firebase qui embarquent undici).
-  'undici@<6.27.0': '^6.27.0'
+  # Correctif CVE-2026-12151 (DoS undici via WebSocket). Seul consommateur
+  # d'undici en dessous de ce correctif : firebase-tools (devDependency,
+  # emulateurs/CLI local, jamais en prod) — firebase-admin/@google-cloud/
+  # storage/google-auth-library (les vraies libs runtime) n'en dépendent pas
+  # du tout (vérifié via `pnpm why undici -r`), donc pas de risque runtime à
+  # sauter le major.
+  'undici@<6.27.0': '^8.7.0'
 
 # Scripts de build autorisés (pnpm 11 les bloque par défaut) : binaires natifs
 # et codegen légitimes, requis pour esbuild/vitest, sharp (images Next), etc.
