@@ -7,3 +7,8 @@ emulator-data
 *.svg
 
 apps/web/next-env.d.ts
+
+# Généré par release-please à chaque release — jamais formaté à la main,
+# inutile (et source de faux échecs récurrents sur les PR de release) de lui
+# imposer les règles Prettier du repo.
+CHANGELOG.md
