@@ -18,6 +18,18 @@ on:
       - 'LICENSE'
   workflow_dispatch:
 
+# Piège connu : une PR qui ne touche QUE des chemins listés ci-dessus
+# (paths-ignore) ne déclenche jamais ce workflow via l'événement
+# `pull_request` — donc les checks requis par la protection de branche
+# (lint/test/e2e) ne sont jamais produits pour cette PR, et GitHub la
+# bloque indéfiniment ("N of N required status checks are expected"),
+# même si tout le reste est prêt. Un déclenchement manuel
+# (`workflow_dispatch`) ne corrige PAS ça : GitHub ne relie pas ce run à
+# l'évaluation des checks requis de la PR (contrairement à un run
+# déclenché par l'événement `pull_request` lui-même). Solution ponctuelle :
+# faire un commit qui touche aussi un fichier hors paths-ignore (même
+# trivial, ex. ce commentaire) pour forcer un vrai run `pull_request`.
+
 permissions:
   contents: read
 
