@@ -23,10 +23,11 @@ déjà en place.
 ## État réel (honnête, pas survendu)
 
 - Le score Lighthouse Accessibility est configuré avec un seuil de **0.9**
-  (`lighthouserc.json`) mais en assertion **`warn`** (non bloquant) — comme
-  les autres catégories Lighthouse, le temps que les budgets soient calibrés
-  sur une baseline réelle avant durcissement en `error` (voir
-  `docs/ARCHITECTURE.md` §10).
+  (`lighthouserc.json`) en assertion **`error`** (bloquante) : une régression
+  d'accessibilité sur la vitrine fait échouer la CI. Les autres catégories
+  (performance, SEO, bonnes pratiques) restent en `warn` le temps que leurs
+  budgets soient calibrés sur une baseline réelle (voir `docs/ARCHITECTURE.md`
+  §10).
 - `eslint-plugin-jsx-a11y` couvre l'ensemble du front (vitrine + templates
   tenants) en configuration `recommended` — l'essentiel des erreurs
   structurelles (images sans `alt`, boutons sans libellé accessible,
@@ -41,8 +42,8 @@ déjà en place.
 
 ## Prochaines étapes (par ordre d'effort croissant)
 
-1. Durcir les assertions Lighthouse accessibilité en `error` une fois une
-   baseline mesurée sur les pages existantes.
+1. ~~Durcir les assertions Lighthouse accessibilité en `error`~~ — **fait**
+   (`lighthouserc.json`, catégorie `accessibility` en `error`, min 0.9).
 2. Ajouter `@axe-core/playwright` aux specs e2e existantes
    (`apps/web/e2e/*.spec.ts`) pour un audit automatisé par page, au-delà de
    ce que Lighthouse couvre.
