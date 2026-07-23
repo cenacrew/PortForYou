@@ -1,16 +1,16 @@
 # Port'ForYou
 
 [![CI](https://github.com/cenacrew/PortForYou/actions/workflows/ci.yml/badge.svg)](https://github.com/cenacrew/PortForYou/actions/workflows/ci.yml)
-[![License](https://img.shields.io/badge/license-unspecified-lightgrey)](./SECURITY.md)
-[![Quality Gate Status](https://img.shields.io/badge/SonarCloud-not_yet_configured-lightgrey)](./docs/IMPROVEMENTS.md)
-[![OpenSSF Scorecard](https://img.shields.io/badge/OpenSSF_Scorecard-not_yet_configured-lightgrey)](./docs/IMPROVEMENTS.md)
+[![License](https://img.shields.io/github/license/cenacrew/PortForYou)](./LICENSE)
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=cenacrew_PortForYou&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=cenacrew_PortForYou)
+[![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/cenacrew/PortForYou/badge)](https://scorecard.dev/viewer/?uri=github.com/cenacrew/PortForYou)
 
-> Les badges SonarCloud (quality gate) et OSSF Scorecard sont des
-> placeholders : ils s'activeront automatiquement une fois ces outils
-> configurés (voir `docs/IMPROVEMENTS.md` §1 et §2) — un autre lot du projet
-> s'en charge. Le badge de licence reflète l'absence actuelle de fichier
-> `LICENSE` — à trancher par le mainteneur avant une éventuelle ouverture du
-> dépôt à des contributions externes.
+> SonarCloud n'analyse qu'à la demande (`workflow_dispatch`, voir
+> `.github/workflows/sonarcloud.yml`) — le plan gratuit ne permet pas de
+> personnaliser le quality gate, donc une analyse automatique sur chaque
+> push/PR poste une croix rouge non pertinente (gate impossible à
+> satisfaire) ; le badge peut donc refléter une analyse pas toujours
+> à jour avec `main`.
 
 Plateforme SaaS de portfolios pour artistes visuels : choisissez une template, un nom de site, payez — votre portfolio complet est en ligne en quelques minutes, avec son back-office.
 
@@ -19,12 +19,19 @@ Plateforme SaaS de portfolios pour artistes visuels : choisissez une template, u
 ## Structure
 
 ```
-apps/web          Vitrine + dashboards (Next.js, TypeScript)
-apps/api          API plateforme (Express, TypeScript)
-templates/atelier Template « Atelier » (back Express + front Vite/React)
-packages/shared   Schémas zod, types et constantes partagés
-infra/            Scripts GCP (projet portforyou-vsp)
+apps/web                     Vitrine + dashboards client/admin (Next.js App Router, TypeScript)
+apps/api                     API plateforme (Express 5 ESM, TypeScript strict)
+templates/{atelier,monolith,papier}  3 templates de portfolio (back Express + front Vite/React) — même
+                              périmètre fonctionnel, seule la direction artistique change
+packages/shared               Schémas zod (source de vérité des types), constantes partagées
+packages/template-back-core   Code back partagé des 3 templates (routes/middleware/lib), TypeScript strict
+packages/template-front-core  Code front partagé des 3 templates (pages, back-office, i18n), JSX
+docs/                         Architecture as-built, sécurité, runbook, user stories, cahier de recettes,
+                              manuel utilisateur, accessibilité
+infra/                        Scripts GCP (projet portforyou-vsp) et image Docker des émulateurs
 ```
+
+Vitrine et back-offices tenants sont disponibles en français (par défaut) et en anglais.
 
 ## Démarrage local (sans GCP)
 
