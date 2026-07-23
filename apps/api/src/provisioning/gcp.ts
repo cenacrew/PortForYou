@@ -105,11 +105,6 @@ export const gcpProvisionerDriver: ProvisionerDriver = {
           // (même config), pour que la dernière version des secrets tenant
           // (rotation du mot de passe, retry) soit bien rechargée.
           'pfy-deployed-at': String(Date.now()),
-          // Facturation à la requête : CPU alloué uniquement pendant le
-          // traitement, pas pendant que l'instance est chaude au repos. Colle au
-          // modèle « le client paie sa consommation réelle » et minimise le coût
-          // d'un portfolio à faible trafic.
-          'run.googleapis.com/cpu-throttling': 'true',
         },
         // SA d'exécution dédié (moindre privilège) : accès aux seuls secrets du
         // tenant, pas le SA Compute par défaut du projet.
@@ -120,7 +115,18 @@ export const gcpProvisionerDriver: ProvisionerDriver = {
           {
             image,
             ports: [{ containerPort: 8080 }],
-            resources: { limits: { cpu: '1', memory: '512Mi' } },
+            // `cpuIdle: true` = facturation à la requête (CPU alloué
+            // uniquement pendant le traitement, pas au repos) — c'est le
+            // champ v2 correct pour ce réglage. L'ancienne annotation
+            // Knative `run.googleapis.com/cpu-throttling` (API v1) n'a
+            // aucun effet sur l'API Cloud Run v2 utilisée ici (RUN_API) :
+            // silencieusement ignorée, elle laissait le service retomber
+            // sur le défaut v2 `cpuIdle: false` (CPU toujours alloué,
+            // facturation "instance-based" bien plus coûteuse) malgré
+            // l'intention du code — constaté en prod sur les 3 tenants
+            // démo, pingés en continu par la supervision (uptime checks +
+            // health-check Scheduler), facturant du CPU 24h/24 pour rien.
+            resources: { limits: { cpu: '1', memory: '512Mi' }, cpuIdle: true },
             env: [
               { name: 'TENANT_ID', value: spec.slug },
               { name: 'NODE_ENV', value: 'production' },

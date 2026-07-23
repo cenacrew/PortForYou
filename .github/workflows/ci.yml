@@ -200,6 +200,22 @@ jobs:
 
       - uses: google-github-actions/setup-gcloud@aa5489c8933f4cc7a4f7d45035b3b1440c9c10db # v3
 
+      - name: URL actuelle de l'API (avant tout déploiement)
+        # Récupérée AVANT le build/deploy plutôt qu'après : l'URL Cloud Run
+        # d'un service déjà existant ne change jamais d'un redéploiement à
+        # l'autre, donc pas besoin d'attendre la fin du déploiement pour la
+        # connaître. Sert à la fois au build-arg du front (NEXT_PUBLIC_API_URL)
+        # et aux env vars du déploiement de l'API elle-même (WEB_ORIGIN,
+        # API_PUBLIC_URL) — évite un second `gcloud run services update`
+        # après coup, qui recréait inutilement une révision supplémentaire de
+        # pfy-api à chaque déploiement (2× le nombre de révisions pour rien).
+        # Vide au tout premier déploiement (service pas encore créé) : dans ce
+        # cas précis seulement, une mise à jour manuelle post-bootstrap reste
+        # nécessaire — non-problème une fois pfy-api créé une première fois.
+        id: apiurl
+        run: |
+          echo "url=$(gcloud run services describe pfy-api --region "$REGION" --format='value(status.url)' 2>/dev/null || true)" >> "$GITHUB_OUTPUT"
+
       - uses: docker/setup-buildx-action@bb05f3f5519dd87d3ba754cc423b652a5edd6d2c # v4
 
       - name: Connexion à Artifact Registry
@@ -236,13 +252,9 @@ jobs:
             --region "$REGION" \
             --allow-unauthenticated \
             --min-instances 0 --max-instances 3 \
-            --set-env-vars "NODE_ENV=production,PAYMENT_DRIVER=stripe,PROVISIONER_DRIVER=gcp,PROVISIONING_VIA_TASKS=1,REQUIRE_VERIFIED_EMAIL=1,GCP_PROJECT_ID=$PROJECT_ID,COMMIT_SHA=${{ github.sha }},STRIPE_PRICE_BASE=price_1TpnUJ3UvSqKvC9na5LO4KRc,STRIPE_PRICE_DOMAIN=price_1TpnUK3UvSqKvC9nohRxnASV,STRIPE_PRICE_INFRA=price_1TpnUK3UvSqKvC9nr3A3H1Sr,GOOGLE_OAUTH_CLIENT_ID=212335230613-2v8i6fp1g7evjmqbi2kd9p6a4pe5q9l9.apps.googleusercontent.com,CONTACT_INBOX=valetnina.sp@gmail.com" \
+            --set-env-vars "NODE_ENV=production,PAYMENT_DRIVER=stripe,PROVISIONER_DRIVER=gcp,PROVISIONING_VIA_TASKS=1,REQUIRE_VERIFIED_EMAIL=1,GCP_PROJECT_ID=$PROJECT_ID,COMMIT_SHA=${{ github.sha }},WEB_ORIGIN=https://portforyou.web.app,API_PUBLIC_URL=${{ steps.apiurl.outputs.url }},STRIPE_PRICE_BASE=price_1TpnUJ3UvSqKvC9na5LO4KRc,STRIPE_PRICE_DOMAIN=price_1TpnUK3UvSqKvC9nohRxnASV,STRIPE_PRICE_INFRA=price_1TpnUK3UvSqKvC9nr3A3H1Sr,GOOGLE_OAUTH_CLIENT_ID=212335230613-2v8i6fp1g7evjmqbi2kd9p6a4pe5q9l9.apps.googleusercontent.com,CONTACT_INBOX=valetnina.sp@gmail.com" \
             --set-secrets "JWT_SECRET=pfy-jwt-secret:latest,STRIPE_SECRET_KEY=pfy-stripe-secret:latest,STRIPE_WEBHOOK_SECRET=pfy-stripe-webhook:latest,GOOGLE_OAUTH_CLIENT_SECRET=pfy-google-oauth-secret:latest,RESEND_API_KEY=pfy-resend-key:latest,SENTRY_DSN=pfy-sentry-dsn:latest" \
             --service-account "pfy-api@$PROJECT_ID.iam.gserviceaccount.com"
-
-      - name: URL de l'API (pour l'inline build-time du front)
-        id: apiurl
-        run: echo "url=$(gcloud run services describe pfy-api --region "$REGION" --format='value(status.url)')" >> "$GITHUB_OUTPUT"
 
       - name: Build & push Web (cache GHA)
         uses: docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a # v7
@@ -276,13 +288,6 @@ jobs:
             --allow-unauthenticated \
             --min-instances 0 --max-instances 3 \
             --set-env-vars "NEXT_PUBLIC_SENTRY_DSN=${{ vars.NEXT_PUBLIC_SENTRY_DSN }}"
-
-      - name: Post-deploy — CORS/URLs de l'API
-        run: |
-          # La vitrine publique est servie par Firebase Hosting (URL propre) qui
-          # proxifie vers Cloud Run pfy-web → c'est cette origine qu'attend le CORS.
-          gcloud run services update pfy-api --region "$REGION" \
-            --update-env-vars "WEB_ORIGIN=https://portforyou.web.app,API_PUBLIC_URL=${{ steps.apiurl.outputs.url }}"
 
       - name: Purge du cache Firebase Hosting
         run: |
