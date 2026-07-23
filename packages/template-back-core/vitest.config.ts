@@ -4,6 +4,11 @@ export default defineConfig({
   test: {
     environment: 'node',
     globals: true,
+    // Plusieurs suites importent l'app Express complète (Sentry, pino, routes)
+    // dans un beforeAll : sous exécution parallèle et transform TS à froid, cet
+    // import peut dépasser le hookTimeout par défaut de 10 s (flaky observé sur
+    // admin.route/seo.route). Marge alignée sur les suites d'intégration de l'API.
+    hookTimeout: 30000,
     coverage: {
       provider: 'v8',
       reporter: ['text', 'lcov'],
