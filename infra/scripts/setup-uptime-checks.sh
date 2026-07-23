@@ -40,8 +40,13 @@ for ENTRY in "${CHECKS[@]}"; do
   HOST="${REST%%:*}"
   PATHNAME="${REST#*:}"
 
+  # Filtre sur le host (ASCII, stable) plutôt que sur displayName : le tiret
+  # cadratin "—" du nom d'affichage n'est pas fiable dans un filtre gcloud
+  # selon l'environnement (constaté sous Windows/Git Bash — le filtre ne
+  # matchait jamais, donc le check "déjà présent" était toujours faux et le
+  # script recréait un doublon à chaque exécution malgré l'idempotence visée).
   EXISTING=$(gcloud monitoring uptime list-configs \
-    --filter="displayName=\"$NAME\"" --format='value(name)' 2>/dev/null | head -n1)
+    --filter="monitoredResource.labels.host=\"$HOST\"" --format='value(name)' 2>/dev/null | head -n1)
   if [ -n "$EXISTING" ]; then
     echo "  $NAME : déjà présent, rien à faire (modifier via la console pour changer la config)."
     continue
