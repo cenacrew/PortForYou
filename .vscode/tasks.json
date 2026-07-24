@@ -17,9 +17,17 @@
       "problemMatcher": []
     },
     {
+      "label": "Shared (build)",
+      "type": "shell",
+      "command": "pnpm --filter @portforyou/shared build",
+      "presentation": { "panel": "dedicated", "group": "dev" },
+      "problemMatcher": []
+    },
+    {
       "label": "API",
       "type": "shell",
-      "command": "pnpm --filter @portforyou/shared build && pnpm --filter @portforyou/api dev",
+      "command": "pnpm --filter @portforyou/api dev",
+      "dependsOn": ["Shared (build)"],
       "isBackground": true,
       "presentation": { "panel": "dedicated", "group": "dev" },
       "problemMatcher": []
