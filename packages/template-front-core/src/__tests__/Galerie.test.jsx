@@ -31,7 +31,12 @@ const renderGalerie = () =>
   );
 
 describe('Galerie', () => {
-  afterEach(() => vi.restoreAllMocks());
+  afterEach(() => {
+    vi.restoreAllMocks();
+    // Dans afterEach plutôt qu'en fin de test : un échec ne doit pas laisser
+    // fuiter le stub d'IntersectionObserver sur les tests suivants.
+    vi.unstubAllGlobals();
+  });
 
   it('affiche le spinner pendant le chargement', () => {
     mockFetch({ items: [], nextCursor: null });
@@ -96,11 +101,18 @@ describe('Galerie', () => {
     renderGalerie();
     await waitFor(() => screen.getByText('Peinture 1'));
 
+    // L'effet qui construit l'IntersectionObserver sort en `return` anticipé
+    // tant que `hasMore` est faux : il ne s'exécute donc qu'après le premier
+    // fetch. Attendre l'affichage de « Peinture 1 » ne garantit pas que cet
+    // effet a déjà tourné — d'où un `observerCallback` parfois encore undefined
+    // (flaky historique). On attend l'observation effective du sentinel, qui a
+    // lieu juste après la construction de l'observer : le callback est alors
+    // forcément capturé.
+    await waitFor(() => expect(observeSpy).toHaveBeenCalled());
+
     // Simuler l'entrée dans le viewport du sentinel
     observerCallback([{ isIntersecting: true }]);
     await waitFor(() => expect(screen.getByText('Peinture 2')).toBeDefined());
     expect(screen.getByText('Peinture 1')).toBeDefined();
-
-    vi.unstubAllGlobals();
   });
 });
