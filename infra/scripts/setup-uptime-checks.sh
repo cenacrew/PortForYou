@@ -51,11 +51,19 @@ for ENTRY in "${CHECKS[@]}"; do
     echo "  $NAME : déjà présent, rien à faire (modifier via la console pour changer la config)."
     continue
   fi
+  # Période 15 min (maximum autorisé par Cloud Monitoring : 1/5/10/15) et
+  # 3 régions (minimum imposé quand on en sélectionne) plutôt que le défaut
+  # 5 min × toutes les régions (~6) : les sondes sont gratuites, mais chaque
+  # ping réveille un service Cloud Run scale-to-zero et facture un cold start.
+  # Ce réglage divise ce trafic par ~6 (288 → 48 req/h) — cf. l'incident de
+  # coûts du 2026-07-23. Contrepartie assumée : détection d'une panne en
+  # 15 min au lieu de 5.
   gcloud monitoring uptime create "$NAME" \
     --resource-type=uptime-url \
     --resource-labels="host=$HOST,project_id=$PROJECT" \
     --protocol=https --port=443 --path="$PATHNAME" \
-    --period=5 --timeout=10 >/dev/null
+    --period=15 --timeout=10 \
+    --regions=europe,usa-oregon,asia-pacific >/dev/null
   echo "  $NAME créé ($HOST$PATHNAME)."
 done
 

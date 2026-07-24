@@ -210,7 +210,7 @@ API_URL=$(gcloud run services describe pfy-api --region "$REGION" --format='valu
 if [ -n "$API_URL" ]; then
   gcloud scheduler jobs describe pfy-health-checks --location="$REGION" >/dev/null 2>&1 ||
     gcloud scheduler jobs create http pfy-health-checks --location="$REGION" \
-      --schedule="*/10 * * * *" --uri="$API_URL/internal/health-checks" --http-method=POST \
+      --schedule="*/30 * * * *" --uri="$API_URL/internal/health-checks" --http-method=POST \
       --oidc-service-account-email="$API_SA" --oidc-token-audience="$API_URL"
   gcloud scheduler jobs describe pfy-cleanup-slugs --location="$REGION" >/dev/null 2>&1 ||
     gcloud scheduler jobs create http pfy-cleanup-slugs --location="$REGION" \
