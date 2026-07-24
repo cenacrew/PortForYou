@@ -75,6 +75,26 @@ done
 - [x] `tenant-test1` nettoyé (Cloud Run, Hosting, secrets, Firestore).
 - [x] Tous les services Cloud Run mis en pause (accès public révoqué).
 - [x] Tous les jobs Cloud Scheduler mis en pause.
-- [ ] Investigation complémentaire sur le détail exact des postes de coût
-      restants (CPU/ressources par service, volume de requêtes réel sur
-      21-22/07) — voir résultat rapporté séparément à l'utilisateur.
+- [x] Investigation complémentaire sur le détail exact des postes de coût
+      restants — **cause principale identifiée : `cpuIdle`**. Les services
+      tenants sont créés via l'API Cloud Run **v2**, dont le défaut est
+      `cpuIdle: false` (CPU alloué en permanence, facturé 24/7) ; l'annotation
+      v1 `run.googleapis.com/cpu-throttling` utilisée jusque-là y est
+      silencieusement ignorée. Corrigé dans `apps/api/src/provisioning/gcp.ts`
+      (`resources.cpuIdle: true`) et appliqué aux tenants existants.
+
+## Reprise du service — 2026-07-24
+
+- [x] `cpuIdle: true` **vérifié via l'API v2** (le champ qui fait autorité) sur
+      les 5 services, avec `minInstanceCount: 0` — facturation à la requête et
+      scale-to-zero confirmés avant remise en ligne.
+- [x] Accès public rétabli sur les 5 services, 4 jobs Cloud Scheduler réactivés.
+- [x] Plateforme redéployée ; le déploiement de `pfy-web` a d'abord été **bloqué
+      par le scan Trivy** (CVE `next` 16.2.10 et `sharp` 0.34.5) — le garde-fou
+      a joué son rôle. Débloqué par `next` 16.2.11 (#60) et un override
+      `sharp >= 0.35.3` (#61).
+- [x] **Fréquence de sondage réduite** pour limiter les réveils de conteneurs :
+      uptime checks 5 min → **15 min** (maximum autorisé) et régions ~6 → **3**
+      (minimum) ⇒ ~288 → ~48 req/h ; `pfy-health-checks` `*/10` → `*/30`
+      ⇒ ~42 → ~14 req/h. Contrepartie assumée : détection d'une panne en 15 min
+      au lieu de 5.
