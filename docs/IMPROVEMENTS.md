@@ -130,9 +130,9 @@ Les commits suivent déjà Conventional Commits (enforced par commitlint) — c'
 
 Problème connu : `tsc` compile `src/__tests__` dans `apps/api/dist/`, et un `test:emu` après un build fait tourner les tests **deux fois** (source + compilé) sur le même émulateur, avec collisions. `template-back-core` a déjà le fix (`"exclude": ["src/__tests__"]` dans son tsconfig) ; l'appliquer aussi à `apps/api` au lieu du `rm -rf dist` manuel.
 
-### Stabiliser le test flaky `papier/front` 🟢
+### ~~Stabiliser le test flaky `Galerie.test.jsx`~~ ✅ fait
 
-`Galerie.test.jsx` (IntersectionObserver) échoue de façon non déterministe (« observerCallback is not a function »). Un test flaky toléré finit par entraîner l'habitude de relancer la CI sans regarder — le corriger (ordre de setup du mock) ou le quarantiner explicitement.
+`Galerie.test.jsx` (`packages/template-front-core`) échouait de façon non déterministe (« observerCallback is not a function »). **Cause racine** : l'effet qui construit l'`IntersectionObserver` sort en `return` anticipé tant que `hasMore` est faux, donc il ne s'exécute qu'après le premier fetch ; le test appelait le callback dès l'apparition du premier item, sans garantie que l'effet ait tourné. **Corrigé** en attendant l'observation effective du sentinel (`await waitFor(() => expect(observeSpy).toHaveBeenCalled())`) avant d'invoquer le callback, et en déplaçant `vi.unstubAllGlobals()` dans `afterEach` pour qu'un échec ne fasse pas fuiter le stub.
 
 ### Tests de charge ciblés (k6) 🔴 — optionnel
 
