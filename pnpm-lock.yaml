@@ -5,7 +5,7 @@ settings:
   excludeLinksFromLockfile: false
 
 overrides:
-  tar@<6.2.2: '>=7.5.20'
+  tar@<6.2.2: '>=7.5.22'
   undici@<6.27.0: ^8.7.0
   sharp@<0.35.0: ^0.35.3
 

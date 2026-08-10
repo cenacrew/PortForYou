@@ -7,7 +7,7 @@ packages:
 # Overrides (pnpm 11 ne lit plus le champ "pnpm" de package.json) :
 # tar = correctif de sécurité.
 overrides:
-  'tar@<6.2.2': '>=7.5.20'
+  'tar@<6.2.2': '>=7.5.22'
   # Correctif CVE-2026-12151 (DoS undici via WebSocket). Seul consommateur
   # d'undici en dessous de ce correctif : firebase-tools (devDependency,
   # emulateurs/CLI local, jamais en prod) — firebase-admin/@google-cloud/
