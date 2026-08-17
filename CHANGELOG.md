@@ -1,5 +1,42 @@
 # Changelog
 
+## [0.2.1](https://github.com/cenacrew/PortForYou/compare/portforyou-v0.2.0...portforyou-v0.2.1) (2026-08-17)
+
+
+### Corrections
+
+* **deps:** override sharp &gt;=0.35.3 (CVE libvips bloquant le deploiement web) ([5389057](https://github.com/cenacrew/PortForYou/commit/5389057f8f75896eac09302aa6a7267e4c6e02d6))
+* **deps:** update dependency express-rate-limit to ^8.6.2 ([#73](https://github.com/cenacrew/PortForYou/issues/73)) ([cbe755b](https://github.com/cenacrew/PortForYou/commit/cbe755b74578bcbd4c87ea9051bd7fa8d81f64a0))
+* **deps:** update dependency google-auth-library to ^10.9.1 ([#74](https://github.com/cenacrew/PortForYou/issues/74)) ([c893e19](https://github.com/cenacrew/PortForYou/commit/c893e19d01e68cfcbfff8b74c3c057986bb7e2e5))
+* **deps:** update dependency lenis to ^1.3.26 ([#75](https://github.com/cenacrew/PortForYou/issues/75)) ([adbf7fe](https://github.com/cenacrew/PortForYou/commit/adbf7fec8914a2801584bdece32357c63de59904))
+* **deps:** update dependency next-intl to ^4.13.6 ([#76](https://github.com/cenacrew/PortForYou/issues/76)) ([98c3fc9](https://github.com/cenacrew/PortForYou/commit/98c3fc90c5c6343357b231af6188e14d19e00e01))
+* **deps:** update dependency react-easy-crop to ^6.2.3 ([#77](https://github.com/cenacrew/PortForYou/issues/77)) ([89e6cb1](https://github.com/cenacrew/PortForYou/commit/89e6cb1a62bbcf4d6694cb9e46022678bfb8c895))
+* **infra:** tache VS Code API sans && (invalide en PowerShell 5.1) [skip deploy] ([7f78f7f](https://github.com/cenacrew/PortForYou/commit/7f78f7fbbc174bc16c7d37da22b431046ad3f820))
+* pipeline CI, coûts GCP et cpuIdle tenants [skip deploy] ([74c8dae](https://github.com/cenacrew/PortForYou/commit/74c8daef9f18f80699d2b6a9407de19bcf9480b4))
+
+
+### Documentation
+
+* met à jour le README (badges réels, structure, i18n) ([a11dac2](https://github.com/cenacrew/PortForYou/commit/a11dac2ab5449246878e4cd43b23f85b6759d0a0))
+
+
+### CI
+
+* **web:** rend l'assertion Lighthouse accessibilite bloquante (error) [skip deploy] ([7789864](https://github.com/cenacrew/PortForYou/commit/7789864134f249700b7c9cfa0f34fb8ed377a61c))
+
+
+### Maintenance
+
+* **deps:** update actions github ([#66](https://github.com/cenacrew/PortForYou/issues/66)) ([e43dda6](https://github.com/cenacrew/PortForYou/commit/e43dda6ad2b89a0dad6fdad2662221705de00796))
+* **deps:** update actions github ([#67](https://github.com/cenacrew/PortForYou/issues/67)) ([af9975d](https://github.com/cenacrew/PortForYou/commit/af9975dea9f0f795cda77e99f5dd320350faff80))
+* **deps:** update actions github ([#70](https://github.com/cenacrew/PortForYou/issues/70)) ([8ecc519](https://github.com/cenacrew/PortForYou/commit/8ecc519df1f0223223d3923b4c155805c1f8700c))
+* **deps:** update dependency next to v16.2.11 [security] ([#60](https://github.com/cenacrew/PortForYou/issues/60)) ([543f00f](https://github.com/cenacrew/PortForYou/commit/543f00f685476738f65b141dd3302642191fad03))
+* **deps:** update dependency tar@&lt;6.2.2 to &gt;=7.5.22 ([#71](https://github.com/cenacrew/PortForYou/issues/71)) ([039cf08](https://github.com/cenacrew/PortForYou/commit/039cf089c89f3a3c44abf56d8ded765bc40d06cd))
+* **deps:** update github/codeql-action digest to ff2f1c6 ([#72](https://github.com/cenacrew/PortForYou/issues/72)) ([90b6944](https://github.com/cenacrew/PortForYou/commit/90b6944dc5ff8a0a1d1314ac20f0d6f3e53c1f64))
+* **deps:** update mcr.microsoft.com/devcontainers/base:bookworm docker digest to 73d85a9 ([#68](https://github.com/cenacrew/PortForYou/issues/68)) ([257b937](https://github.com/cenacrew/PortForYou/commit/257b93763d8799f9bc8e10ba229a341f070e244c))
+* **deps:** update runtime node to v24.18.1 ([#65](https://github.com/cenacrew/PortForYou/issues/65)) ([9ed508f](https://github.com/cenacrew/PortForYou/commit/9ed508f3a6514153df03e71b058d9ab9408aa5fd))
+* **infra:** sondes uptime 15min/3 regions, health-checks 30min [skip deploy] ([897334b](https://github.com/cenacrew/PortForYou/commit/897334b225da908c41bff47de1b420c5656f6abd))
+
 ## [0.2.0](https://github.com/cenacrew/PortForYou/compare/portforyou-v0.1.0...portforyou-v0.2.0) (2026-07-19)
 
 
