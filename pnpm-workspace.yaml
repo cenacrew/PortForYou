@@ -21,7 +21,7 @@ overrides:
   # d'où l'override plutôt qu'un bump. 0.35.3 est déjà résolu ailleurs dans
   # l'arbre, donc pas de duplication introduite. Bloquait le scan Trivy du
   # job deploy (CRITICAL,HIGH) et donc la mise en production de pfy-web.
-  'sharp@<0.35.0': '^0.35.3'
+  'sharp@<0.35.0': '^0.35.4'
 
 # Scripts de build autorisés (pnpm 11 les bloque par défaut) : binaires natifs
 # et codegen légitimes, requis pour esbuild/vitest, sharp (images Next), etc.
