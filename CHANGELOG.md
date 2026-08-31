@@ -1,5 +1,52 @@
 # Changelog
 
+## [0.2.1](https://github.com/cenacrew/PortForYou/compare/portforyou-v0.2.0...portforyou-v0.2.1) (2026-08-31)
+
+
+### Corrections
+
+* **deps:** override sharp &gt;=0.35.3 (CVE libvips bloquant le deploiement web) ([5389057](https://github.com/cenacrew/PortForYou/commit/5389057f8f75896eac09302aa6a7267e4c6e02d6))
+* **deps:** update dependency express-rate-limit to ^8.6.2 ([#73](https://github.com/cenacrew/PortForYou/issues/73)) ([cbe755b](https://github.com/cenacrew/PortForYou/commit/cbe755b74578bcbd4c87ea9051bd7fa8d81f64a0))
+* **deps:** update dependency google-auth-library to ^10.9.1 ([#74](https://github.com/cenacrew/PortForYou/issues/74)) ([c893e19](https://github.com/cenacrew/PortForYou/commit/c893e19d01e68cfcbfff8b74c3c057986bb7e2e5))
+* **deps:** update dependency lenis to ^1.3.26 ([#75](https://github.com/cenacrew/PortForYou/issues/75)) ([adbf7fe](https://github.com/cenacrew/PortForYou/commit/adbf7fec8914a2801584bdece32357c63de59904))
+* **deps:** update dependency next-intl to ^4.13.6 ([#76](https://github.com/cenacrew/PortForYou/issues/76)) ([98c3fc9](https://github.com/cenacrew/PortForYou/commit/98c3fc90c5c6343357b231af6188e14d19e00e01))
+* **deps:** update dependency next-intl to ^4.13.7 ([#79](https://github.com/cenacrew/PortForYou/issues/79)) ([9b84d7b](https://github.com/cenacrew/PortForYou/commit/9b84d7b7dc26bad1cac6d513305b3dc5f6461aed))
+* **deps:** update dependency react-easy-crop to ^6.2.3 ([#77](https://github.com/cenacrew/PortForYou/issues/77)) ([89e6cb1](https://github.com/cenacrew/PortForYou/commit/89e6cb1a62bbcf4d6694cb9e46022678bfb8c895))
+* **deps:** update dependency react-i18next to ^17.0.12 ([#80](https://github.com/cenacrew/PortForYou/issues/80)) ([050334a](https://github.com/cenacrew/PortForYou/commit/050334a026501dbad8da32ea14e688f89c4310d3))
+* **deps:** update dependency react-router-dom to ^7.18.2 ([#81](https://github.com/cenacrew/PortForYou/issues/81)) ([53e427d](https://github.com/cenacrew/PortForYou/commit/53e427d6b406f7cf8705801542d67e5e9c9338cb))
+* **deps:** update dependency react-router-dom to ^7.18.3 ([#85](https://github.com/cenacrew/PortForYou/issues/85)) ([6f3c11c](https://github.com/cenacrew/PortForYou/commit/6f3c11c77f31460126def93367957765cd843697))
+* **deps:** update dependency sharp to ^0.35.4 ([#86](https://github.com/cenacrew/PortForYou/issues/86)) ([08e6ed8](https://github.com/cenacrew/PortForYou/commit/08e6ed87199f7027e9919a2663b24ed0454bf1df))
+* **deps:** update react monorepo to ^19.2.8 ([#87](https://github.com/cenacrew/PortForYou/issues/87)) ([bbcce29](https://github.com/cenacrew/PortForYou/commit/bbcce2985f7b3c378faee301392bd88449df85c9))
+* **infra:** tache VS Code API sans && (invalide en PowerShell 5.1) [skip deploy] ([7f78f7f](https://github.com/cenacrew/PortForYou/commit/7f78f7fbbc174bc16c7d37da22b431046ad3f820))
+* pipeline CI, coûts GCP et cpuIdle tenants [skip deploy] ([74c8dae](https://github.com/cenacrew/PortForYou/commit/74c8daef9f18f80699d2b6a9407de19bcf9480b4))
+
+
+### Documentation
+
+* met à jour le README (badges réels, structure, i18n) ([a11dac2](https://github.com/cenacrew/PortForYou/commit/a11dac2ab5449246878e4cd43b23f85b6759d0a0))
+
+
+### CI
+
+* **web:** rend l'assertion Lighthouse accessibilite bloquante (error) [skip deploy] ([7789864](https://github.com/cenacrew/PortForYou/commit/7789864134f249700b7c9cfa0f34fb8ed377a61c))
+
+
+### Maintenance
+
+* **deps:** update actions github ([#66](https://github.com/cenacrew/PortForYou/issues/66)) ([e43dda6](https://github.com/cenacrew/PortForYou/commit/e43dda6ad2b89a0dad6fdad2662221705de00796))
+* **deps:** update actions github ([#67](https://github.com/cenacrew/PortForYou/issues/67)) ([af9975d](https://github.com/cenacrew/PortForYou/commit/af9975dea9f0f795cda77e99f5dd320350faff80))
+* **deps:** update actions github ([#70](https://github.com/cenacrew/PortForYou/issues/70)) ([8ecc519](https://github.com/cenacrew/PortForYou/commit/8ecc519df1f0223223d3923b4c155805c1f8700c))
+* **deps:** update actions github ([#78](https://github.com/cenacrew/PortForYou/issues/78)) ([42e28d4](https://github.com/cenacrew/PortForYou/commit/42e28d49d79a9743266bc9ccb03140bc2574616c))
+* **deps:** update dependency next to v16.2.11 [security] ([#60](https://github.com/cenacrew/PortForYou/issues/60)) ([543f00f](https://github.com/cenacrew/PortForYou/commit/543f00f685476738f65b141dd3302642191fad03))
+* **deps:** update dependency sharp@&lt;0.35.0 to ^0.35.4 ([#84](https://github.com/cenacrew/PortForYou/issues/84)) ([a5dc841](https://github.com/cenacrew/PortForYou/commit/a5dc84101d27e3250405d75adf45b1858a32fe70))
+* **deps:** update dependency tar@&lt;6.2.2 to &gt;=7.5.22 ([#71](https://github.com/cenacrew/PortForYou/issues/71)) ([039cf08](https://github.com/cenacrew/PortForYou/commit/039cf089c89f3a3c44abf56d8ded765bc40d06cd))
+* **deps:** update github/codeql-action digest to cdf488f ([#82](https://github.com/cenacrew/PortForYou/issues/82)) ([a09f2e2](https://github.com/cenacrew/PortForYou/commit/a09f2e2db70ffa0f4a92cc5543288c0ac9c49c28))
+* **deps:** update github/codeql-action digest to ff2f1c6 ([#72](https://github.com/cenacrew/PortForYou/issues/72)) ([90b6944](https://github.com/cenacrew/PortForYou/commit/90b6944dc5ff8a0a1d1314ac20f0d6f3e53c1f64))
+* **deps:** update mcr.microsoft.com/devcontainers/base:bookworm docker digest to 73d85a9 ([#68](https://github.com/cenacrew/PortForYou/issues/68)) ([257b937](https://github.com/cenacrew/PortForYou/commit/257b93763d8799f9bc8e10ba229a341f070e244c))
+* **deps:** update mcr.microsoft.com/devcontainers/base:bookworm docker digest to 86165cf ([#83](https://github.com/cenacrew/PortForYou/issues/83)) ([8db9a41](https://github.com/cenacrew/PortForYou/commit/8db9a4112e3a505d6cc01b9014d0919f76814bdd))
+* **deps:** update runtime node to v24.18.1 ([#65](https://github.com/cenacrew/PortForYou/issues/65)) ([9ed508f](https://github.com/cenacrew/PortForYou/commit/9ed508f3a6514153df03e71b058d9ab9408aa5fd))
+* **infra:** sondes uptime 15min/3 regions, health-checks 30min [skip deploy] ([897334b](https://github.com/cenacrew/PortForYou/commit/897334b225da908c41bff47de1b420c5656f6abd))
+
 ## [0.2.0](https://github.com/cenacrew/PortForYou/compare/portforyou-v0.1.0...portforyou-v0.2.0) (2026-07-19)
 
 
