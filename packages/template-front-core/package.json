@@ -28,7 +28,7 @@
     "react-colorful": "^5.8.1",
     "react-dom": "^19.2.8",
     "react-easy-crop": "^6.2.3",
-    "react-i18next": "^17.0.12",
+    "react-i18next": "^17.0.13",
     "react-router-dom": "^7.18.3"
   },
   "devDependencies": {
