@@ -22,6 +22,25 @@ overrides:
   # l'arbre, donc pas de duplication introduite. Bloquait le scan Trivy du
   # job deploy (CRITICAL,HIGH) et donc la mise en production de pfy-web.
   'sharp@<0.35.0': '^0.35.4'
+  # CVE-2026-14257 + CVE-2026-69152 (la seconde contourne le correctif de la
+  # première) : brace-expansion vulnérable à un DoS via motif malveillant en
+  # dessous de 1.1.18/2.1.4/5.0.9 selon la lignée. Transitif profond
+  # (firebase-admin/eslint/typescript-eslint → glob/minimatch → brace-expansion),
+  # aucun consommateur direct dans le repo. Bloquait le scan Trivy (CRITICAL,HIGH)
+  # des jobs deploy et Release Templates à chaque merge Renovate depuis fin
+  # juillet — chaque run bloqué reconstruit et repousse quand même l'image
+  # avant de la rejeter, d'où le coût Artifact Registry Network Egress
+  # récurrent chaque lundi (schedule Renovate). Trois lignées majeures
+  # coexistent dans l'arbre, chacune bornée séparément pour ne pas en écraser
+  # une par une autre.
+  'brace-expansion@>=1.0.0 <1.1.18': '^1.1.18'
+  'brace-expansion@>=2.0.0 <2.1.4': '^2.1.4'
+  'brace-expansion@>=5.0.0 <5.0.9': '^5.0.9'
+  # CVE-2026-69192 : ip-address < 10.3.1, parsing IP incohérent. Contrairement
+  # aux overrides ci-dessus, dépendance directe (pas seulement transitive) de
+  # @portforyou/api et @portforyou/template-back-core via express-rate-limit
+  # — donc en prod, pas juste dans la chaîne de build/dev.
+  'ip-address@<10.3.1': '^10.3.1'
 
 # Scripts de build autorisés (pnpm 11 les bloque par défaut) : binaires natifs
 # et codegen légitimes, requis pour esbuild/vitest, sharp (images Next), etc.
