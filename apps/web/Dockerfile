@@ -19,6 +19,10 @@ ENV NEXT_PUBLIC_SENTRY_DSN=$NEXT_PUBLIC_SENTRY_DSN
 RUN pnpm --filter @portforyou/shared build && pnpm --filter @portforyou/web build
 
 FROM node:24.18.1-slim@sha256:235600a8101ab264e117b1768e925532262668dc9b581ef1dd7d96ced463b8e7
+# Correctifs de sécurité Debian (ex. CVE-2026-86145/89161 sur libpcre2-8-0) non
+# encore présents dans ce digest figé de l'image de base — appliqués ici plutôt
+# que d'attendre une republication upstream, sans casser le pin du digest.
+RUN apt-get update && apt-get upgrade -y && rm -rf /var/lib/apt/lists/*
 ENV NODE_ENV=production
 WORKDIR /app
 COPY --from=build /repo/apps/web/.next/standalone ./

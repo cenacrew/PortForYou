@@ -45,3 +45,6 @@ CLAUDE.md
 # Fichiers locaux (worktrees d agents, notes manuelles) — non suivis
 .claude/
 MANUALTASK.md
+
+# Documents personnels Ynov (mémoires, rapports, diaporamas) — hors code
+ynov/
