@@ -29,6 +29,8 @@ on:
 # déclenché par l'événement `pull_request` lui-même). Solution ponctuelle :
 # faire un commit qui touche aussi un fichier hors paths-ignore (même
 # trivial, ex. ce commentaire) pour forcer un vrai run `pull_request`.
+# Rencontré en pratique le 2026-09-15 (PR #97, doc uniquement) — ce
+# commentaire en est le déclencheur.
 
 permissions:
   contents: read
