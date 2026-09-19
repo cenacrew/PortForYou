@@ -14,7 +14,7 @@ overrides:
   # storage/google-auth-library (les vraies libs runtime) n'en dépendent pas
   # du tout (vérifié via `pnpm why undici -r`), donc pas de risque runtime à
   # sauter le major.
-  'undici@<6.27.0': '^8.7.0'
+  'undici@<6.27.0': '^8.9.0'
   # GHSA-f88m-g3jw-g9cj : sharp < 0.35.0 embarque une libvips vulnérable
   # (CVE-2026-33327/33328/35590/35591). sharp n'est déclaré dans aucun
   # package.json : il arrive en transitif via next (optimisation d'images),
