@@ -293,3 +293,11 @@ une dépendance non couverte par un override refera échouer `deploy`/`Release
 Templates` de la même façon (build + push avant rejet Trivy). Envisager, hors
 urgence démo, de faire échouer le scan _avant_ le push de l'image plutôt
 qu'après, pour rendre ce mode de facturation impossible structurellement.
+
+### Coupure exécutée — 2026-09-20
+
+- [x] 6 services Cloud Run supprimés (les 5 prévus + `tenant-demonstration`, créé pendant la démo).
+- [x] Sites Hosting supprimés : `pfy-demo-*`, `pfy-demonstration`, `portforyou` (le site par défaut `portforyou-vsp` ne peut pas l'être).
+- [x] 4 jobs Scheduler, 4 uptime checks et 2 politiques d'alerte supprimés ; 8 secrets de tenants supprimés (secrets plateforme conservés).
+- [x] 11 workflows GitHub Actions désactivés (`gh workflow enable` pour les rétablir), Dependabot (alertes + security updates) désactivé, Renovate coupé via `"enabled": false` dans `.github/renovate.json`, notifications du repo ignorées.
+- **Remise en service** : réactiver les workflows, retirer `"enabled": false`, réactiver Dependabot, puis redéployer via `ci.yml`/`seed-demos`.

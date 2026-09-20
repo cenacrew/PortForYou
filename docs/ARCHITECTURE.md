@@ -1,5 +1,7 @@
 # Architecture — Port'ForYou
 
+> **État au 2026-09-20 : plateforme mise hors service (coupure post-démo).** Les services Cloud Run, sites Firebase Hosting, jobs Cloud Scheduler, uptime checks et alertes Monitoring décrits ci-dessous ont été supprimés ; Firestore, Artifact Registry et les secrets plateforme sont conservés. Les workflows GitHub Actions sont désactivés et Renovate est coupé (`"enabled": false`). Ce document décrit l'architecture telle que déployable ; voir `docs/INCIDENT_COUTS_GCP_2026-07-23.md` pour la coupure et la remise en service.
+
 > Document de référence de l'architecture **telle qu'implémentée** dans ce repo (par opposition à `PortForYou.md`, qui est le cahier des charges prescriptif). En cas de divergence entre les deux, ce document doit être corrigé pour refléter le code — c'est le code qui fait foi.
 >
 > Voir aussi : `docs/RUNBOOK.md` (opérations), `docs/SECURITY.md` (contrôles de sécurité détaillés), `PortForYou.md` (spec complète, roadmap v2, estimation de coûts).

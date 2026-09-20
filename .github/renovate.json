@@ -6,6 +6,7 @@
     ":semanticCommits",
     "helpers:pinGitHubActionDigests"
   ],
+  "enabled": false,
   "pinDigests": true,
   "timezone": "Europe/Paris",
   "schedule": ["before 6am on monday"],
