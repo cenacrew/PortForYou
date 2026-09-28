@@ -35,7 +35,7 @@ overrides:
   # une par une autre.
   'brace-expansion@>=1.0.0 <1.1.18': '^1.1.18'
   'brace-expansion@>=2.0.0 <2.1.4': '^2.1.4'
-  'brace-expansion@>=5.0.0 <5.0.9': '^5.0.9'
+  'brace-expansion@>=5.0.0 <5.0.9': '^5.0.12'
   # CVE-2026-69192 : ip-address < 10.3.1, parsing IP incohérent. Contrairement
   # aux overrides ci-dessus, dépendance directe (pas seulement transitive) de
   # @portforyou/api et @portforyou/template-back-core via express-rate-limit
