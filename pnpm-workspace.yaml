@@ -21,7 +21,7 @@ overrides:
   # d'où l'override plutôt qu'un bump. 0.35.3 est déjà résolu ailleurs dans
   # l'arbre, donc pas de duplication introduite. Bloquait le scan Trivy du
   # job deploy (CRITICAL,HIGH) et donc la mise en production de pfy-web.
-  'sharp@<0.35.0': '^0.35.4'
+  'sharp@<0.35.0': '^0.35.5'
   # CVE-2026-14257 + CVE-2026-69152 (la seconde contourne le correctif de la
   # première) : brace-expansion vulnérable à un DoS via motif malveillant en
   # dessous de 1.1.18/2.1.4/5.0.9 selon la lignée. Transitif profond
