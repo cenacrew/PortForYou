@@ -3,7 +3,7 @@
 
   // Image de base minimale (Debian) : tout le reste (Node, Java, Docker)
   // vient de features officielles ghcr.io/devcontainers/features/*.
-  "image": "mcr.microsoft.com/devcontainers/base:bookworm@sha256:3aacff4130e6cf04709f9cab1d7a6d3e1cc4bff6202bc61611831a18d3755673",
+  "image": "mcr.microsoft.com/devcontainers/base:bookworm@sha256:06701e75787b0b948709e803f95b42cabf37607b1c308c57471d6f0252149d87",
 
   "features": {
     // Version alignée sur .nvmrc / "engines.node" du package.json racine.
